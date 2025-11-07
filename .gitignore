@@ -11,6 +11,7 @@ test_snapshots
 # build output
 dist
 dist-ssr
+build/
 
 # dependencies
 node_modules/
@@ -23,6 +24,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+bun-debug.log*
 
 # environment variables
 .env
@@ -31,9 +33,29 @@ lerna-debug.log*
 
 # easy way to create temporary local-only files and folders
 *.local.*
+*.tmp
+*.swp
+.cache/
 
-# macOS-specific files
+# OS-specific files
+# macOS
 .DS_Store
+._*
+# Windows
+Thumbs.db
+Desktop.ini
+# Linux
+*~
+
+# IDE and editor files
+.vscode/
+.idea/
+*.sublime-*
+
+# testing and coverage
+coverage/
+.nyc_output/
+test-results/
 
 # generated contract clients
 packages/*
@@ -43,3 +65,7 @@ packages/*
 # generated contract client imports
 src/contracts/*
 !src/contracts/util.ts
+
+# lock files (optional: ignore if using multiple managers)
+# yarn.lock
+# pnpm-lock.yaml
