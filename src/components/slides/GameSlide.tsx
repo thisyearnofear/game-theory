@@ -101,11 +101,13 @@ export const GameSlide: React.FC<SlideProps> = () => {
   );
   const audioManager = AudioManager.getInstance();
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const generateAIFeedback = async (gameData: {
     move: string;
     outcome: string;
     stake: number;
+    playerPayout: number;
+    aiPayout: number;
+    aiStrategy: string;
   }) => {
     const context = {
       playerMove: gameData.move as "C" | "D",
@@ -198,20 +200,24 @@ export const GameSlide: React.FC<SlideProps> = () => {
       const aiPayout = result.aiPayout;
 
       // ENHANCEMENT: Update game state for AI tutor
+      const outcome =
+        playerPayout > aiPayout
+          ? "win"
+          : playerPayout < aiPayout
+            ? "lose"
+            : "tie";
       const newGameHistoryItem = {
         move: move as "cooperate" | "defect",
-        outcome:
-          playerPayout > aiPayout
-            ? "win"
-            : playerPayout < aiPayout
-              ? "lose"
-              : "tie",
+        outcome,
         stake: stakeAmount,
         playerPayout,
         aiPayout,
         aiStrategy,
       };
       setGameHistory([...gameHistory, newGameHistoryItem]);
+
+      // Activate tutor feedback
+      await generateAIFeedback(newGameHistoryItem);
 
       // Character emotions based on outcome
       if (playerPayout > aiPayout) {
@@ -645,6 +651,54 @@ Transaction: ${result?.txHash ? "✅ Confirmed" : "⏳ Pending"}
         >
           {result}
         </Text>
+      )}
+
+      {/* AI Tutor Feedback */}
+      {result && aiMessage && (
+        <div
+          style={{
+            background: "rgba(255,255,255,0.95)",
+            borderRadius: "15px",
+            padding: "20px",
+            marginTop: "20px",
+            boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+            border: `2px solid ${aiPersona.color}`,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              marginBottom: "10px",
+            }}
+          >
+            <span style={{ fontSize: "24px" }}>{aiPersona.emoji}</span>
+            <Text
+              as="h4"
+              size="md"
+              style={{
+                fontFamily: "FuturaHandwritten",
+                color: aiPersona.color,
+                margin: 0,
+              }}
+            >
+              {aiPersona.name}
+            </Text>
+          </div>
+          <Text
+            as="p"
+            size="md"
+            style={{
+              fontFamily: "FuturaHandwritten",
+              color: "#333",
+              lineHeight: "1.4",
+              margin: 0,
+            }}
+          >
+            {aiMessage}
+          </Text>
+        </div>
       )}
     </div>
   );
