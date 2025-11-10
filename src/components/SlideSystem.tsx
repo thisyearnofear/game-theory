@@ -16,7 +16,7 @@ export interface SlideConfig {
 export interface SlideProps {
   onNext: () => void;
   onPrev: () => void;
-  slideData?: any;
+  slideData?: Record<string, unknown>;
 }
 
 interface SlideSystemProps {
@@ -26,7 +26,7 @@ interface SlideSystemProps {
 
 export const SlideSystem: React.FC<SlideSystemProps> = ({ slides, onComplete }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [slideData, setSlideData] = useState<any>({});
+  const [slideData] = useState<Record<string, unknown>>({});
   const [audioManager] = useState(() => AudioManager.getInstance());
 
   // PERFORMANT: Initialize audio on first load
@@ -82,6 +82,7 @@ export const SlideSystem: React.FC<SlideSystemProps> = ({ slides, onComplete }) 
       {/* ENHANCEMENT: Audio controls */}
       <div className="audio-controls">
         <button
+          type="button"
           className={`audio-button ${!audioManager.isMusicEnabled ? 'disabled' : ''}`}
           onClick={() => audioManager.toggleMusic()}
           title="Toggle Music"
@@ -89,6 +90,7 @@ export const SlideSystem: React.FC<SlideSystemProps> = ({ slides, onComplete }) 
           {audioManager.isMusicEnabled ? "🎵" : "🔇"}
         </button>
         <button
+          type="button"
           className={`audio-button ${!audioManager.isSFXEnabled ? 'disabled' : ''}`}
           onClick={() => audioManager.toggleSFX()}
           title="Toggle Sound Effects"
@@ -99,9 +101,10 @@ export const SlideSystem: React.FC<SlideSystemProps> = ({ slides, onComplete }) 
 
       {/* CLEAN: Progress indicator */}
       <div className="slide-progress">
-        {slides.map((_, index) => (
+        {slides.map((slide, index) => (
           <button
-            key={index}
+            type="button"
+            key={`slide-${slide.id}-${index}`}
             className={`progress-dot ${currentSlide === index ? 'active' : ''}`}
             onClick={() => handleSlideJump(index)}
           />

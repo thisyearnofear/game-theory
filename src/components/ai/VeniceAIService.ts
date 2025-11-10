@@ -14,7 +14,7 @@ interface GameContext {
   stake?: number;
   aiStrategy?: string;
   roundNumber?: number;
-  history?: any[];
+  history?: Array<Record<string, unknown>>;
 }
 
 export class VeniceAIService {
@@ -25,7 +25,7 @@ export class VeniceAIService {
 
   constructor() {
     // ENHANCEMENT: Get API key from environment or user input
-    this.apiKey = import.meta.env.VITE_VENICE_API_KEY || "";
+    this.apiKey = String(import.meta.env.VITE_VENICE_API_KEY || "");
   }
 
   static getInstance(): VeniceAIService {
@@ -79,7 +79,7 @@ export class VeniceAIService {
         throw new Error(`Venice API error: ${response.status}`);
       }
 
-      const data: VeniceResponse = await response.json();
+      const data: VeniceResponse = await response.json() as VeniceResponse;
       return data.choices[0]?.message?.content || this.getFallbackResponse(personaName, requestType);
     } catch (error) {
       console.warn("Venice AI request failed, using fallback:", error);
@@ -160,11 +160,7 @@ Keep responses under 100 words, educational but engaging.`;
   }
 
   // MODULAR: Generate LLM opponent moves (future enhancement)
-  async generateOpponentMove(
-    personality: string,
-    gameHistory: any[],
-    playerHistory: ("C" | "D")[]
-  ): Promise<{ move: "C" | "D"; reasoning: string }> {
+  generateOpponentMove(): { move: "C" | "D"; reasoning: string } {
     // This would be implemented for LLM opponents
     // For now, return algorithmic behavior
     return {

@@ -51,7 +51,7 @@ export const PrisonersDilemma = () => {
     return [0, 0]; // Both defect
   };
 
-  const playSinglePlayer = async () => {
+  const playSinglePlayer = () => {
     if (!move || !address) return;
     
     setLoading(true);
@@ -73,7 +73,7 @@ export const PrisonersDilemma = () => {
         ${playerPayout > aiPayout ? "You won!" : playerPayout === aiPayout ? "It's a tie!" : "AI won!"}
       `);
     } catch (error) {
-      setStatus(`Error: ${error}`);
+      setStatus(`Error: ${String(error)}`);
     } finally {
       setLoading(false);
     }
@@ -96,7 +96,7 @@ export const PrisonersDilemma = () => {
       setGameId(newGameId);
       setStatus(`Game created! Game ID: ${newGameId}. Waiting for player 2.`);
     } catch (error) {
-      setStatus(`Error: ${error}`);
+      setStatus(`Error: ${String(error)}`);
     } finally {
       setLoading(false);
     }
@@ -117,7 +117,7 @@ export const PrisonersDilemma = () => {
       
       setStatus("Joined game successfully! Moves submitted. Resolve to see results.");
     } catch (error) {
-      setStatus(`Error: ${error}`);
+      setStatus(`Error: ${String(error)}`);
     } finally {
       setLoading(false);
     }
@@ -137,7 +137,7 @@ export const PrisonersDilemma = () => {
       const [payout1, payout2] = result;
       setStatus(`Game resolved! Payouts: Player 1: ${Number(payout1) / 10_000_000} XLM, Player 2: ${Number(payout2) / 10_000_000} XLM`);
     } catch (error) {
-      setStatus(`Error: ${error}`);
+      setStatus(`Error: ${String(error)}`);
     } finally {
       setLoading(false);
     }
@@ -206,7 +206,7 @@ export const PrisonersDilemma = () => {
           </Text>
           <select 
             value={aiStrategy} 
-            onChange={(e) => setAiStrategy(e.target.value as any)}
+            onChange={(e) => setAiStrategy(e.target.value as "cooperator" | "defector" | "random" | "tit-for-tat")}
             style={{ 
               fontFamily: "FuturaHandwritten", 
               padding: "8px",
@@ -329,7 +329,7 @@ export const PrisonersDilemma = () => {
         {gameMode === "single" ? (
           <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
             <Button
-              onClick={playSinglePlayer}
+              onClick={() => void playSinglePlayer()}
               disabled={!move || loading}
               style={{ 
                 fontFamily: "FuturaHandwritten",
@@ -343,7 +343,7 @@ export const PrisonersDilemma = () => {
           <>
             <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
               <Button
-                onClick={createGame}
+                onClick={() => void createGame()}
                 disabled={!stake || loading}
                 style={{ 
                   fontFamily: "FuturaHandwritten",
@@ -369,14 +369,14 @@ export const PrisonersDilemma = () => {
 
             <div style={{ display: "flex", gap: "10px", justifyContent: "center", marginBottom: "20px" }}>
               <Button
-                onClick={joinGame}
+                onClick={() => void joinGame()}
                 disabled={!gameId || !move || loading}
                 style={{ fontFamily: "FuturaHandwritten" }}
               >
                 {loading ? "Joining..." : "Join Game"}
               </Button>
               <Button
-                onClick={resolveGame}
+                onClick={() => void resolveGame()}
                 disabled={!gameId || loading}
                 style={{ fontFamily: "FuturaHandwritten" }}
               >

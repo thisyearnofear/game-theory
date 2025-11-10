@@ -102,12 +102,12 @@ export class LLMOpponent {
         }),
       });
 
-      const data = await response.json();
-      const fullResponse = data.choices[0]?.message?.content || "";
+      const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
+      const fullResponse = data.choices?.[0]?.message?.content || "";
       
       // CLEAN: Extract move from response
       const move = this.extractMove(fullResponse);
-      const reasoning = fullResponse.replace(/I choose to (COOPERATE|DEFECT)/i, "").trim();
+      const reasoning = String(fullResponse).replace(/I choose to (COOPERATE|DEFECT)/i, "").trim();
 
       // Update history
       if (playerMove) {
@@ -181,7 +181,7 @@ export class LLMOpponent {
     return Math.random() < this.personality.tendencies.cooperation ? "C" : "D";
   }
 
-  private getFallbackReasoning(move: "C" | "D", playerMove?: "C" | "D", roundNumber: number = 1): string {
+  private getFallbackReasoning(move: "C" | "D"): string {
     const { name } = this.personality;
     
     if (move === "C") {

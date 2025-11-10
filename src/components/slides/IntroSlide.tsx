@@ -2,7 +2,7 @@ import React from "react";
 import { Text } from "@stellar/design-system";
 import { SlideProps } from "../SlideSystem";
 
-export const IntroSlide: React.FC<SlideProps> = ({ onNext }) => {
+export const IntroSlide: React.FC<SlideProps> = () => {
   return (
     <div style={{ textAlign: "center", padding: "40px" }}>
       <div style={{ fontSize: "80px", marginBottom: "20px" }}>🤝</div>
