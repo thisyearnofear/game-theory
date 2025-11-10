@@ -90,6 +90,7 @@ export const GameSlide: React.FC<SlideProps> = () => {
   });
   const [aiMessage, setAiMessage] = useState<string>("");
   const [roundNumber, setRoundNumber] = useState(0);
+  const [showSummary, setShowSummary] = useState(false);
   const [gameHistory, setGameHistory] = useState<
     Array<{
       move: string;
@@ -101,6 +102,59 @@ export const GameSlide: React.FC<SlideProps> = () => {
     }>
   >([]);
   const veniceService = VeniceAIService.getInstance();
+
+  // ANALYSIS: Session learning metrics
+  const sessionAnalysis = {
+    wins: gameHistory.filter((g) => g.outcome === "win").length,
+    losses: gameHistory.filter((g) => g.outcome === "lose").length,
+    ties: gameHistory.filter((g) => g.outcome === "tie").length,
+    cooperationRate:
+      gameHistory.length > 0
+        ? (gameHistory.filter((g) => g.move === "cooperate").length /
+            gameHistory.length) *
+          100
+        : 0,
+    bestStrategy: (() => {
+      const strategyStats = gameHistory.reduce(
+        (acc, game) => {
+          const key = game.aiStrategy;
+          if (!acc[key]) {
+            acc[key] = { wins: 0, total: 0, totalPayout: 0 };
+          }
+          acc[key].total += 1;
+          acc[key].totalPayout += game.playerPayout;
+          if (game.outcome === "win") acc[key].wins += 1;
+          return acc;
+        },
+        {} as Record<
+          string,
+          { wins: number; total: number; totalPayout: number }
+        >,
+      );
+
+      let best = { strategy: "", winRate: 0, avgPayout: 0 };
+      Object.entries(strategyStats).forEach(([strategy, stats]) => {
+        const winRate = (stats.wins / stats.total) * 100;
+        const avgPayout = stats.totalPayout / stats.total;
+        if (winRate > best.winRate || avgPayout > best.avgPayout) {
+          best = { strategy, winRate, avgPayout };
+        }
+      });
+      return best.strategy || "N/A";
+    })(),
+    trend: (() => {
+      if (gameHistory.length < 2) return "N/A";
+      const recent = gameHistory.slice(-3);
+      const recentWins = recent.filter((g) => g.outcome === "win").length;
+      const older = gameHistory.slice(0, -3);
+      const olderWins = older.filter((g) => g.outcome === "win").length;
+      if (olderWins === 0) return recentWins > 0 ? "📈 Improving" : "Stable";
+      const improvement = recentWins - (olderWins / older.length) * 3;
+      if (improvement > 0.5) return "📈 Improving";
+      if (improvement < -0.5) return "📉 Declining";
+      return "➡️ Stable";
+    })(),
+  };
 
   const { address, signTransaction } = useWallet();
   const { playGame: playSinglePlayerGame } = useSinglePlayerGame(
@@ -640,19 +694,35 @@ Transaction: ${result?.txHash ? "✅ Confirmed" : "⏳ Pending"}
         )}
 
         {gameHistory.length > 0 && (
-          <Button
-            onClick={() => {
-              setGameHistory([]);
-              setRoundNumber(0);
-              resetGame();
-              audioManager.playSound("click");
-            }}
-            variant="secondary"
-            style={{ width: "140px" }}
-            size="md"
-          >
-            Reset Series
-          </Button>
+          <>
+            <Button
+              onClick={() => {
+                setGameHistory([]);
+                setRoundNumber(0);
+                resetGame();
+                audioManager.playSound("click");
+              }}
+              variant="secondary"
+              style={{ width: "140px" }}
+              size="md"
+            >
+              Reset Series
+            </Button>
+
+            <Button
+              onClick={() => setShowSummary(!showSummary)}
+              variant="secondary"
+              style={{
+                width: "120px",
+                background: showSummary
+                  ? "rgba(102, 126, 234, 0.2)"
+                  : "transparent",
+              }}
+              size="md"
+            >
+              📊 Summary
+            </Button>
+          </>
         )}
       </div>
 
@@ -737,6 +807,173 @@ Transaction: ${result?.txHash ? "✅ Confirmed" : "⏳ Pending"}
             }}
           >
             {aiMessage}
+          </Text>
+        </div>
+      )}
+
+      {/* Session Summary */}
+      {showSummary && gameHistory.length > 0 && (
+        <div
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(200, 150, 255, 0.1))",
+            borderRadius: "15px",
+            padding: "20px",
+            marginTop: "20px",
+            boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+            border: "2px solid rgba(102, 126, 234, 0.3)",
+          }}
+        >
+          <Text
+            as="h3"
+            size="md"
+            style={{
+              fontFamily: "FuturaHandwritten",
+              color: "#667eea",
+              marginBottom: "15px",
+              margin: 0,
+              marginBottom: "15px",
+            }}
+          >
+            📊 Session Summary
+          </Text>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "15px",
+              marginBottom: "15px",
+            }}
+          >
+            <div style={{ textAlign: "center" }}>
+              <Text
+                as="p"
+                size="sm"
+                style={{
+                  fontFamily: "FuturaHandwritten",
+                  color: "#666",
+                  margin: "0 0 5px 0",
+                  fontSize: "0.85rem",
+                }}
+              >
+                Record
+              </Text>
+              <Text
+                as="p"
+                size="md"
+                style={{
+                  fontFamily: "FuturaHandwritten",
+                  color: "#333",
+                  margin: 0,
+                  fontSize: "1.1rem",
+                  fontWeight: "bold",
+                }}
+              >
+                {sessionAnalysis.wins}W {sessionAnalysis.losses}L{" "}
+                {sessionAnalysis.ties}T
+              </Text>
+            </div>
+
+            <div style={{ textAlign: "center" }}>
+              <Text
+                as="p"
+                size="sm"
+                style={{
+                  fontFamily: "FuturaHandwritten",
+                  color: "#666",
+                  margin: "0 0 5px 0",
+                  fontSize: "0.85rem",
+                }}
+              >
+                Cooperation Rate
+              </Text>
+              <Text
+                as="p"
+                size="md"
+                style={{
+                  fontFamily: "FuturaHandwritten",
+                  color: "#333",
+                  margin: 0,
+                  fontSize: "1.1rem",
+                  fontWeight: "bold",
+                }}
+              >
+                {sessionAnalysis.cooperationRate.toFixed(0)}%
+              </Text>
+            </div>
+
+            <div style={{ textAlign: "center" }}>
+              <Text
+                as="p"
+                size="sm"
+                style={{
+                  fontFamily: "FuturaHandwritten",
+                  color: "#666",
+                  margin: "0 0 5px 0",
+                  fontSize: "0.85rem",
+                }}
+              >
+                Best Strategy
+              </Text>
+              <Text
+                as="p"
+                size="md"
+                style={{
+                  fontFamily: "FuturaHandwritten",
+                  color: "#333",
+                  margin: 0,
+                  fontSize: "1rem",
+                  fontWeight: "bold",
+                }}
+              >
+                {sessionAnalysis.bestStrategy}
+              </Text>
+            </div>
+
+            <div style={{ textAlign: "center" }}>
+              <Text
+                as="p"
+                size="sm"
+                style={{
+                  fontFamily: "FuturaHandwritten",
+                  color: "#666",
+                  margin: "0 0 5px 0",
+                  fontSize: "0.85rem",
+                }}
+              >
+                Trend
+              </Text>
+              <Text
+                as="p"
+                size="md"
+                style={{
+                  fontFamily: "FuturaHandwritten",
+                  color: "#333",
+                  margin: 0,
+                  fontSize: "1rem",
+                  fontWeight: "bold",
+                }}
+              >
+                {sessionAnalysis.trend}
+              </Text>
+            </div>
+          </div>
+
+          <Text
+            as="p"
+            size="sm"
+            style={{
+              fontFamily: "FuturaHandwritten",
+              color: "#666",
+              fontSize: "0.85rem",
+              margin: 0,
+              fontStyle: "italic",
+              textAlign: "center",
+            }}
+          >
+            Playing more rounds helps you discover what works best against
+            different strategies.
           </Text>
         </div>
       )}
