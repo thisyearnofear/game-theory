@@ -91,13 +91,13 @@ export class VeniceAIService {
   private buildSystemPrompt(personaName: string, personaStyle: string, requestType: string): string {
     const basePrompt = `You are ${personaName}, an AI tutor teaching game theory through the Prisoner's Dilemma. 
 Your personality: ${personaStyle}
-Keep responses under 100 words, educational but engaging.`;
+CRITICAL: Keep responses under 50 words. Be concise, direct, and impactful.`;
 
     const typePrompts = {
-      welcome: "Give a brief, friendly introduction to yourself and game theory.",
-      advice: "Provide strategic advice based on the game situation. Focus on game theory concepts.",
-      explanation: "Explain what just happened in game theory terms. Be insightful but concise.",
-      encouragement: "Encourage the player's learning journey. Be supportive and motivating."
+      welcome: "Give a brief, friendly introduction (max 2 sentences).",
+      advice: "Provide strategic advice in 1-2 sentences. Focus on key game theory concepts.",
+      explanation: "Explain what happened in 1-2 sentences. Be insightful but brief.",
+      encouragement: "Encourage the player in 1-2 sentences. Be supportive and motivating."
     };
 
     return `${basePrompt}\n\n${typePrompts[requestType as keyof typeof typePrompts]}`;

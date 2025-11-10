@@ -164,7 +164,9 @@ export const AITutorPanel: React.FC<AITutorPanelProps> = ({
         </div>
         
         {/* CLEAN: Minimize button */}
-        <Button onClick={() = size="md"> setShowPanel(!showPanel)}
+        <Button 
+          onClick={() => setShowPanel(!showPanel)}
+          size="md"
           style={{
             width: "30px",
             height: "30px",
@@ -251,8 +253,10 @@ export const AITutorPanel: React.FC<AITutorPanelProps> = ({
           🎉 Encourage
         </Button>
         
-        <Button onClick={() = size="md"> setCurrentMessage(persona.catchphrases[Math.floor(Math.random() * persona.catchphrases.length)])}
+        <Button 
+          onClick={() => setCurrentMessage(persona.catchphrases[Math.floor(Math.random() * persona.catchphrases.length)])}
           variant="secondary"
+          size="md"
           disabled={isThinking}
           style={{
             fontSize: "0.8rem",

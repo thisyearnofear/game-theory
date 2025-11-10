@@ -180,7 +180,9 @@ export const IteratedSlide: React.FC<SlideProps> = () => {
 
         {gameActive && (
           <div style={{ display: "flex", gap: "15px", justifyContent: "center" }}>
-            <Button onClick={() = size="md"> playRound("C")}
+            <Button 
+              onClick={() => playRound("C")}
+              size="md"
               style={{ 
                 fontFamily: "FuturaHandwritten",
                 background: "#4CAF50",
@@ -190,7 +192,9 @@ export const IteratedSlide: React.FC<SlideProps> = () => {
             >
               🤝 Cooperate
             </Button>
-            <Button onClick={() = size="md"> playRound("D")}
+            <Button 
+              onClick={() => playRound("D")}
+              size="md"
               style={{ 
                 fontFamily: "FuturaHandwritten",
                 background: "#F44336", 

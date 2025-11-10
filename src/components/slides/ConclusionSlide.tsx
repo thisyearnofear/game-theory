@@ -97,7 +97,9 @@ export const ConclusionSlide: React.FC<SlideProps> = ({ onNext }) => {
         </div>
       </div>
 
-      <Button onClick={() = size="md"> setShowApplications(!showApplications)}
+      <Button 
+        onClick={() => setShowApplications(!showApplications)}
+        size="md"
         style={{ 
           fontFamily: "FuturaHandwritten",
           marginBottom: "20px",

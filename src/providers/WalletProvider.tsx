@@ -6,7 +6,7 @@ import {
   useState,
   useTransition,
 } from "react";
-import { wallet } from "../util/wallet";
+import { wallet, connectWallet, disconnectWallet } from "../util/wallet";
 import storage from "../util/storage";
 
 export interface WalletContextType {
@@ -15,6 +15,8 @@ export interface WalletContextType {
   networkPassphrase?: string;
   isPending: boolean;
   signTransaction?: typeof wallet.signTransaction;
+  connect?: () => Promise<void>;
+  disconnect?: () => void;
 }
 
 const initialState = {
@@ -87,21 +89,26 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       // extension, depending on which wallet they select!
       try {
         popupLock.current = true;
-        wallet.setWallet(walletId);
+        // Skip re-polling for non-freighter wallets when we already have address
         if (walletId !== "freighter" && walletAddr !== null) return;
-        const [a, n] = await Promise.all([
+        const [addressResult, networkResult] = await Promise.all([
           wallet.getAddress(),
           wallet.getNetwork(),
         ]);
 
-        if (!a.address) storage.setItem("walletId", "");
+        const address = addressResult;
+        if (!address) storage.setItem("walletId", "");
         if (
-          a.address !== state.address ||
-          n.network !== state.network ||
-          n.networkPassphrase !== state.networkPassphrase
+          address !== state.address ||
+          networkResult.network !== state.network ||
+          networkResult.networkPassphrase !== state.networkPassphrase
         ) {
-          storage.setItem("walletAddress", a.address);
-          updateState({ ...a, ...n });
+          storage.setItem("walletAddress", address);
+          updateState({ 
+            address,
+            network: networkResult.network,
+            networkPassphrase: networkResult.networkPassphrase 
+          });
         }
       } catch (e) {
         // If `getNetwork` or `getAddress` throw errors... sign the user out???
@@ -148,11 +155,40 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, [state]); // eslint-disable-line react-hooks/exhaustive-deps -- it SHOULD only run once per component mount
 
+  const connect = async () => {
+    startTransition(async () => {
+      try {
+        const result = await connectWallet() as any;
+        updateState({
+          address: result.address,
+          network: result.network,
+          networkPassphrase: result.networkPassphrase,
+        });
+        storage.setItem("walletId", "freighter");
+        storage.setItem("walletAddress", result.address);
+        storage.setItem("walletNetwork", result.network);
+        storage.setItem("networkPassphrase", result.networkPassphrase);
+      } catch (error) {
+        console.error("Failed to connect wallet:", error);
+        nullify();
+      }
+    });
+  };
+
+  const disconnect = () => {
+    startTransition(() => {
+      disconnectWallet();
+      nullify();
+    });
+  };
+
   const contextValue = useMemo(
     () => ({
       ...state,
       isPending,
       signTransaction,
+      connect,
+      disconnect,
     }),
     [state, isPending, signTransaction],
   );

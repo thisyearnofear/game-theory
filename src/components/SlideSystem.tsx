@@ -112,15 +112,25 @@ export const SlideSystem: React.FC<SlideSystemProps> = ({ slides, onComplete }) 
       </div>
 
       {/* MODULAR: Slide content */}
-      <div className="slide-content">
+      <div style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "calc(100vh - 120px)",
+        padding: "40px 20px",
+        textAlign: "center",
+        maxWidth: "900px",
+        margin: "0 auto"
+      }}>
         {currentSlideConfig.title && (
-          <Text as="h1" className="slide-title fade-in">
+          <Text as="h1" size="xl" className="slide-title fade-in">
             {currentSlideConfig.title}
           </Text>
         )}
         
         {currentSlideConfig.subtitle && (
-          <Text as="h2" className="slide-subtitle fade-in">
+          <Text as="h2" size="lg" className="slide-subtitle fade-in">
             {currentSlideConfig.subtitle}
           </Text>
         )}
@@ -135,7 +145,15 @@ export const SlideSystem: React.FC<SlideSystemProps> = ({ slides, onComplete }) 
       </div>
 
       {/* CLEAN: Navigation */}
-      <div className="slide-navigation">
+      <div style={{
+        position: "fixed",
+        bottom: "30px",
+        left: "50%",
+        transform: "translateX(-50%)",
+        display: "flex",
+        gap: "15px",
+        zIndex: 10
+      }}>
         <Button variant="secondary"
           onClick={handlePrev}
           disabled={currentSlide === 0} size="md">

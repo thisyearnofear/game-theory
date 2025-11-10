@@ -74,20 +74,31 @@ Unlike traditional simulations, this dApp requires "skin in the game":
 ## Project Structure
 
 ```
-game-theory/                     # Game Theory on Stellar dApp
-├── contracts/                   # Smart contracts (Rust)
-│   └── prisoners-dilemma/       # Prisoner's Dilemma with XLM stakes
-├── packages/                    # Auto-generated TypeScript clients
-├── src/                         # Frontend React application
-│   ├── components/              # React components (PrisonersDilemma)
-│   ├── contracts/               # Contract interaction helpers
-│   ├── hooks/                   # Custom React hooks (useWallet)
-│   ├── pages/                   # App Pages (Home, Debugger)
-│   ├── styles/                  # CSS styling (inspired by Nicky Case)
-│   └── App.tsx                  # Main application component
-├── public/assets/               # Visual assets and sounds
-├── environments.toml            # Environment configurations
-└── package.json                 # Frontend dependencies
+game-theory/                         # Game Theory on Stellar dApp
+├── contracts/                       # Smart contracts (Rust)
+│   ├── single-player-dilemma/       # Single-player AI contract (NEW)
+│   │   ├── src/
+│   │   │   ├── lib.rs              # Core contract logic
+│   │   │   └── error.rs            # Error types
+│   │   └── README.md               # Contract documentation
+│   └── prisoners-dilemma/           # P2P reference implementation
+├── packages/                        # Auto-generated TypeScript clients
+│   ├── single_player_dilemma/       # Generated from single-player contract
+│   └── prisoners_dilemma/           # Generated from P2P contract
+├── src/                             # Frontend React application
+│   ├── components/                  # React components
+│   │   ├── ai/                     # AI integration (Venice + Algo)
+│   │   ├── slides/                 # Educational slide system
+│   │   └── PrisonersDilemma.tsx    # Game UI
+│   ├── contracts/                   # Contract utilities
+│   ├── hooks/                       # Custom React hooks
+│   ├── pages/                       # App Pages
+│   ├── util/                        # Helpers (strategies, wallet, etc)
+│   ├── styles/                      # CSS styling
+│   └── App.tsx                      # Main application
+├── public/assets/                   # Visual assets and sounds
+├── environments.toml                # Environment configurations
+└── package.json                     # Frontend dependencies
 ```
 
 ## Key Features
@@ -112,30 +123,59 @@ game-theory/                     # Game Theory on Stellar dApp
 ## Development
 
 ### Contract Development
+
+#### Building
 ```bash
-# Build contracts
+# Build all contracts
 cargo build --target wasm32-unknown-unknown --release
 
-# Generate TypeScript bindings
+# Or build specific contract
+cd contracts/single-player-dilemma
+cargo build --target wasm32-unknown-unknown --release
+```
+
+#### Generating TypeScript Bindings
+```bash
+# Single-player contract
+stellar contract bindings typescript \
+  --wasm target/wasm32-unknown-unknown/release/single_player_dilemma.wasm \
+  --output-dir packages/single_player_dilemma
+
+# P2P contract (reference)
 stellar contract bindings typescript \
   --wasm target/wasm32-unknown-unknown/release/prisoners_dilemma.wasm \
   --output-dir packages/prisoners_dilemma
+```
 
-# Deploy to testnet
+#### Deploying to Testnet
+```bash
+# Single-player contract (recommended)
 stellar contract deploy \
-  --wasm target/wasm32-unknown-unknown/release/prisoners_dilemma.wasm \
+  --wasm target/wasm32-unknown-unknown/release/single_player_dilemma.wasm \
   --source testnet-user \
   --network testnet \
-  -- --admin <ADMIN_ADDRESS>
+  -- --admin <YOUR_TESTNET_ADDRESS>
+
+# Update environments.toml with deployed contract address
 ```
 
 ### Frontend Development
 ```bash
-# Start development server
+# Start development server with hot reload
 npm run dev
 
 # Build for production
 npm run build
+
+# Run linter
+npm run lint
+```
+
+### Testing
+```bash
+# Test single-player contract
+cd contracts/single-player-dilemma
+cargo test
 ```
 
 ## Inspiration

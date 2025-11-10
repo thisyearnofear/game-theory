@@ -180,8 +180,11 @@ export const TournamentSlide: React.FC<SlideProps> = () => {
           ))}
         </select>
 
-        <Input value={stake}
-          onChange={(e) = id="input" fieldSize="md"> setStake(e.target.value)}
+        <Input 
+          value={stake}
+          onChange={(e) => setStake(e.target.value)}
+          id="input" 
+          fieldSize="md"
           placeholder="Tournament entry (XLM)"
           type="number"
           min="0.1"
