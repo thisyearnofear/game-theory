@@ -76,14 +76,27 @@ export const GameSlide: React.FC<SlideProps> = () => {
     };
 
     try {
-      const persona =
-        AI_PERSONAS?.[Math.floor(Math.random() * AI_PERSONAS.length)];
-      return persona &&
-        typeof persona === "object" &&
-        "name" in persona &&
-        "color" in persona
-        ? (persona as AIPersona)
-        : fallbackPersona;
+      const personas = Object.values(AI_PERSONAS);
+      const selectedPersona =
+        personas[Math.floor(Math.random() * personas.length)];
+      if (selectedPersona && "name" in selectedPersona) {
+        // Map imported persona to our interface
+        const personaColors: Record<string, string> = {
+          equilibrium: "#6366f1",
+          prisoner: "#8b5cf6",
+          darwin: "#ec4899",
+          behavioral: "#f59e0b",
+          auctioneer: "#3b82f6",
+          network: "#10b981",
+        };
+        return {
+          name: selectedPersona.name,
+          emoji: selectedPersona.avatar,
+          color: personaColors[selectedPersona.id] || "#667eea",
+          personality: selectedPersona.personality,
+        };
+      }
+      return fallbackPersona;
     } catch {
       return fallbackPersona;
     }
