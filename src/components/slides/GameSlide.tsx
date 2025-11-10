@@ -89,8 +89,16 @@ export const GameSlide: React.FC<SlideProps> = () => {
     }
   });
   const [aiMessage, setAiMessage] = useState<string>("");
+  const [roundNumber, setRoundNumber] = useState(0);
   const [gameHistory, setGameHistory] = useState<
-    Array<{ move: string; outcome: string; stake: number }>
+    Array<{
+      move: string;
+      outcome: string;
+      stake: number;
+      playerPayout: number;
+      aiPayout: number;
+      aiStrategy: string;
+    }>
   >([]);
   const veniceService = VeniceAIService.getInstance();
 
@@ -241,10 +249,26 @@ export const GameSlide: React.FC<SlideProps> = () => {
       const aiMoveText = aiMove === "C" ? "Cooperated" : "Defected";
       const playerMoveText = playerMove === "C" ? "Cooperated" : "Defected";
 
+      // Calculate cumulative payoffs
+      const newRound = roundNumber + 1;
+      const cumulativePlayerPayoff = gameHistory.reduce(
+        (sum, game) => sum + game.playerPayout,
+        playerPayout,
+      );
+      const cumulativeAIPayoff = gameHistory.reduce(
+        (sum, game) => sum + game.aiPayout,
+        aiPayout,
+      );
+
+      setRoundNumber(newRound);
       setResult(`
+Round ${newRound}
 You: ${playerMoveText} | AI (${aiStrategy}): ${aiMoveText}
-Your payout: ${playerPayout} XLM | AI payout: ${aiPayout} XLM
-${playerPayout > aiPayout ? "You won!" : playerPayout === aiPayout ? "Tie!" : "AI won!"}
+This round: You ${playerPayout} XLM | AI ${aiPayout} XLM
+${playerPayout > aiPayout ? "✅ You won this round!" : playerPayout === aiPayout ? "🤝 Tie!" : "❌ AI won this round!"}
+
+Total after ${newRound} round${newRound > 1 ? "s" : ""}: You ${cumulativePlayerPayoff.toFixed(7)} XLM | AI ${cumulativeAIPayoff.toFixed(7)} XLM
+${cumulativePlayerPayoff > cumulativeAIPayoff ? "🏆 You're ahead!" : cumulativePlayerPayoff < cumulativeAIPayoff ? "📉 AI is ahead" : "⚖️ Tied!"}
 Transaction: ${result?.txHash ? "✅ Confirmed" : "⏳ Pending"}
       `);
     } catch (error) {
@@ -612,6 +636,22 @@ Transaction: ${result?.txHash ? "✅ Confirmed" : "⏳ Pending"}
             size="md"
           >
             Play Again
+          </Button>
+        )}
+
+        {gameHistory.length > 0 && (
+          <Button
+            onClick={() => {
+              setGameHistory([]);
+              setRoundNumber(0);
+              resetGame();
+              audioManager.playSound("click");
+            }}
+            variant="secondary"
+            style={{ width: "140px" }}
+            size="md"
+          >
+            Reset Series
           </Button>
         )}
       </div>
