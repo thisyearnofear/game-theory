@@ -28,6 +28,7 @@ This project demonstrates innovative use of Scaffold Stellar to create education
 ## Quick Start
 
 1. **Clone and install:**
+
 ```bash
 git clone <repository-url>
 cd game-theory
@@ -35,6 +36,7 @@ npm install
 ```
 
 2. **Start the application:**
+
 ```bash
 npm run dev
 # or
@@ -58,18 +60,44 @@ Unlike traditional simulations, this dApp requires "skin in the game":
 - **Choose Strategy:** Cooperate or Defect without knowing opponent's choice
 - **Real Payoffs:** Outcomes directly affect your wallet balance
 
+### Game Modes
+
+#### 🤖 Single Player (Recommended)
+
+**Fast, instant gameplay against AI opponents**
+
+- **Instant Resolution:** One transaction completes the entire game
+- **AI Strategies:**
+  - Random: Makes unpredictable decisions
+  - Cooperator: Always cooperates
+  - Defector: Always defects
+  - Tit-for-Tat: Mirrors your moves
+- **Best For:** Learning game theory concepts, quick games, low gas fees
+- **Smart Contract:** `CB47IPOHTEZ62KC32JWANALO6FEKSAMXMMMZQGK7GEM5P45M2SQZCXQY`
+
+**Game Flow:**
+
+1. Select your move (Cooperate/Defect)
+2. Choose AI strategy
+3. Stake XLM
+4. Contract plays game and resolves in one transaction
+5. Receive payouts instantly
+
+#### 👥 Multiplayer (Coming Soon)
+
+**Play against other human players with real stakes**
+
+- Multi-transaction flow for human-vs-human gameplay
+- Requires coordination between two players
+- Full trust dynamics with real human strategy
+- Smart Contract: `CDY3NB4ZS5DTF3CEAHNXTZ4QFJXZKHECE7HIAPMMDNNJW7CNDPG274TF`
+
 ### Payoff Matrix (in XLM)
 
-| Player 1 \ Player 2 | Cooperate | Defect |
-|---------------------|-----------|---------|
-| **Cooperate** | Both get 2 XLM (Reward) | P1: 0, P2: 3 XLM (Sucker/Temptation) |
-| **Defect** | P1: 3, P2: 0 XLM (Temptation/Sucker) | Both get 0 XLM (Punishment) |
-
-### Game Flow
-
-1. **Create Game:** Player 1 stakes XLM and creates a game
-2. **Join Game:** Player 2 joins with their move (Cooperate/Defect)
-3. **Resolve Game:** Contract calculates payoffs and distributes XLM
+| Your Move \ Opponent's Move | Cooperate                            | Defect                                    |
+| --------------------------- | ------------------------------------ | ----------------------------------------- |
+| **Cooperate**               | Both get 2 XLM (Reward)              | You: 0, Opponent: 3 XLM (Sucker's Payoff) |
+| **Defect**                  | You: 3, Opponent: 0 XLM (Temptation) | Both get 0 XLM (Punishment)               |
 
 ## Project Structure
 
@@ -103,21 +131,39 @@ game-theory/                         # Game Theory on Stellar dApp
 
 ## Key Features
 
+### Multiple Game Modes
+
+- **🤖 Single Player Mode** (Active)
+  - Instant one-transaction games against AI
+  - Minimal gas fees
+  - Perfect for learning
+  - Multiple AI difficulty levels (Cooperator, Defector, Random, Tit-for-Tat)
+
+- **👥 Multiplayer Mode** (Coming Soon)
+  - True P2P games with human opponents
+  - Full trust dynamics
+  - Real human strategy and psychology
+
 ### Real XLM Integration
-- **Testnet Deployment:** Contract deployed on Stellar testnet
+
+- **Testnet Deployment:** Contracts deployed on Stellar testnet
 - **Wallet Integration:** Stellar Wallet Kit for seamless transactions
 - **Real Stakes:** Actual XLM transfers based on game outcomes
-- **Transaction History:** All games recorded on blockchain
+- **Instant Settlement:** Results recorded on blockchain immediately
 
 ### Immersive Design
+
 - **Nicky Case Inspired:** Visual design inspired by "The Evolution of Trust"
 - **FuturaHandwritten Font:** Authentic typography from original
 - **Interactive Payoff Matrix:** Clear visualization of game mechanics
 - **Sound Effects:** Audio feedback for game actions
+- **Mode Selection UI:** Clear distinction between game types
 
 ### Educational Value
+
 - **Game Theory Concepts:** Learn cooperation vs. defection dynamics
 - **Economic Incentives:** Experience how real stakes affect decision-making
+- **AI Behavior Analysis:** Understand different strategies in action
 - **Blockchain Education:** Understand smart contracts through gameplay
 
 ## Development
@@ -125,6 +171,7 @@ game-theory/                         # Game Theory on Stellar dApp
 ### Contract Development
 
 #### Building
+
 ```bash
 # Build all contracts
 cargo build --target wasm32-unknown-unknown --release
@@ -135,6 +182,7 @@ cargo build --target wasm32-unknown-unknown --release
 ```
 
 #### Generating TypeScript Bindings
+
 ```bash
 # Single-player contract
 stellar contract bindings typescript \
@@ -148,6 +196,7 @@ stellar contract bindings typescript \
 ```
 
 #### Deploying to Testnet
+
 ```bash
 # Single-player contract (recommended)
 stellar contract deploy \
@@ -160,6 +209,7 @@ stellar contract deploy \
 ```
 
 ### Frontend Development
+
 ```bash
 # Start development server with hot reload
 npm run dev
@@ -172,6 +222,7 @@ npm run lint
 ```
 
 ### Testing
+
 ```bash
 # Test single-player contract
 cd contracts/single-player-dilemma

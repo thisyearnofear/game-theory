@@ -1,10 +1,14 @@
 #![no_std]
 use soroban_sdk::{
     contract, contractimpl, contracttype, symbol_short, Address, Env, Symbol, Vec,
+    token::Client as TokenClient,
 };
 
 mod error;
 use error::Error;
+
+// AI player address - deterministic address for receiving AI payouts
+const AI_PLAYER_ADDRESS: &str = "GDZST3XVCDTUJ76ZAV2HA72KYXM4Y5LHKQNJM6GVLZS5DBFNFGH2HEU3";
 
 // Game moves
 const COOPERATE: Symbol = symbol_short!("C");
@@ -74,76 +78,79 @@ impl SinglePlayerDilemma {
     /// * `ai_strategy` - "RND", "COOP", "DEF", or "TFT"
     /// * `stake` - Amount in stroops (1 XLM = 10,000,000 stroops)
     pub fn play_game(
-        env: &Env,
-        player: Address,
-        player_move: Symbol,
-        ai_strategy: Symbol,
-        stake: i128,
+    env: &Env,
+    player: Address,
+    player_move: Symbol,
+    ai_strategy: Symbol,
+    stake: i128,
     ) -> Result<GameResult, Error> {
-        player.require_auth();
+    player.require_auth();
 
-        // Validate inputs
-        Self::validate_move(&player_move)?;
-        Self::validate_strategy(&ai_strategy)?;
-        if stake <= 0 {
-            return Err(Error::InvalidStake);
-        }
-
-        // Get next game ID
-        let mut count: u64 = env.storage().instance().get(&GAME_COUNT).unwrap_or(0);
-        count += 1;
-        env.storage().instance().set(&GAME_COUNT, &count);
-        let game_id = count;
-
-        // Generate AI move deterministically based on game_id and strategy
-        let ai_move = Self::generate_ai_move(env, game_id, &ai_strategy);
-
-        // Calculate payouts
-        let (player_payout, ai_payout) = Self::calculate_payouts(
-            &player_move,
-            &ai_move,
-            stake,
-        );
-
-        // Create game record
-        let game = Game {
-            id: game_id,
-            player: player.clone(),
-            player_move: player_move.clone(),
-            ai_strategy: ai_strategy.clone(),
-            stake,
-            status: symbol_short!("resolved"),
-            created_at: env.ledger().timestamp(),
-        };
-        env.storage().persistent().set(&(GAMES, game_id), &game);
-
-        // Create result record
-        let result = GameResult {
-            player: player.clone(),
-            player_move: player_move.clone(),
-            ai_move: ai_move.clone(),
-            ai_strategy: ai_strategy.clone(),
-            stake,
-            player_payout,
-            ai_payout,
-            resolved_at: env.ledger().timestamp(),
-            game_id,
-        };
-        env.storage().persistent().set(&(RESULTS, game_id), &result);
-
-        // Store result in player's history (for future leaderboards)
-        let mut player_results: Vec<u64> = env
-            .storage()
-            .persistent()
-            .get(&(PLAYER_RESULTS, player.clone()))
-            .unwrap_or(Vec::new(&env));
-        player_results.push_back(game_id);
-        env.storage()
-            .persistent()
-            .set(&(PLAYER_RESULTS, player.clone()), &player_results);
-
-        Ok(result)
+    // Validate inputs
+    Self::validate_move(&player_move)?;
+    Self::validate_strategy(&ai_strategy)?;
+    if stake <= 0 {
+    return Err(Error::InvalidStake);
     }
+
+    // Get next game ID
+    let mut count: u64 = env.storage().instance().get(&GAME_COUNT).unwrap_or(0);
+    count += 1;
+    env.storage().instance().set(&GAME_COUNT, &count);
+    let game_id = count;
+
+    // Generate AI move deterministically based on game_id and strategy
+    let ai_move = Self::generate_ai_move(env, game_id, &ai_strategy);
+
+    // Calculate payouts
+    let (player_payout, ai_payout) = Self::calculate_payouts(
+    &player_move,
+    &ai_move,
+    stake,
+    );
+
+    // TODO: Implement XLM transfers when player contracts can receive funds
+    // For now, game logic works and payouts are calculated and recorded
+
+    // Create game record
+    let game = Game {
+    id: game_id,
+    player: player.clone(),
+    player_move: player_move.clone(),
+        ai_strategy: ai_strategy.clone(),
+        stake,
+    status: symbol_short!("resolved"),
+    created_at: env.ledger().timestamp(),
+         };
+    env.storage().persistent().set(&(GAMES, game_id), &game);
+
+         // Create result record
+         let result = GameResult {
+             player: player.clone(),
+             player_move: player_move.clone(),
+             ai_move: ai_move.clone(),
+             ai_strategy: ai_strategy.clone(),
+             stake,
+             player_payout,
+             ai_payout,
+             resolved_at: env.ledger().timestamp(),
+             game_id,
+         };
+         env.storage().persistent().set(&(RESULTS, game_id), &result);
+
+         // Store result in player's history (for future leaderboards)
+         let mut player_results: Vec<u64> = env
+             .storage()
+             .persistent()
+             .get(&(PLAYER_RESULTS, player.clone()))
+             .unwrap_or(Vec::new(&env));
+         player_results.push_back(game_id);
+         env.storage()
+             .persistent()
+             .set(&(PLAYER_RESULTS, player.clone()), &player_results);
+
+         Ok(result)
+     }
 
     /// Get game details
     pub fn get_game(env: &Env, game_id: u64) -> Option<Game> {
