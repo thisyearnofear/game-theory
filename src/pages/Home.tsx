@@ -1,91 +1,84 @@
 import React from "react";
-import { Code, Layout, Text } from "@stellar/design-system";
-import { GuessTheNumber } from "../components/GuessTheNumber";
+import { Text } from "@stellar/design-system";
 import { PrisonersDilemma } from "../components/PrisonersDilemma";
+import "../styles/slides.css";
+import "../styles/balloon.css";
 
-const Home: React.FC = () => (
-  <Layout.Content>
-    <Layout.Inset>
-      <Text as="h1" size="xl">
-      Game Theory on Stellar: Trust with Real Stakes
-      </Text>
-      <Text as="p" size="md">
-      Experience the Prisoner's Dilemma with skin in the game. Stake XLM and see how cooperation and defection affect real outcomes!
-      </Text>
+const Home: React.FC = () => {
+  return (
+    <div className="slide-container">
+      <div style={{ 
+        maxWidth: "800px", 
+        margin: "0 auto", 
+        padding: "40px 20px",
+        minHeight: "100vh",
+        textAlign: "center"
+      }}>
+        
+        {/* Header Card */}
+        <div style={{
+          background: "rgba(255,255,255,0.95)",
+          borderRadius: "20px",
+          padding: "40px",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+          marginBottom: "30px"
+        }}>
+          <Text as="h1" style={{ 
+            fontFamily: "FuturaHandwritten",
+            color: "#333",
+            fontSize: "2.5rem",
+            marginBottom: "20px"
+          }}>
+            Trust with Real Consequences
+          </Text>
+          
+          <Text as="p" style={{ 
+            fontFamily: "FuturaHandwritten",
+            color: "#666",
+            fontSize: "1.2rem",
+            lineHeight: "1.6"
+          }}>
+            Unlike simulations, this game requires "skin in the game."<br/>
+            Stake your XLM and discover how trust works when it truly matters.
+          </Text>
+        </div>
 
-      <Text as="h2" size="lg">
-        Develop your contracts
-      </Text>
-      <Text as="p" size="md">
-        Take a look in the <Code size="md">contracts/</Code> directory. Compare
-        that to what you see in the <Code size="md">npm run dev</Code> output
-        (which itself is running <Code size="md">stellar scaffold watch</Code>).
-        Also compare it to what you see when you click{" "}
-        <Code size="md">&lt;/&gt; Debugger</Code> up in the top right. See?
-      </Text>
-      <Text as="p" size="md">
-        As you update your contracts,{" "}
-        <Code size="md">stellar scaffold watch</Code> command will automatically
-        recompile them and update the dapp with the latest changes.
-      </Text>
+        {/* Game Interface Card */}
+        <div style={{
+          background: "rgba(255,255,255,0.95)",
+          borderRadius: "20px",
+          padding: "30px",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+          margin: "30px 0"
+        }}>
+          <PrisonersDilemma />
+        </div>
 
-      <Text as="h2" size="lg">
-        Interact with contracts from the frontend
-      </Text>
-      <Text as="p" size="md">
-        Scaffold stellar automatically builds, deploys, and generates frontend
-        packages (sometimes called "TypeScript bindings") for each of your
-        contracts. You can adjust how it does this in the{" "}
-        <Code size="md">environments.toml</Code> file. Import these frontend
-        packages like this:
-      </Text>
-      <pre>
-        <Code size="md">import game from "./contracts/guess_the_number";</Code>
-      </pre>
-      <Text as="p" size="md">
-        If your contract emits events, check out the{" "}
-        <Code size="md">useSubscription</Code> hook in the{" "}
-        <Code size="md">hooks/</Code> folder to listen to them.
-      </Text>
-      <Text as="p" size="md">
-        As an example, here's the <Code size="md">GuessTheNumber</Code>{" "}
-        component. Make changes to the contract and the component and see how
-        things change!
-      </Text>
-      <Text as="h2" size="lg">
-      &lt;GuessTheNumber /&gt;
-      </Text>
-      <GuessTheNumber />
-      <Text as="h2" size="lg">
-        &lt;PrisonersDilemma /&gt;
-      </Text>
-      <PrisonersDilemma />
-      <Text as="h2" size="lg">
-        Interact with wallets
-      </Text>
-      <Text as="p" size="md">
-        This project is already integrated with Stellar Wallet Kit, and the{" "}
-        <Code size="md">useWallet</Code> hook is available for you to use in
-        your components. You can use it to connect to get connected account
-        information.
-      </Text>
-      <Text as="h2" size="lg">
-        Deploy your app
-      </Text>
-      <Text as="p" size="md">
-        To deploy your contracts, use the{" "}
-        <Code size="md">stellar registry publish</Code> and
-        <Code size="md">stellar registry deploy</Code> commands ( use{" "}
-        <Code size="md">stellar registry --help</Code> for more info ) to deploy
-        to the appropriate Stellar network.
-      </Text>
-      <Text as="p" size="md">
-        Build your frontend application code with{" "}
-        <Code size="md">npm run build</Code> and deploy the output in the
-        <Code size="md">dist/</Code> directory.
-      </Text>
-    </Layout.Inset>
-  </Layout.Content>
-);
+        {/* Quote */}
+        <div style={{ 
+          padding: "30px",
+          color: "rgba(255,255,255,0.9)",
+          fontFamily: "FuturaHandwritten",
+          fontSize: "1.3rem",
+          fontStyle: "italic",
+          textShadow: "1px 1px 2px rgba(0,0,0,0.3)"
+        }}>
+          "In the end, we are all in this together. The question is: will you cooperate?"
+        </div>
+      </div>
+      
+      {/* Footer */}
+      <div style={{ 
+        textAlign: "center", 
+        padding: "20px",
+        color: "rgba(255,255,255,0.6)",
+        fontFamily: "FuturaHandwritten",
+        fontSize: "14px"
+      }}>
+        Inspired by Nicky Case's "Evolution of Trust" • Built on Stellar
+      </div>
+    </div>
+  );
+};
 
 export default Home;

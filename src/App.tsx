@@ -37,19 +37,6 @@ const AppLayout: React.FC = () => (
       }
     />
     <Outlet />
-    <Layout.Footer>
-    <span>
-    © {new Date().getFullYear()} Game Theory on Stellar. Inspired by Nicky Case's "The Evolution of Trust". Licensed under the{" "}
-    <a
-    href="http://www.apache.org/licenses/LICENSE-2.0"
-    target="_blank"
-    rel="noopener noreferrer"
-    >
-    Apache License, Version 2.0
-    </a>
-    .
-    </span>
-    </Layout.Footer>
   </main>
 );
 

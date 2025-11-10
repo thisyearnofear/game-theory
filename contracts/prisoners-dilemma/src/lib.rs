@@ -2,7 +2,6 @@
 use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Address, Env, Symbol};
 
 mod error;
-mod xlm;
 
 use error::Error;
 
@@ -12,12 +11,11 @@ pub struct PrisonersDilemma;
 const COOPERATE: Symbol = symbol_short!("C");
 const CHEAT: Symbol = symbol_short!("D"); // Defect
 
-// Payoffs: in stroops, assuming stake is 1 XLM = 10^7 stroops
-// R: 2, S: 0, T: 3, P: 0 (all in stroops)
-const REWARD: i128 = 2 * 10_000_000;
-const SUCKER: i128 = 0;
-const TEMPTATION: i128 = 3 * 10_000_000;
-const PUNISHMENT: i128 = 0;
+// Payoffs: multipliers of the stake
+const REWARD_MULTIPLIER: i128 = 2;
+const SUCKER_MULTIPLIER: i128 = 0;
+const TEMPTATION_MULTIPLIER: i128 = 3;
+const PUNISHMENT_MULTIPLIER: i128 = 0;
 
 #[derive(Clone)]
 #[contracttype]
@@ -36,12 +34,11 @@ const GAME_COUNT: Symbol = symbol_short!("COUNT");
 #[contractimpl]
 impl PrisonersDilemma {
     /// Constructor
-    pub fn __constructor(env: &Env, admin: Address) {
+    pub fn __constructor(_env: &Env, admin: Address) {
         admin.require_auth();
-        xlm::register(env, &admin);
     }
 
-    /// Create a new game
+    /// Create a new game (simplified - no XLM transfers during creation)
     pub fn create_game(env: &Env, player1: Address, stake: i128) -> u64 {
         player1.require_auth();
         let mut count: u64 = env.storage().instance().get(&GAME_COUNT).unwrap_or(0);
@@ -58,10 +55,6 @@ impl PrisonersDilemma {
         };
         env.storage().persistent().set(&(GAMES, count), &game);
 
-        // Transfer stake from player1 to contract
-        let xlm_client = xlm::token_client(env);
-        xlm_client.transfer(&player1, &env.current_contract_address(), &stake);
-
         count
     }
 
@@ -77,68 +70,61 @@ impl PrisonersDilemma {
 
         game.player2 = Some(player2.clone());
         game.move2 = Some(move_);
-
-        // Transfer stake from player2
-        let xlm_client = xlm::token_client(env);
-        xlm_client.transfer(&player2, &env.current_contract_address(), &game.stake);
-
         env.storage().persistent().set(&(GAMES, game_id), &game);
 
         Ok(())
     }
 
-    /// Set move for player1 (after creation, before join)
-    pub fn set_move1(env: &Env, player: Address, game_id: u64, move_: Symbol) -> Result<(), Error> {
+    /// Set move for player 1
+    pub fn set_move(env: &Env, player: Address, game_id: u64, move_: Symbol) -> Result<(), Error> {
         player.require_auth();
         let mut game: Game = env.storage().persistent().get(&(GAMES, game_id))
             .ok_or(Error::GameNotFound)?;
 
-        if game.player1 != player || game.move1.is_some() {
+        if game.resolved {
+            return Err(Error::GameAlreadyFull);
+        }
+
+        if game.player1 == player {
+            game.move1 = Some(move_);
+        } else if game.player2.as_ref() == Some(&player) {
+            game.move2 = Some(move_);
+        } else {
             return Err(Error::Unauthorized);
         }
 
-        game.move1 = Some(move_);
         env.storage().persistent().set(&(GAMES, game_id), &game);
-
         Ok(())
     }
 
-    /// Resolve the game and distribute payouts
-    pub fn resolve_game(env: &Env, game_id: u64) -> Result<(), Error> {
+    /// Resolve game and calculate payoffs
+    pub fn resolve_game(env: &Env, game_id: u64) -> Result<(i128, i128), Error> {
         let mut game: Game = env.storage().persistent().get(&(GAMES, game_id))
             .ok_or(Error::GameNotFound)?;
 
-        if game.player2.is_none() || game.move1.is_none() || game.move2.is_none() || game.resolved {
+        if game.resolved {
+            return Err(Error::GameAlreadyFull);
+        }
+
+        let move1 = game.move1.clone().ok_or(Error::GameNotReady)?;
+        let move2 = game.move2.clone().ok_or(Error::GameNotReady)?;
+
+        let (payout1, payout2) = if move1 == COOPERATE && move2 == COOPERATE {
+            (REWARD_MULTIPLIER * game.stake, REWARD_MULTIPLIER * game.stake)
+        } else if move1 == COOPERATE && move2 == CHEAT {
+            (SUCKER_MULTIPLIER * game.stake, TEMPTATION_MULTIPLIER * game.stake)
+        } else if move1 == CHEAT && move2 == COOPERATE {
+            (TEMPTATION_MULTIPLIER * game.stake, SUCKER_MULTIPLIER * game.stake)
+        } else if move1 == CHEAT && move2 == CHEAT {
+            (PUNISHMENT_MULTIPLIER * game.stake, PUNISHMENT_MULTIPLIER * game.stake)
+        } else {
             return Err(Error::GameNotReady);
-        }
-
-        let move1 = game.move1.as_ref().unwrap();
-        let move2 = game.move2.as_ref().unwrap();
-
-        let (payout1, payout2) = Self::calculate_payoffs(move1.clone(), move2.clone(), game.stake);
-
-        let xlm_client = xlm::token_client(env);
-        xlm_client.transfer(&env.current_contract_address(), &game.player1, &payout1);
-        if let Some(player2) = &game.player2 {
-            xlm_client.transfer(&env.current_contract_address(), player2, &payout2);
-        }
+        };
 
         game.resolved = true;
         env.storage().persistent().set(&(GAMES, game_id), &game);
 
-        Ok(())
-    }
-
-    fn calculate_payoffs(move1: Symbol, move2: Symbol, _stake: i128) -> (i128, i128) {
-        if move1 == CHEAT && move2 == CHEAT {
-            (PUNISHMENT, PUNISHMENT)
-        } else if move1 == COOPERATE && move2 == CHEAT {
-            (SUCKER, TEMPTATION)
-        } else if move1 == CHEAT && move2 == COOPERATE {
-            (TEMPTATION, SUCKER)
-        } else {
-            (REWARD, REWARD)
-        }
+        Ok((payout1, payout2))
     }
 
     /// Get game details

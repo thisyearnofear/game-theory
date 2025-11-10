@@ -58,6 +58,12 @@ after_deploy = """
 reset
 """
 
+[development.contracts.prisoners_dilemma]
+client = true
+constructor_args = """
+--admin me
+"""
+
 # Coming Soon: Specify live contracts to bind & import in this project using the given name.
 # During initialization, these contracts will also be "spooned" into the development network,
 # meaning that their data will match the live network at the given sequence number.
@@ -83,6 +89,21 @@ default = true
 # soroban-increment-contract = { id = "C567..." }
 # soroban-token-contract = { id = "C678..." }
 # eurc = { id = "C789..." }
+
+### Testing environment configuration
+[testing.network]
+rpc-url = "https://soroban-testnet.stellar.org"
+network-passphrase = "Test SDF Network ; September 2015"
+
+[[testing.accounts]]
+name = "testnet-user"
+default = true
+
+[testing.contracts.prisoners_dilemma]
+client = true
+constructor_args = """
+--admin testnet-user
+"""
 
 ### Production environment configuration
 [production.network]

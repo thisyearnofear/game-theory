@@ -5,132 +5,143 @@ A dApp bringing game theory to life on the Stellar network, inspired by Nicky Ca
 _Built with Scaffold Stellar for the Stellar Hackathon._
 
 - ⚡️ Vite + React + TypeScript
-- 🔗 Auto-generated contract clients
-- 🧩 Interactive game components
-- 🛠 Hot reload for contract changes
-- 🧪 Easy local/testnet deployment
-- 💰 Real stakes for deeper engagement
+- 🔗 Real XLM integration on Stellar testnet
+- 🎮 Interactive Prisoner's Dilemma with stakes
+- 🛠 Hot reload for frontend changes
+- 🧪 Deployed on Stellar testnet
+- 💰 Real financial consequences for game decisions
 
 This project demonstrates innovative use of Scaffold Stellar to create educational and entertaining blockchain applications with economic incentives.
 
+## 🚀 Live Demo
+
+**Contract Address (Testnet):** `CBYVH4IX35LOTKMJF5234XAZ7HKB6CEU7KVJ3GD6AMB7WI57F3GOS4QE`
+
+**Explorer:** [View on Stellar Expert](https://stellar.expert/explorer/testnet/contract/CBYVH4IX35LOTKMJF5234XAZ7HKB6CEU7KVJ3GD6AMB7WI57F3GOS4QE)
+
 ## Requirements
 
-Before getting started, make sure you’ve met the requirements listed in the [Soroban documentation](https://developers.stellar.org/docs/build/smart-contracts/getting-started/setup) and that the following tools are installed :
-
-- [Rust](https://www.rust-lang.org/tools/install)
-- [Cargo](https://doc.rust-lang.org/cargo/) (comes with Rust)
-- Rust target: install the compilation target listed in the [Soroban setup guide](https://developers.stellar.org/docs/build/smart-contracts/getting-started/setup)
 - [Node.js](https://nodejs.org/en/download/package-manager) (v22, or higher)
-- [npm](https://www.npmjs.com/): Comes with the node installer or can also be installed package managers such as Homebrew, Chocolatey, apt, etc.
-- [Stellar CLI](https://github.com/stellar/stellar-core)
-- [Scaffold Stellar CLI Plugin](https://github.com/AhaLabs/scaffold-stellar)
+- [npm](https://www.npmjs.com/): Comes with the node installer
+- Stellar wallet with testnet XLM for playing
 
 ## Quick Start
 
-To get started with a fresh Scaffold Stellar project, follow the steps below:
-
-1. Initialize a new project:
-
+1. **Clone and install:**
 ```bash
-stellar scaffold init my-project
-cd my-project
-```
-
-2. Set up your development environment:
-
-```bash
-# Copy and configure environment variables like network and STELLAR_SCAFFOLD_ENV
-cp .env.example .env
-
-# Install frontend dependencies
+git clone <repository-url>
+cd game-theory
 npm install
 ```
 
-Have a look at `environments.toml` for more fined-grained control.
-
-3. Start development environment:
-
+2. **Start the application:**
 ```bash
 npm run dev
+# or
+npx vite
 ```
 
-Open the server URL in your web browser. 
+3. **Connect wallet and play:**
+   - Open http://localhost:5173
+   - Connect your Stellar wallet
+   - Switch to testnet network
+   - Fund your wallet with testnet XLM from [Stellar Laboratory](https://laboratory.stellar.org/#account-creator)
+   - Stake XLM and play the Prisoner's Dilemma!
 
-4. For testnet/mainnet deployment:
+## How It Works
 
-When you are ready for testnet, you need to deploy your contract using
-`stellar registry`. Some commands to get you started.
+### The Prisoner's Dilemma with Real Stakes
 
-```bash
-#  Note --source-account argument is omitted for clarity
+Unlike traditional simulations, this dApp requires "skin in the game":
 
-# First publish your contract to the registry
-stellar registry publish
+- **Stake XLM:** Players must stake real testnet XLM to participate
+- **Choose Strategy:** Cooperate or Defect without knowing opponent's choice
+- **Real Payoffs:** Outcomes directly affect your wallet balance
 
-# Then deploy an instance with constructor parameters
-stellar registry deploy \
-  --deployed-name my-contract \
-  --published-name my-contract \
-  -- \
-  --param1 value1
+### Payoff Matrix (in XLM)
 
-# Can access the help docs with --help
-stellar registry deploy \
-  --deployed-name my-contract \
-  --published-name my-contract \
-  -- \
-  --help
+| Player 1 \ Player 2 | Cooperate | Defect |
+|---------------------|-----------|---------|
+| **Cooperate** | Both get 2 XLM (Reward) | P1: 0, P2: 3 XLM (Sucker/Temptation) |
+| **Defect** | P1: 3, P2: 0 XLM (Temptation/Sucker) | Both get 0 XLM (Punishment) |
 
-# Install the deployed contract locally
-stellar registry create-alias my-contract
-```
+### Game Flow
+
+1. **Create Game:** Player 1 stakes XLM and creates a game
+2. **Join Game:** Player 2 joins with their move (Cooperate/Defect)
+3. **Resolve Game:** Contract calculates payoffs and distributes XLM
 
 ## Project Structure
-
-This project extends Scaffold Stellar with custom game theory contracts and components:
 
 ```
 game-theory/                     # Game Theory on Stellar dApp
 ├── contracts/                   # Smart contracts (Rust)
-│   ├── guess-the-number/        # Example contract
-│   └── prisoners-dilemma/       # Prisoner's Dilemma with stakes
+│   └── prisoners-dilemma/       # Prisoner's Dilemma with XLM stakes
 ├── packages/                    # Auto-generated TypeScript clients
 ├── src/                         # Frontend React application
-│   ├── components/              # React components (GuessTheNumber, PrisonersDilemma)
+│   ├── components/              # React components (PrisonersDilemma)
 │   ├── contracts/               # Contract interaction helpers
-│   ├── debug/                   # Debugging contract explorer
 │   ├── hooks/                   # Custom React hooks (useWallet)
 │   ├── pages/                   # App Pages (Home, Debugger)
-│   ├── App.tsx                  # Main application component
-│   └── main.tsx                 # Application entry point
-├── target/                      # Build artifacts and WASM files
+│   ├── styles/                  # CSS styling (inspired by Nicky Case)
+│   └── App.tsx                  # Main application component
+├── public/assets/               # Visual assets and sounds
 ├── environments.toml            # Environment configurations
-├── package.json                 # Frontend dependencies
-└── .env                         # Local environment variables
+└── package.json                 # Frontend dependencies
 ```
 
 ## Key Features
 
-### Prisoner's Dilemma Contract
-- **Real Stakes**: Players stake XLM to participate, making decisions financially impactful.
-- **Payoff Matrix**: Implements classic game theory payoffs (Reward: 2XLM, Temptation: 3XLM, Sucker: 0XLM, Punishment: 0XLM).
-- **Secure Moves**: Commit-reveal pattern prevents cheating (planned enhancement).
+### Real XLM Integration
+- **Testnet Deployment:** Contract deployed on Stellar testnet
+- **Wallet Integration:** Stellar Wallet Kit for seamless transactions
+- **Real Stakes:** Actual XLM transfers based on game outcomes
+- **Transaction History:** All games recorded on blockchain
 
-### Frontend Components
-- **Interactive UI**: Payoff matrix display and game flow.
-- **Wallet Integration**: Stellar Wallet Kit for seamless authentication and transactions.
-- **Educational**: Combines Nicky Case's narrative with blockchain execution.
+### Immersive Design
+- **Nicky Case Inspired:** Visual design inspired by "The Evolution of Trust"
+- **FuturaHandwritten Font:** Authentic typography from original
+- **Interactive Payoff Matrix:** Clear visualization of game mechanics
+- **Sound Effects:** Audio feedback for game actions
 
-### Innovation
-Unlike traditional simulations, this dApp requires "skin in the game," transforming theoretical concepts into experiential learning with tangible rewards and penalties.
+### Educational Value
+- **Game Theory Concepts:** Learn cooperation vs. defection dynamics
+- **Economic Incentives:** Experience how real stakes affect decision-making
+- **Blockchain Education:** Understand smart contracts through gameplay
+
+## Development
+
+### Contract Development
+```bash
+# Build contracts
+cargo build --target wasm32-unknown-unknown --release
+
+# Generate TypeScript bindings
+stellar contract bindings typescript \
+  --wasm target/wasm32-unknown-unknown/release/prisoners_dilemma.wasm \
+  --output-dir packages/prisoners_dilemma
+
+# Deploy to testnet
+stellar contract deploy \
+  --wasm target/wasm32-unknown-unknown/release/prisoners_dilemma.wasm \
+  --source testnet-user \
+  --network testnet \
+  -- --admin <ADMIN_ADDRESS>
+```
+
+### Frontend Development
+```bash
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+```
 
 ## Inspiration
 
-This project borrows concepts from Nicky Case's ["The Evolution of Trust"](https://ncase.me/trust/), an interactive guide to game theory. By adapting the Prisoner's Dilemma mechanics to Stellar with real economic stakes, we create a bridge between educational simulations and blockchain applications.
+This project adapts Nicky Case's ["The Evolution of Trust"](https://ncase.me/trust/) to blockchain, transforming theoretical game theory into experiential learning with real economic consequences.
 
-## Hackathon Goals
+## License
 
-- Demonstrate Scaffold Stellar's speed and efficiency in building dApps.
-- Showcase innovative DeFi/GameFi applications with token incentives.
-- Integrate Stellar Wallet Kit for seamless user experience.
-- Win prizes by building a deployed smart contract with a functional frontend.
+Licensed under the Apache License, Version 2.0.

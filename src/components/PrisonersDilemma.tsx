@@ -1,10 +1,8 @@
 import { useState } from "react";
-import { Button, Input, Text, Box } from "@stellar/design-system";
+import { Button, Input, Text } from "@stellar/design-system";
 import { useWallet } from "../hooks/useWallet";
 import { Howl } from "howler";
-// import pd from "../contracts/prisoners_dilemma"; // Assuming generated
-
-// Import styles from inspiration
+import pd from "../contracts/prisoners_dilemma";
 import "../styles/slides.css";
 import "../styles/balloon.css";
 
@@ -13,6 +11,9 @@ export const PrisonersDilemma = () => {
   const [move, setMove] = useState<string>("");
   const [stake, setStake] = useState<string>("1");
   const [status, setStatus] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [gameMode, setGameMode] = useState<"single" | "multi">("single");
+  const [aiStrategy, setAiStrategy] = useState<"random" | "cooperator" | "defector" | "tit-for-tat">("random");
   const { address } = useWallet();
 
   // Sound effects
@@ -21,123 +22,382 @@ export const PrisonersDilemma = () => {
 
   if (!address) {
     return (
-      <Text as="p" size="md">
-        Connect wallet to play Prisoner's Dilemma with real stakes!
-      </Text>
+      <div style={{ textAlign: "center", padding: "20px" }}>
+        <Text as="p" size="lg" style={{ 
+          fontFamily: "FuturaHandwritten", 
+          color: "#667eea",
+          fontWeight: "bold"
+        }}>
+          Connect wallet to play Prisoner's Dilemma with real stakes!
+        </Text>
+      </div>
     );
   }
 
+  const getAiMove = (strategy: string): "C" | "D" => {
+    switch (strategy) {
+      case "cooperator": return "C";
+      case "defector": return "D";
+      case "tit-for-tat": return Math.random() > 0.5 ? "C" : "D"; // Simplified for demo
+      case "random":
+      default: return Math.random() > 0.5 ? "C" : "D";
+    }
+  };
+
+  const calculatePayoffs = (playerMove: "C" | "D", aiMove: "C" | "D", stakeAmount: number) => {
+    if (playerMove === "C" && aiMove === "C") return [2 * stakeAmount, 2 * stakeAmount]; // Both cooperate
+    if (playerMove === "C" && aiMove === "D") return [0, 3 * stakeAmount]; // Player cooperates, AI defects
+    if (playerMove === "D" && aiMove === "C") return [3 * stakeAmount, 0]; // Player defects, AI cooperates
+    return [0, 0]; // Both defect
+  };
+
+  const playSinglePlayer = async () => {
+    if (!move || !address) return;
+    
+    setLoading(true);
+    clickSound.play();
+    
+    try {
+      const stakeAmount = parseFloat(stake);
+      const playerMove = move === "cooperate" ? "C" : "D";
+      const aiMove = getAiMove(aiStrategy);
+      
+      const [playerPayout, aiPayout] = calculatePayoffs(playerMove, aiMove, stakeAmount);
+      
+      const aiMoveText = aiMove === "C" ? "Cooperated" : "Defected";
+      const playerMoveText = playerMove === "C" ? "Cooperated" : "Defected";
+      
+      setStatus(`
+        You: ${playerMoveText} | AI (${aiStrategy}): ${aiMoveText}
+        Your payout: ${playerPayout} XLM | AI payout: ${aiPayout} XLM
+        ${playerPayout > aiPayout ? "You won!" : playerPayout === aiPayout ? "It's a tie!" : "AI won!"}
+      `);
+    } catch (error) {
+      setStatus(`Error: ${error}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const createGame = async () => {
-    if (!stake) return;
+    if (!stake || !address) return;
+    
+    setLoading(true);
     coinSound.play();
-    // const { result } = await pd.create_game({
-    //   player1: address,
-    //   stake: BigInt(stake) * BigInt(10_000_000), // 1 XLM
-    // });
-    // if (result.isOk()) {
-    //   setGameId(Number(result.unwrap()));
-    //   setStatus("Game created. Waiting for player 2.");
-    // }
-    setStatus("Game creation simulated. Game ID: 1");
+    
+    try {
+      const stakeAmount = BigInt(parseFloat(stake) * 10_000_000);
+      const result = await pd.create_game({
+        player1: address,
+        stake: stakeAmount,
+      });
+      
+      const newGameId = Number(result);
+      setGameId(newGameId);
+      setStatus(`Game created! Game ID: ${newGameId}. Waiting for player 2.`);
+    } catch (error) {
+      setStatus(`Error: ${error}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const joinGame = async () => {
-    if (!gameId || !move) return;
+    if (!gameId || !move || !address) return;
+    
+    setLoading(true);
     clickSound.play();
-    // const { result } = await pd.join_game({
-    //   player2: address,
-    //   game_id: BigInt(gameId),
-    //   move_: move === "cooperate" ? "C" : "D",
-    // });
-    // if (result.isOk()) {
-    //   setStatus("Joined game. Moves submitted. Resolve to see results.");
-    // }
-    setStatus("Joined simulated game.");
+    
+    try {
+      await pd.join_game({
+        player2: address,
+        game_id: BigInt(gameId),
+        move_: move === "cooperate" ? "C" : "D",
+      });
+      
+      setStatus("Joined game successfully! Moves submitted. Resolve to see results.");
+    } catch (error) {
+      setStatus(`Error: ${error}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const resolveGame = async () => {
     if (!gameId) return;
+    
+    setLoading(true);
     clickSound.play();
-    // const { result } = await pd.resolve_game({
-    //   game_id: BigInt(gameId),
-    // });
-    // if (result.isOk()) {
-    //   setStatus("Game resolved. Check your balance for payouts!");
-    // }
-    setStatus("Game resolved. You won/lost based on moves.");
+    
+    try {
+      const result = await pd.resolve_game({
+        game_id: BigInt(gameId),
+      });
+      
+      const [payout1, payout2] = result;
+      setStatus(`Game resolved! Payouts: Player 1: ${Number(payout1) / 10_000_000} XLM, Player 2: ${Number(payout2) / 10_000_000} XLM`);
+    } catch (error) {
+      setStatus(`Error: ${error}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <Box gap="md">
-      <Text as="h2" size="lg">
+    <div style={{ textAlign: "center" }}>
+      <Text as="h2" style={{ 
+        fontFamily: "FuturaHandwritten", 
+        marginBottom: "15px",
+        color: "#333",
+        fontSize: "1.8rem"
+      }}>
         Prisoner's Dilemma with Skin in the Game
       </Text>
-      <Text as="p" size="md">
+      
+      <Text as="p" style={{ 
+        fontFamily: "FuturaHandwritten", 
+        marginBottom: "25px",
+        color: "#667eea",
+        fontWeight: "bold",
+        fontSize: "1.1rem"
+      }}>
         Stake XLM and choose to Cooperate or Defect. Outcomes affect your wallet!
       </Text>
-      <Text as="h3" size="md">
+
+      {/* Game Mode Selection */}
+      <div style={{ marginBottom: "20px" }}>
+        <Text as="label" style={{ 
+          fontFamily: "FuturaHandwritten", 
+          display: "block", 
+          marginBottom: "8px",
+          color: "#333",
+          fontSize: "1.1rem"
+        }}>
+          Game Mode
+        </Text>
+        <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
+          <Button
+            variant={gameMode === "single" ? "primary" : "secondary"}
+            onClick={() => setGameMode("single")}
+            style={{ fontFamily: "FuturaHandwritten" }}
+          >
+            vs AI
+          </Button>
+          <Button
+            variant={gameMode === "multi" ? "primary" : "secondary"}
+            onClick={() => setGameMode("multi")}
+            style={{ fontFamily: "FuturaHandwritten" }}
+          >
+            vs Player
+          </Button>
+        </div>
+      </div>
+
+      {gameMode === "single" && (
+        <div style={{ marginBottom: "20px" }}>
+          <Text as="label" style={{ 
+            fontFamily: "FuturaHandwritten", 
+            display: "block", 
+            marginBottom: "8px",
+            color: "#333",
+            fontSize: "1rem"
+          }}>
+            AI Strategy
+          </Text>
+          <select 
+            value={aiStrategy} 
+            onChange={(e) => setAiStrategy(e.target.value as any)}
+            style={{ 
+              fontFamily: "FuturaHandwritten", 
+              padding: "8px",
+              borderRadius: "4px",
+              border: "1px solid #ccc"
+            }}
+          >
+            <option value="random">Random</option>
+            <option value="cooperator">Always Cooperate</option>
+            <option value="defector">Always Defect</option>
+            <option value="tit-for-tat">Tit-for-Tat</option>
+          </select>
+        </div>
+      )}
+
+      {/* Payoff Matrix */}
+      <Text as="h3" style={{ 
+        fontFamily: "FuturaHandwritten", 
+        marginBottom: "15px",
+        color: "#333",
+        fontSize: "1.4rem"
+      }}>
         The Payoff Matrix (Stakes in XLM)
       </Text>
-      <div style={{ fontSize: "1.2em", margin: "20px 0" }}>
-        <p>Imagine you're playing a game where you and another player each decide to Cooperate or Defect. Your choices determine payouts:</p>
-      </div>
-      <table style={{ borderCollapse: "collapse", width: "100%", fontSize: "1.1em", border: "2px solid #333" }}>
-        <thead>
-          <tr style={{ backgroundColor: "#f0f0f0" }}>
-            <th style={{ border: "1px solid #333", padding: "10px" }}></th>
-            <th style={{ border: "1px solid #333", padding: "10px", color: "#4089DD" }}>Player 2 Cooperates</th>
-            <th style={{ border: "1px solid #333", padding: "10px", color: "#FF5E5E" }}>Player 2 Defects</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style={{ border: "1px solid #333", padding: "10px", fontWeight: "bold", color: "#4089DD" }}>Player 1 Cooperates</td>
-            <td style={{ border: "1px solid #333", padding: "10px", backgroundColor: "#e8f5e8" }}>Both get <strong>2 XLM</strong> (Reward)</td>
-            <td style={{ border: "1px solid #333", padding: "10px", backgroundColor: "#ffeaea" }}>Player 1: <strong>0</strong>, Player 2: <strong>3</strong> (Sucker/Temptation)</td>
-          </tr>
-          <tr>
-            <td style={{ border: "1px solid #333", padding: "10px", fontWeight: "bold", color: "#FF5E5E" }}>Player 1 Defects</td>
-            <td style={{ border: "1px solid #333", padding: "10px", backgroundColor: "#ffeaea" }}>Player 1: <strong>3</strong>, Player 2: <strong>0</strong> (Temptation/Sucker)</td>
-            <td style={{ border: "1px solid #333", padding: "10px", backgroundColor: "#f5f5f5" }}>Both get <strong>0 XLM</strong> (Punishment)</td>
-          </tr>
-        </tbody>
-      </table>
-      <div style={{ fontSize: "1.1em", margin: "20px 0", color: "#666" }}>
-        <p>In this dApp, you put real XLM on the line. Cooperation builds trust, but defection might pay off... or not. Choose wisely!</p>
-      </div>
-      <Box gap="sm">
-        <Input
-          label="Stake (XLM)"
-          id="stake"
-          value={stake}
-          onChange={(e) => setStake(e.target.value)}
-        />
-        <Button onClick={createGame} variant="primary">
-          Create Game
-        </Button>
-      </Box>
-      <Box gap="sm">
-        <Input
-          label="Game ID"
-          id="gameId"
-          value={gameId || ""}
-          onChange={(e) => setGameId(Number(e.target.value))}
-        />
-        <select value={move} onChange={(e) => setMove(e.target.value)}>
-          <option value="">Choose Move</option>
-          <option value="cooperate">Cooperate</option>
-          <option value="defect">Defect</option>
-        </select>
-        <Button onClick={joinGame} variant="primary">
-          Join Game
-        </Button>
-      </Box>
-      <Button onClick={resolveGame} variant="secondary">
-        Resolve Game
-      </Button>
-      <Text as="p" size="md">
-        {status}
+      
+      <Text as="p" style={{ 
+        fontFamily: "FuturaHandwritten", 
+        marginBottom: "20px",
+        color: "#666",
+        fontSize: "1rem"
+      }}>
+        Your choices determine payouts:
       </Text>
-    </Box>
+
+      <div className="payoff-matrix" style={{ fontSize: "14px", margin: "20px auto" }}>
+        <div className="payoff-cell payoff-header"></div>
+        <div className="payoff-cell payoff-header">Opponent Cooperates</div>
+        <div className="payoff-cell payoff-header">Opponent Defects</div>
+        
+        <div className="payoff-cell payoff-header">You Cooperate</div>
+        <div className="payoff-cell payoff-cooperate">
+          Both get 2 XLM<br/><small>(Reward)</small>
+        </div>
+        <div className="payoff-cell payoff-mixed">
+          You: 0, Opponent: 3<br/><small>(Sucker/Temptation)</small>
+        </div>
+        
+        <div className="payoff-cell payoff-header">You Defect</div>
+        <div className="payoff-cell payoff-mixed">
+          You: 3, Opponent: 0<br/><small>(Temptation/Sucker)</small>
+        </div>
+        <div className="payoff-cell payoff-defect">
+          Both get 0 XLM<br/><small>(Punishment)</small>
+        </div>
+      </div>
+
+      <Text as="p" style={{ 
+        fontFamily: "FuturaHandwritten", 
+        marginBottom: "30px",
+        fontStyle: "italic",
+        color: "#666",
+        fontSize: "1rem"
+      }}>
+        Choose wisely! {gameMode === "single" ? "The AI is watching..." : "Your opponent is waiting..."}
+      </Text>
+
+      {/* Game Interface */}
+      <div style={{ maxWidth: "400px", margin: "0 auto" }}>
+        <div style={{ marginBottom: "20px" }}>
+          <Text as="label" style={{ 
+            fontFamily: "FuturaHandwritten", 
+            display: "block", 
+            marginBottom: "8px",
+            color: "#333",
+            fontSize: "1.1rem"
+          }}>
+            Stake (XLM)
+          </Text>
+          <Input
+            value={stake}
+            onChange={(e) => setStake(e.target.value)}
+            placeholder="Enter stake amount"
+            type="number"
+            min="0.1"
+            step="0.1"
+            style={{ textAlign: "center", fontFamily: "FuturaHandwritten" }}
+          />
+        </div>
+
+        <div style={{ marginBottom: "20px" }}>
+          <Text as="label" style={{ 
+            fontFamily: "FuturaHandwritten", 
+            display: "block", 
+            marginBottom: "8px",
+            color: "#333",
+            fontSize: "1.1rem"
+          }}>
+            Your Move
+          </Text>
+          <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
+            <Button
+              variant={move === "cooperate" ? "primary" : "secondary"}
+              onClick={() => setMove("cooperate")}
+              style={{ fontFamily: "FuturaHandwritten" }}
+              disabled={loading}
+            >
+              Cooperate
+            </Button>
+            <Button
+              variant={move === "defect" ? "primary" : "secondary"}
+              onClick={() => setMove("defect")}
+              style={{ fontFamily: "FuturaHandwritten" }}
+              disabled={loading}
+            >
+              Defect
+            </Button>
+          </div>
+        </div>
+
+        {gameMode === "single" ? (
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
+            <Button
+              onClick={playSinglePlayer}
+              disabled={!move || loading}
+              style={{ 
+                fontFamily: "FuturaHandwritten",
+                width: "200px"
+              }}
+            >
+              {loading ? "Playing..." : "Play vs AI"}
+            </Button>
+          </div>
+        ) : (
+          <>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
+              <Button
+                onClick={createGame}
+                disabled={!stake || loading}
+                style={{ 
+                  fontFamily: "FuturaHandwritten",
+                  width: "200px"
+                }}
+              >
+                {loading ? "Creating..." : "Create Game"}
+              </Button>
+            </div>
+
+            {gameId && (
+              <div style={{ marginBottom: "20px" }}>
+                <Text as="p" style={{ 
+                  fontFamily: "FuturaHandwritten", 
+                  color: "#333",
+                  fontSize: "1rem",
+                  marginBottom: "10px"
+                }}>
+                  Game ID: {gameId}
+                </Text>
+              </div>
+            )}
+
+            <div style={{ display: "flex", gap: "10px", justifyContent: "center", marginBottom: "20px" }}>
+              <Button
+                onClick={joinGame}
+                disabled={!gameId || !move || loading}
+                style={{ fontFamily: "FuturaHandwritten" }}
+              >
+                {loading ? "Joining..." : "Join Game"}
+              </Button>
+              <Button
+                onClick={resolveGame}
+                disabled={!gameId || loading}
+                style={{ fontFamily: "FuturaHandwritten" }}
+              >
+                {loading ? "Resolving..." : "Resolve Game"}
+              </Button>
+            </div>
+          </>
+        )}
+
+        {status && (
+          <Text as="p" style={{ 
+            fontFamily: "FuturaHandwritten", 
+            color: status.includes("Error") ? "#F44336" : "#667eea",
+            fontSize: "1rem",
+            fontWeight: "bold",
+            whiteSpace: "pre-line"
+          }}>
+            {status}
+          </Text>
+        )}
+      </div>
+    </div>
   );
 };
