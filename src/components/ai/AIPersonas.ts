@@ -10,128 +10,141 @@ export interface AIPersona {
   catchphrases: string[];
 }
 
-// DRY: Game theory personas inspired by public domain concepts
+// DRY: Game theory personas - actual historical figures whose work is public domain
 export const AI_PERSONAS: Record<string, AIPersona> = {
-  // Based on Nash (public figure, mathematical concepts)
-  equilibrium: {
-    id: "equilibrium",
-    name: "Dr. Nash",
-    description: "The Equilibrium Expert - Finds balance in chaos",
-    personality: "Analytical mathematician who sees patterns everywhere",
+  // John Nash - Nash Equilibrium, strategic balance
+  nash: {
+    id: "nash",
+    name: "Nash",
+    description: "Strategic equilibrium in competitive games",
+    personality:
+      "Analytical mathematician obsessed with finding balance in conflict",
     avatar: "🧮",
     voiceStyle: "formal",
-    specialties: ["Nash Equilibrium", "Strategic Balance", "Mathematical Analysis"],
+    specialties: [
+      "Nash Equilibrium",
+      "Strategic Balance",
+      "Game Theory Foundations",
+    ],
     catchphrases: [
-      "Every game has an equilibrium point...",
-      "Let's find the mathematical beauty in this decision",
-      "The optimal strategy emerges from careful analysis"
-    ]
+      "Every strategic interaction has an equilibrium...",
+      "The elegant mathematics reveal hidden structures",
+      "Rational players naturally find balance",
+    ],
   },
 
-  // Based on Prisoner's Dilemma folklore
-  prisoner: {
-    id: "prisoner",
-    name: "The Warden",
-    description: "The Dilemma Master - Understands the psychology of choice",
-    personality: "Wise observer of human nature and difficult decisions",
-    avatar: "⚖️",
+  // Jean-Jacques Rousseau - Social contract, stag hunt dilemma
+  rousseau: {
+    id: "rousseau",
+    name: "Rousseau",
+    description: "Social cooperation and the collective good",
+    personality:
+      "Philosopher fascinated by why humans choose cooperation or defection",
+    avatar: "🤝",
     voiceStyle: "wise",
-    specialties: ["Prisoner's Dilemma", "Trust Building", "Cooperation"],
+    specialties: ["Social Contract", "Cooperation", "Trust Building"],
     catchphrases: [
-      "Every choice reveals character...",
-      "Trust is earned through repeated interactions",
-      "The real prison is our own assumptions"
-    ]
+      "Humans are born cooperative but circumstances corrupt...",
+      "Trust is fragile yet essential to society",
+      "The hunt succeeds only through coordination",
+    ],
   },
 
-  // Based on evolutionary game theory
+  // Charles Darwin - Evolution and natural selection
   darwin: {
     id: "darwin",
-    name: "Professor Evolution",
-    description: "The Adaptation Specialist - Sees how strategies evolve",
-    personality: "Curious naturalist fascinated by behavioral adaptation",
+    name: "Darwin",
+    description: "How strategies survive and thrive in competition",
+    personality: "Naturalist who sees survival strategies everywhere",
     avatar: "🧬",
     voiceStyle: "casual",
-    specialties: ["Evolutionary Strategies", "Population Dynamics", "Adaptation"],
+    specialties: ["Evolutionary Strategies", "Natural Selection", "Adaptation"],
     catchphrases: [
-      "Strategies that survive are strategies that thrive...",
-      "Nature teaches us about cooperation",
-      "The fittest strategy isn't always the strongest"
-    ]
+      "The fittest strategies are those that survive repeated encounters...",
+      "Nature teaches us cooperation is evolution too",
+      "Small variations in strategy create vast differences in outcomes",
+    ],
   },
 
-  // Based on behavioral economics
-  behavioral: {
-    id: "behavioral",
-    name: "Dr. Nudge",
-    description: "The Behavior Detective - Reveals hidden biases",
-    personality: "Playful psychologist who loves uncovering mental shortcuts",
-    avatar: "🧠",
-    voiceStyle: "playful",
-    specialties: ["Cognitive Biases", "Behavioral Economics", "Decision Psychology"],
-    catchphrases: [
-      "Your brain is playing tricks on you...",
-      "Humans aren't perfectly rational, and that's beautiful!",
-      "Let's peek behind the curtain of decision-making"
-    ]
-  },
-
-  // Based on auction theory and mechanism design
-  auctioneer: {
-    id: "auctioneer",
-    name: "The Mechanism Designer",
-    description: "The Incentive Architect - Designs systems that work",
-    personality: "Strategic designer who creates fair systems",
-    avatar: "🏛️",
+  // Vilfredo Pareto - Pareto efficiency and optimization
+  pareto: {
+    id: "pareto",
+    name: "Pareto",
+    description:
+      "Optimal outcomes where none can be better off without harming others",
+    personality: "Economist who seeks the most efficient distribution of gains",
+    avatar: "📊",
     voiceStyle: "formal",
-    specialties: ["Mechanism Design", "Incentive Alignment", "Market Design"],
+    specialties: ["Pareto Efficiency", "Optimization", "Resource Allocation"],
     catchphrases: [
-      "Good systems align individual and collective interests...",
-      "The right incentives make cooperation inevitable",
-      "Design the game, and the outcomes follow"
-    ]
+      "Can anyone gain without someone losing? That's the question...",
+      "Efficiency is about doing more with what you have",
+      "Some outcomes are simply better for everyone",
+    ],
   },
 
-  // Based on network theory and social dynamics
-  network: {
-    id: "network",
-    name: "The Connector",
-    description: "The Network Navigator - Maps relationships and influence",
-    personality: "Social scientist fascinated by connections and communities",
-    avatar: "🕸️",
-    voiceStyle: "casual",
-    specialties: ["Network Effects", "Social Dynamics", "Reputation Systems"],
+  // Vilfredo Pareto - Power laws and inequality
+  cournot: {
+    id: "cournot",
+    name: "Cournot",
+    description: "Competition and market dynamics",
+    personality:
+      "Economist analyzing how competitors interact and influence prices",
+    avatar: "💰",
+    voiceStyle: "formal",
+    specialties: [
+      "Market Competition",
+      "Quantity Competition",
+      "Price Dynamics",
+    ],
     catchphrases: [
-      "We're all connected in the web of trust...",
-      "Your reputation travels faster than you do",
-      "Strong networks amplify cooperation"
-    ]
-  }
+      "Each competitor watches the others and adjusts...",
+      "The market finds balance through mutual adjustment",
+      "Your choice depends on what you expect others to do",
+    ],
+  },
+
+  // Anatol Rapoport - Iterated games and tit-for-tat
+  rapoport: {
+    id: "rapoport",
+    name: "Rapoport",
+    description: "How cooperation emerges over repeated interactions",
+    personality: "Peace researcher studying how cooperation defeats defection",
+    avatar: "🔄",
+    voiceStyle: "casual",
+    specialties: ["Iterated Games", "Tit-for-Tat", "Cooperation Dynamics"],
+    catchphrases: [
+      "What matters isn't a single move but the pattern across many...",
+      "Cooperation spreads when it's rewarded",
+      "Simple strategies can be remarkably robust",
+    ],
+  },
 };
 
 // PERFORMANT: Context-aware persona selection
 export function selectPersonaForContext(context: string): AIPersona {
   const contextMap: Record<string, string> = {
-    "oneoff": "prisoner",
-    "iterated": "darwin", 
-    "tournament": "equilibrium",
-    "behavioral": "behavioral",
-    "network": "network",
-    "mechanism": "auctioneer"
+    oneoff: "rousseau",
+    iterated: "rapoport",
+    tournament: "nash",
+    behavioral: "pareto",
+    network: "cournot",
+    mechanism: "darwin",
   };
-  
-  const personaId = contextMap[context] || "prisoner";
+
+  const personaId = contextMap[context] || "rousseau";
   return AI_PERSONAS[personaId];
 }
 
 // MODULAR: Generate contextual advice based on persona
 export function generatePersonaResponse(
-  persona: AIPersona, 
-  responseType: "advice" | "explanation" | "encouragement"
+  persona: AIPersona,
+  responseType: "advice" | "explanation" | "encouragement",
 ): string {
   const { catchphrases, specialties } = persona;
-  const randomPhrase = catchphrases[Math.floor(Math.random() * catchphrases.length)];
-  
+  const randomPhrase =
+    catchphrases[Math.floor(Math.random() * catchphrases.length)];
+
   // This would be enhanced with actual LLM integration
   switch (responseType) {
     case "advice":

@@ -82,12 +82,12 @@ export const GameSlide: React.FC<SlideProps> = () => {
       if (selectedPersona && "name" in selectedPersona) {
         // Map imported persona to our interface
         const personaColors: Record<string, string> = {
-          equilibrium: "#6366f1",
-          prisoner: "#8b5cf6",
+          nash: "#6366f1",
+          rousseau: "#8b5cf6",
           darwin: "#ec4899",
-          behavioral: "#f59e0b",
-          auctioneer: "#3b82f6",
-          network: "#10b981",
+          pareto: "#f59e0b",
+          cournot: "#3b82f6",
+          rapoport: "#10b981",
         };
         return {
           name: selectedPersona.name,
