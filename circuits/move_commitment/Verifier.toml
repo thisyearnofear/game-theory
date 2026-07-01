@@ -1,0 +1,4 @@
+# Public inputs used for verification (filled by the contract)
+commitment = "0"
+player_address = "0"
+game_id = "0"

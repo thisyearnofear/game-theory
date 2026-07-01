@@ -1,15 +1,27 @@
 # Game Theory on Stellar - Development Roadmap
 
-## 🎯 Current Status: Phase 2 Complete
+## 🎯 Current Status: ZK Multiplayer Phase Complete
+- ✅ ZK Dilemma Soroban contract (`contracts/zk_dilemma/`) — keccak256 commitment verification, XLM escrow, forfeit logic
+- ✅ Noir move-commitment circuit (`circuits/move_commitment/`) — pedersen_hash-based
+- ✅ ZK multiplayer frontend — GameLobby, CommitMove, RevealMove, GameResult
+- ✅ `useZKDilemma` hook with typed auto-generated client
+- ✅ WASM compiled (11KB) + TypeScript bindings generated
+- ✅ Pre-commit hooks with secrets scanning (secretlint) + linting (lint-staged)
+- ✅ Dead code cleanup (PrisonersDilemma, GuessTheNumber, LLMOpponent, unused hooks)
+- ✅ Error boundaries added
 - ✅ Interactive slide system (5 slides)
 - ✅ Audio integration with controls
 - ✅ Character animations and emotions
-- ✅ Single-player vs algorithmic AI
-- ✅ Modular, performant architecture
+- ✅ Single-player vs algorithmic AI (single-player-dilemma contract)
 - ✅ Single-round Prisoner's Dilemma contract with real XLM stakes
 
-## 🚀 Phase 3: AI Integration (Current Focus)
-**Goal**: Enhanced single-player experience with intelligent opponents
+## 🚀 Phase 3: AI Integration & Deployment
+**Goal**: Deploy ZK multiplayer contract, enhance single-player with intelligent opponents
+
+### 3.0 ZK Contract Deployment
+- ⬜ Deploy `zk_dilemma` WASM to testnet
+- ⬜ Set `VITE_ZK_DILEMMA_CONTRACT_ID` in .env
+- ⬜ End-to-end test with two wallets
 
 ### 3.1 LLM AI Opponents
 - **Smart AI strategies** that adapt and learn

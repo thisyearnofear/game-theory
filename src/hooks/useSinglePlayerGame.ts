@@ -15,6 +15,12 @@ export interface SinglePlayerGameState {
   error: string | null;
 }
 
+interface SignAndSendResponse {
+  result?: Record<string, unknown>;
+  hash?: string;
+  txHash?: string;
+}
+
 export const useSinglePlayerGame = (
   address?: string,
   signTransaction?: (tx: string) => Promise<{ signedTxXdr: string }>,
@@ -94,14 +100,16 @@ export const useSinglePlayerGame = (
           `[useSinglePlayerGame] Signing and sending play_game transaction...`,
         );
 
-        const response = await gameResultTx.signAndSend({ signTransaction });
+        const response = (await gameResultTx.signAndSend({ signTransaction })) as SignAndSendResponse;
 
         console.log(`[useSinglePlayerGame] play_game response:`, response);
 
+        // Extract the actual transaction hash from the response
+        const actualTxHash = response.hash || response.txHash || null;
+
         // Extract the game result
         // The SDK returns Result<GameResult> which is wrapped in Ok2 {value: GameResult}
-        const rawResult = (response as Record<string, unknown>)
-          .result as Record<string, unknown> | null;
+        const rawResult = response.result as Record<string, unknown> | null;
 
         let gameResult: Record<string, unknown> | null = null;
 
@@ -140,7 +148,7 @@ export const useSinglePlayerGame = (
           playerPayout: playerPayoutXLM,
           aiPayout: aiPayoutXLM,
           stake: stakeStroops / 10_000_000,
-          txHash: `game-${gameId}`,
+          txHash: actualTxHash || `game-${gameId}`,
         }));
 
         return {
@@ -149,7 +157,7 @@ export const useSinglePlayerGame = (
           aiMove,
           playerPayout: playerPayoutXLM,
           aiPayout: aiPayoutXLM,
-          txHash: `game-${gameId}`,
+          txHash: actualTxHash || `game-${gameId}`,
         };
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

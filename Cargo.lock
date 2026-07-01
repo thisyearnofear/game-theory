@@ -1868,3 +1868,10 @@ dependencies = [
  "quote",
  "syn 2.0.101",
 ]
+
+[[package]]
+name = "zk-dilemma"
+version = "0.0.1"
+dependencies = [
+ "soroban-sdk",
+]

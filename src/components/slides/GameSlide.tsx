@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Button, Input, Text } from "@stellar/design-system";
 import { useWallet } from "../../hooks/useWallet";
 import { Character, CharacterEmotion } from "../Character";
@@ -7,27 +7,20 @@ import { AI_PERSONAS } from "../ai/AIPersonas";
 import AudioManager from "../AudioManager";
 import { SlideProps } from "../SlideSystem";
 import { useSinglePlayerGame } from "../../hooks/useSinglePlayerGame";
+import {
+  TitForTatStrategy,
+  AlwaysCooperateStrategy,
+  AlwaysDefectStrategy,
+  RandomStrategy,
+  type GameMove,
+} from "../../util/strategies";
 
-// DRY: Shared game logic
-const AI_STRATEGIES = {
-  random: () => (Math.random() > 0.5 ? "C" : "D"),
-  cooperator: () => "C",
-  defector: () => "D",
-  "tit-for-tat": () => (Math.random() > 0.5 ? "C" : "D"), // Simplified
-} as const;
-
-// Note: Payoff calculation is now handled on-chain in the contract
-// This function kept for reference/future use
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const calculatePayoffs = (
-  playerMove: "C" | "D",
-  aiMove: "C" | "D",
-  stake: number,
-) => {
-  if (playerMove === "C" && aiMove === "C") return [2 * stake, 2 * stake];
-  if (playerMove === "C" && aiMove === "D") return [0, 3 * stake];
-  if (playerMove === "D" && aiMove === "C") return [3 * stake, 0];
-  return [0, 0];
+// Module-level strategy map (static, no component lifecycle dependency)
+const STRATEGY_MAP: Record<string, typeof RandomStrategy> = {
+  random: RandomStrategy,
+  cooperator: AlwaysCooperateStrategy,
+  defector: AlwaysDefectStrategy,
+  "tit-for-tat": TitForTatStrategy,
 };
 
 const GAME_MODES = {
@@ -48,8 +41,7 @@ export const GameSlide: React.FC<SlideProps> = () => {
     useState<keyof typeof GAME_MODES>("singlePlayer");
   const [move, setMove] = useState<string>("");
   const [stake, setStake] = useState<string>("1");
-  const [aiStrategy, setAiStrategy] =
-    useState<keyof typeof AI_STRATEGIES>("random");
+  const [aiStrategy, setAiStrategy] = useState<string>("random");
   const [result, setResult] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [playerEmotion, setPlayerEmotion] =
@@ -169,6 +161,19 @@ export const GameSlide: React.FC<SlideProps> = () => {
     })(),
   };
 
+  // Map strategy names to proper implementations from strategies.ts
+  // TFT now uses history tracking for correct behavior
+
+  // Extract player move history from game history for TFT strategy
+  const playerMoveHistory = useMemo<GameMove[]>(
+    () =>
+      gameHistory.map((g) => {
+        if (g.move === "cooperate") return "C" as GameMove;
+        return "D" as GameMove;
+      }),
+    [gameHistory],
+  );
+
   const { address, signTransaction } = useWallet();
   const { playGame: playSinglePlayerGame } = useSinglePlayerGame(
     address,
@@ -237,7 +242,9 @@ export const GameSlide: React.FC<SlideProps> = () => {
 
     try {
       const playerMove = move === "cooperate" ? "C" : "D";
-      const aiMove = AI_STRATEGIES[aiStrategy]();
+      // Use proper strategy from strategies.ts with history support
+      const selectedStrategy = STRATEGY_MAP[aiStrategy] ?? RandomStrategy;
+      const aiMove = selectedStrategy.getMove(playerMoveHistory);
 
       // Get stake with fallback
       const stakeStr = stake && stake.trim() ? stake : "1";
@@ -629,7 +636,7 @@ Transaction: ${result?.txHash ? "✅ Confirmed" : "⏳ Pending"}
         <select
           value={aiStrategy}
           onChange={(e) =>
-            setAiStrategy(e.target.value as keyof typeof AI_STRATEGIES)
+            setAiStrategy(e.target.value)
           }
           disabled={loading}
           style={{

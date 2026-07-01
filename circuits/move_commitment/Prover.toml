@@ -1,0 +1,8 @@
+# Private inputs (filled by the player's client before generating proof)
+move = "0"
+nonce = "123456789"
+
+# Public inputs (visible on-chain)
+commitment = "0"
+player_address = "0"
+game_id = "0"

@@ -25,9 +25,9 @@ const initialState = {
   networkPassphrase: undefined,
 };
 
-const POLL_INTERVAL = 1000;
+const POLL_INTERVAL = 5000;
 
-export const WalletContext = // eslint-disable-line react-refresh/only-export-components
+export const WalletContext =
   createContext<WalletContextType>({ isPending: true });
 
 export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
@@ -124,10 +124,13 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setTimeout>;
     let isMounted = true;
 
-    // Create recursive polling function to check wallet state continuously
+    // Poll wallet state to detect disconnections or network changes.
+    // Only calls getAddress/getNetwork for freighter wallets (which support
+    // silent polling). Non-freighter wallets use stored values after initial
+    // connect to avoid triggering extension popups.
     const pollWalletState = async () => {
       if (!isMounted) return;
 
@@ -141,33 +144,33 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     // Get the wallet address when the component is mounted for the first time
     startTransition(async () => {
       await updateCurrentWalletState();
-      // Start polling after initial state is loaded
 
       if (isMounted) {
         timer = setTimeout(() => void pollWalletState(), POLL_INTERVAL);
       }
     });
 
-    // Clear the timeout and stop polling when the component unmounts
     return () => {
       isMounted = false;
       if (timer) clearTimeout(timer);
     };
-  }, [state]); // eslint-disable-line react-hooks/exhaustive-deps -- it SHOULD only run once per component mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally run once on mount
+  }, []);
 
   const connect = async () => {
     startTransition(async () => {
       try {
-        const result = await connectWallet() as any;
-        updateState({
-          address: result.address,
-          network: result.network,
-          networkPassphrase: result.networkPassphrase,
-        });
+        const result = await connectWallet();
+        const { address, network, networkPassphrase } = result as {
+          address: string;
+          network: string;
+          networkPassphrase: string;
+        };
+        updateState({ address, network, networkPassphrase });
         storage.setItem("walletId", "freighter");
-        storage.setItem("walletAddress", result.address);
-        storage.setItem("walletNetwork", result.network);
-        storage.setItem("networkPassphrase", result.networkPassphrase);
+        storage.setItem("walletAddress", address);
+        storage.setItem("walletNetwork", network);
+        storage.setItem("networkPassphrase", networkPassphrase);
       } catch (error) {
         console.error("Failed to connect wallet:", error);
         nullify();

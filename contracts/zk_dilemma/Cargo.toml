@@ -1,0 +1,32 @@
+[package]
+name = "zk-dilemma"
+description = "Zero-Knowledge Multiplayer Prisoner's Dilemma on Stellar"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+version.workspace = true
+
+[package.metadata.stellar]
+cargo_inherit = true
+
+[lib]
+crate-type = ["cdylib"]
+doctest = false
+
+[dependencies]
+soroban-sdk = { workspace = true }
+
+# ZK proof verification (disabled by default for development with stub)
+# Enable with: --features zk-verifier
+# See: https://github.com/NethermindEth/rs-soroban-ultrahonk
+# ultrahonk-soroban-verifier = { git = "https://github.com/NethermindEth/rs-soroban-ultrahonk", optional = true, package = "ultrahonk-soroban-verifier" }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }
+
+[features]
+default = []
+# zk-verifier enables actual UltraHonk proof verification via the verifier crate
+# Without this feature, proof verification is simulated (checks non-empty + length)
+zk-verifier = []
