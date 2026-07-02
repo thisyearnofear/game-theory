@@ -9,20 +9,22 @@ _Built with Scaffold Stellar for the Stellar Hackathon._
 - ⚡️ Vite + React + TypeScript
 - 🔗 Real XLM integration on Stellar testnet
 - 🎮 ZK-powered multiplayer Prisoner's Dilemma
+- 🏟️ Multi-round matches — best-of-3/5 with rematch support
 - 🔐 Keccak256 commitment-based reveal with on-chain verification
 - 🧠 9 stateful iterated strategies (TFT, Grudge, Pavlov, Prober, and more)
 - 🏆 Evolutionary tournament mode — watch trust evolve over generations
 - 🎛️ Configurable payoff matrix with 5 preset scenarios
 - 💨 Noise simulation — "the wind caught you"
+- 📊 Persistent stats, game history, and achievement system
 - 🛡️ Pre-commit hooks with secrets scanning + linting
 
 ## 🚀 Live Demo
 
 **ZK Multiplayer Contract (Testnet):** `CCJ6NWQDC7BAV2A6CU2D3D47F4MLGHRJMPANFLTQQMTZCHB4RVEDELQ7`
 
-> **Deployed 2026-07-02** — includes recovery functions (`cancel_game`, `claim_refund`) and events.
+> **Note:** The contract was previously deployed but has been pruned by Soroban's testnet ledger retention window. The WASM is built and ready for redeployment. See [Deploying to Testnet](#deploying-to-testnet) below.
 
-The ZK contract is deployed and initialized with the Noir UltraHonk verification key. Real ZK proofs are generated client-side in the browser using `@noir-lang/noir_js` + `@aztec/bb.js` (lazy-loaded, only downloaded when needed) and verified on-chain by the `ultrahonk_soroban_verifier`.
+The ZK contract includes single-round games and multi-round matches (best-of-3/5). Real ZK proofs are generated client-side in the browser using `@noir-lang/noir_js` + `@aztec/bb.js` (lazy-loaded, only downloaded when needed) and verified on-chain by the `ultrahonk_soroban_verifier`.
 
 ## Requirements
 
@@ -94,9 +96,23 @@ Play against other humans with **zero-knowledge commitment**:
 3. **Resolve Phase** — Payouts are calculated and XLM is transferred from escrow. If a player doesn't reveal in time, the opponent can claim forfeit.
 4. **Recovery** — If no opponent joins before the commit deadline, player1 can `cancel_game` to reclaim their stake. If both players timeout on reveal, anyone can `claim_refund` to split the escrow.
 
+**Two game modes:**
+
+- **Single Round** — One-shot Prisoner's Dilemma with XLM stakes
+- **Multi-Round Match** — Best-of-3 or best-of-5 series. The contract tracks round wins, ties, and automatically transitions between rounds. After a match completes, either player can call `rematch` to start a new match with the same opponent and settings.
+
+**Game Design Features:**
+
+- **Stake Presets** — 1 XLM, 5 XLM (recommended), 10 XLM, or custom
+- **Persistent Stats** — Win/loss/tie record, net XLM, cooperation rate, game history (localStorage)
+- **Achievement System** — Unlock badges (first catch, first betrayal, tournament winner, ZK player, ZK winner, etc.) with toast notifications
+- **Lobby Feedback** — Pulsing waiting indicator, copy game link, opponent-joined notification with sound
+- **Stake Filtering** — Filter open games by stake range (≤1, 1-5, 5+ XLM)
+- **Play Again** — Quick rematch button after game resolution
+
 **Why ZK?** Without the proof, a player could commit to an arbitrary hash and grief the opponent by never revealing a valid move. The ZK proof makes the commitment **binding** at commit time: the contract knows the hash is over a valid move + known nonce + correct game*id, so the player \_can* reveal later. Proofs are not persisted on-chain (only the commitment is stored), keeping gas costs manageable.
 
-**Smart Contract:** `contracts/zk_dilemma/` — Soroban contract with proper auth, XLM escrow, on-chain UltraHonk proof verification, keccak256 hash verification, timeout-based forfeit logic, recovery functions (cancel/refund), and contract events for off-chain indexing.
+**Smart Contract:** `contracts/zk_dilemma/` — Soroban contract with proper auth, XLM escrow, on-chain UltraHonk proof verification, keccak256 hash verification, timeout-based forfeit logic, recovery functions (cancel/refund), multi-round match support (best-of-3/5 with rematch), and contract events for off-chain indexing. 15/15 Rust tests passing.
 
 **Noir Circuit:** `circuits/move_commitment/` — Proves `keccak256(move || nonce || game_id) == commitment` where `move ∈ {0, 1}`. Uses the external `noir-lang/keccak256` library. Public inputs: `commitment_high`, `commitment_low` (two 128-bit Field elements for 32-byte alignment), `game_id`.
 
@@ -122,7 +138,23 @@ trustfall/
 │   └── prisoners-dilemma/         # P2P reference implementation
 ├── src/                            # Frontend (React + TypeScript)
 │   ├── components/
-│   │   ├── zk/                    # ZK multiplayer UI (GameLobby, CommitMove, RevealMove, GameResult, OnboardingOverlay)
+│   │   ├── zk/                    # ZK multiplayer UI
+│   │   │   ├── GameLobby.tsx      # Lobby with stats, history, stake filters
+│   │   │   ├── CommitMove.tsx     # Single-round commit with stake presets
+│   │   │   ├── RevealMove.tsx     # Reveal phase with deadline countdown
+│   │   │   ├── GameResult.tsx     # Result with Play Again, stats recording
+│   │   │   ├── OnboardingOverlay.tsx # 3-step ZK tutorial
+│   │   │   ├── StatsDisplay.tsx   # Persistent W/L/T stats panel
+│   │   │   ├── MatchSetup.tsx     # Best-of-3/5 selector with stake presets
+│   │   │   ├── MatchScoreboard.tsx # Visual win tally, round counter, winner banner
+│   │   │   └── MatchCommitMove.tsx # Commit flow for match phases
+│   │   ├── ui/                    # Shared UI components
+│   │   │   ├── ElectricButton.tsx # Magnetic button with electric arc effect
+│   │   │   ├── ShimmerButton.tsx  # Shimmer sweep button
+│   │   │   ├── StaggerButton.tsx  # Stagger animation button
+│   │   │   ├── AchievementBadge.tsx # Achievement system + unlock logic
+│   │   │   ├── AchievementToast.tsx # Toast notification for unlocked achievements
+│   │   │   └── ShareableResult.tsx # Shareable result card
 │   │   ├── slides/                # Game modes + educational slides
 │   │   │   ├── GameSlide.tsx      # Main game screen (3 modes: Tutorial, Tournament, Multiplayer)
 │   │   │   ├── TournamentMode.tsx # Evolutionary tournament simulation UI
@@ -132,13 +164,14 @@ trustfall/
 │   │   ├── ai/                    # AI integration (Venice AI, personas)
 │   │   └── ErrorBoundary.tsx      # Error boundary
 │   ├── contracts/
-│   │   ├── zk_dilemma/            # Generated TS client bindings
+│   │   ├── zk_dilemma/            # Generated TS client bindings (single-round + match functions)
 │   │   └── util.ts                # Network config
 │   ├── hooks/
-│   │   ├── useZKDilemma.ts        # ZK game hook (typed client, cancel/refund)
+│   │   ├── useZKDilemma.ts        # ZK game + match hook (typed client, all contract functions)
+│   │   ├── useGameStats.ts        # Persistent game stats + history (localStorage)
 │   │   └── ...
 │   ├── pages/
-│   │   ├── ZKGamePage.tsx         # /play route - ZK game lobby + game view
+│   │   ├── ZKGamePage.tsx         # /play route - lobby, single-round, matches, results
 │   │   ├── Home.tsx               # Tutorial / landing
 │   │   └── Debugger.tsx           # Contract debugger
 │   ├── util/
@@ -209,7 +242,7 @@ npm run format    # Prettier
 ### Testing
 
 ```bash
-# Rust contract tests
+# Rust contract tests (15 tests: 7 single-round + 8 multi-round match)
 cargo test -p zk-dilemma
 
 # TypeScript typecheck

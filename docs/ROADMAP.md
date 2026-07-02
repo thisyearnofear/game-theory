@@ -1,17 +1,18 @@
 # Trustfall — Development Roadmap
 
-## 🎯 Current Status: ZK Multiplayer + Game Theory Sandbox Complete
+## 🎯 Current Status: ZK Multiplayer + Multi-Round Matches + Game Theory Sandbox
 
-- ✅ ZK Dilemma Soroban contract (`contracts/zk_dilemma/`) — on-chain UltraHonk proof verification, keccak256 commitment, XLM escrow, forfeit logic, recovery functions (cancel_game, claim_refund), contract events, self-join prevention
+- ✅ ZK Dilemma Soroban contract (`contracts/zk_dilemma/`) — on-chain UltraHonk proof verification, keccak256 commitment, XLM escrow, forfeit logic, recovery functions (cancel_game, claim_refund), contract events, self-join prevention, **multi-round matches (best-of-3/5 with rematch)**
 - ✅ Noir move-commitment circuit (`circuits/move_commitment/`) — keccak256-based, external `noir-lang/keccak256` library
 - ✅ UltraHonk verifier integrated (`ultrahonk_soroban_verifier` crate from NethermindEth)
 - ✅ soroban-sdk upgraded to 26.x for BN254 host functions
-- ✅ Real ZK proof verified on-chain in Rust tests (9/9 tests passing)
+- ✅ Real ZK proof verified on-chain in Rust tests (15/15 tests passing — 7 single-round + 8 multi-round match)
 - ✅ Browser proof generation via `@noir-lang/noir_js` + `@aztec/bb.js` (lazy-loaded, code-split)
-- ✅ Contract deployed to testnet: `CCJ6NWQDC7BAV2A6CU2D3D47F4MLGHRJMPANFLTQQMTZCHB4RVEDELQ7` (includes recovery functions + events)
-- ✅ ZK multiplayer frontend — GameLobby, CommitMove, RevealMove, GameResult, OnboardingOverlay
-- ✅ `useZKDilemma` hook with typed auto-generated client (includes cancelGame, claimRefund)
-- ✅ WASM compiled (28KB) + TypeScript bindings
+- ✅ Contract deployed to testnet (pruned by retention window — WASM built and ready for redeployment)
+- ✅ ZK multiplayer frontend — GameLobby, CommitMove, RevealMove, GameResult, OnboardingOverlay, StatsDisplay, MatchSetup, MatchScoreboard, MatchCommitMove
+- ✅ `useZKDilemma` hook with typed auto-generated client (all single-round + match functions)
+- ✅ `useGameStats` hook — persistent stats and game history in localStorage
+- ✅ WASM compiled + TypeScript bindings (regenerated with match functions)
 - ✅ Pre-commit hooks with secrets scanning (secretlint) + linting (lint-staged)
 - ✅ Interactive slide system (5 slides) with local simulation tutorial
 - ✅ Mobile responsive breakpoints across ZK components
@@ -24,6 +25,15 @@
 - ✅ Configurable payoff matrix — 5 presets (Classic PD, Stag Hunt, Harmony, Snowdrift, High Temptation), live dilemma type detection, custom P/S/R/T editing
 - ✅ Noise simulation — "the wind caught you" — random move flips in both tutorial and tournament
 - ✅ Strategy inspector — plain-English decision logic, strengths/weaknesses, round-by-round examples for all 9 strategies
+- ✅ Achievement system — unlockable badges (first_catch, first_betrayal, tournament_winner, zk_player, zk_winner, etc.) with toast notifications
+- ✅ Persistent game stats — W/L/T record, net XLM, cooperation rate, game history
+- ✅ Stake guidance — presets (1/5/10 XLM), recommended indicator, lobby filter by stake range
+- ✅ Lobby feedback — waiting indicator, copy game link, opponent-joined notification with sound
+- ✅ Multi-round matches — best-of-3/5, visual scoreboard, rematch with same opponent
+- ✅ Shareable results — generate shareable cards from tournament outcomes
+- ✅ Custom cursor with proximity-aware interactions
+- ✅ 3D tilt + spotlight on strategy cards
+- ✅ Directional slide transitions with parallax
 
 ## 🚀 Phase 3: AI Integration & Deployment
 
@@ -61,8 +71,8 @@
 - ✅ Strategy inspector — plain-English decision logic for all 9 strategies
 - ✅ Tournament mode — evolutionary simulation with population visualization
 - ⬜ Campaign mode with progressive difficulty
-- ⬜ Achievement system with XLM rewards
-- ⬜ Leaderboards for tutorial performance
+- ✅ Achievement system (badges + toast notifications, no XLM rewards yet)
+- ⬜ Leaderboards for tutorial performance (persistent stats exist locally; no global leaderboard)
 
 ## 🏆 Phase 4: Advanced Game Theory Concepts & Tournament System
 
@@ -75,7 +85,7 @@
 - ✅ **Trust evolution tracking** — trust altitude visual grows with mutual cooperation
 - ✅ **Historical move analysis** — move history table with per-round breakdown
 - ✅ **Noise simulation** — "the wind caught you" — random move flips with contextual labels
-- ⬜ On-chain iterated games (ZK multiplayer contract is still single-round)
+- ✅ **On-chain multi-round matches** — best-of-3/5 with rematch support, contract tracks round wins/ties
 
 ### 4.2 Tournament System — ✅ Complete (off-chain simulation)
 
@@ -157,6 +167,9 @@
 - ✅ **Nonce persistence** — localStorage with sessionStorage fallback
 - ✅ **Game ID race condition** — auto-retry on create
 - ✅ **Contract events** — emitted for all state transitions
+- ✅ **Multi-round match support** — Match struct, best-of-3/5, rematch, cancel_match, 8 new tests
+- ✅ **Game design closed loops** — post-game Play Again, persistent stats, stake guidance, lobby feedback
+- ✅ **Achievement system** — unlockable badges with toast notifications
 - ✅ **Dead code removal** — single-player contract stub removed, tutorial uses local simulation
 - ✅ **Strategy architecture** — refactored from stateless functions to stateful IteratedStrategy classes
 - ✅ **Payoff matrix** — refactored from hardcoded values to configurable PayoffMatrix interface

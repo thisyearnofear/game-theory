@@ -20,7 +20,7 @@ Comprehensive review of product design, UI/UX, system architecture, reliability/
 
 **No game discovery mechanism.** Players can only see games in the lobby by polling `get_game_count` and iterating. Contract events are now emitted (`GameCreated`, `GameJoined`, etc.) enabling future off-chain indexing, but no event subscription or filter for open games is built yet. For a hackathon demo, you need two browsers side-by-side. For real use, you'd need a relay/matchmaking layer.
 
-**~~No iterated games.~~** ✅ **Fixed (tutorial).** The tutorial now supports iterated play with 9 stateful strategies that remember past rounds. Move history table, trust altitude visual, and noise simulation are all built. The ZK multiplayer contract is still single-round — on-chain iterated games are future work.
+**~~No iterated games.~~** ✅ **Fixed (tutorial + on-chain).** The tutorial supports iterated play with 9 stateful strategies that remember past rounds. The ZK multiplayer contract now supports multi-round matches (best-of-3/5) with rematch support, closing the gap between tutorial and multiplayer.
 
 **~~No tournament system.~~** ✅ **Fixed.** Full evolutionary tournament mode is built — all 9 strategies compete in round-robin, weak are eliminated, strong reproduce. Population bar chart, auto-play, noise slider, payoff matrix editor, and population-over-generations chart are all functional.
 
@@ -29,7 +29,7 @@ Comprehensive review of product design, UI/UX, system architecture, reliability/
 ### Recommendations
 
 1. ~~**Hide or remove the single-player entry point**~~ ✅ Done — replaced with local simulation
-2. **Add a "copy game link" button** in the lobby so players can share game IDs out-of-band
+2. ~~**Add a "copy game link" button** in the lobby~~ ✅ Done — copy game link functionality added
 3. **Be honest in the demo** about what's built vs. planned — the ZK commit-reveal is real and load-bearing; reputation proofs are future work
 
 ---
@@ -64,7 +64,7 @@ Comprehensive review of product design, UI/UX, system architecture, reliability/
 
 **Silent wallet disconnect.** If the wallet disconnects during a game (polling detects it), the app silently returns to "Connect Your Wallet" with no explanation. Users may think the app crashed.
 
-**No visual polling indicator.** The game view polls every 5 seconds but shows no indicator that it's waiting for updates. Users don't know if the page is live or stuck.
+**~~No visual polling indicator.~~** ✅ **Fixed.** Lobby now shows a pulsing waiting indicator when waiting for an opponent, and a visual notification when the opponent joins.
 
 **~~Reveal deadline UX is unclear.~~** ✅ **Partially fixed.** Cancel and refund buttons now appear when deadlines pass, with countdown timers showing time remaining. Claim forfeit is still not surfaced as a button.
 
@@ -125,7 +125,7 @@ Comprehensive review of product design, UI/UX, system architecture, reliability/
 
 **Proof generation is the critical path and it works.** bb.js generates a 14,592-byte proof that verifies against the on-chain Rust verifier. This was cross-verified (bb.js proof → Rust verifier test).
 
-**Contract tests are comprehensive.** 9/9 tests pass: real proof verification, fake proof rejection, wrong-length rejection, zero-stake rejection, payout calculation, cancel after deadline, cancel before deadline fails, refund on both timeout, self-join prevention.
+**Contract tests are comprehensive.** 15/15 tests pass: 7 single-round tests (real proof verification, fake proof rejection, wrong-length rejection, zero-stake rejection, payout calculation, cancel after deadline, refund on both timeout, self-join prevention) + 8 multi-round match tests (create match, invalid best-of, full best-of-3, completed after two wins, cancel after timeout, forfeit awards round).
 
 **Error handling is consistent.** All contract functions use `Result<T, Error>` with the `?` operator. All frontend hook functions use try-catch-finally with `isLoading` and `error` state.
 
@@ -172,7 +172,7 @@ Comprehensive review of product design, UI/UX, system architecture, reliability/
 
 **The nonce presentation is scary.** "Save Your Nonce! You'll need this to reveal your move" with a big number in monospace is intimidating. Users don't know what a nonce is or why they need to save it. Better: "Your secret code (saved automatically in your browser) — write this down as backup."
 
-**~~No connection between the tutorial and the game.~~** ✅ **Partially fixed.** The tutorial now has three game modes (Tutorial, Tournament, Multiplayer) accessible from the same screen, creating a natural progression: learn → experiment → play for real. The strategy inspector helps users understand AI behavior before facing real opponents. A direct "play for real" link from tutorial to ZK multiplayer is still missing.
+**~~No connection between the tutorial and the game.~~** ✅ **Fixed.** The tutorial has three game modes (Tutorial, Tournament, Multiplayer) accessible from the same screen, creating a natural progression: learn → experiment → play for real. The strategy inspector helps users understand AI behavior before facing real opponents. Multi-round matches in ZK multiplayer now mirror the iterated play taught in the tutorial.
 
 ### Recommendations
 
@@ -207,23 +207,29 @@ Comprehensive review of product design, UI/UX, system architecture, reliability/
 
 ### Previously acknowledged, now fixed ✅
 
-| #   | Issue                     | Impact                     | Status                                 |
-| --- | ------------------------- | -------------------------- | -------------------------------------- |
-| 10  | No event emission         | No off-chain indexing      | ✅ Events added                        |
-| 11  | Large WASM bundle (~10MB) | Slow first load            | ✅ Lazy-loaded                         |
-| 12  | Game ID race condition    | Rare but unrecoverable     | ✅ Auto-retry added                    |
-| 13  | Single-player mode broken | Dead end in UI             | ✅ Replaced with local simulation      |
-| 14  | No iterated games         | Limited educational value  | ✅ Iterated tutorial with 9 strategies |
-| 15  | No tournament system      | Missing Nicky Case feature | ✅ Evolutionary tournament mode        |
-| 16  | No noise simulation       | Missing Nicky Case feature | ✅ Noise slider in both modes          |
-| 17  | No payoff matrix editor   | Missing Nicky Case feature | ✅ 5 presets + custom editing          |
-| 18  | No strategy explanations  | Educational gap            | ✅ Strategy inspector component        |
+| #   | Issue                     | Impact                     | Status                                              |
+| --- | ------------------------- | -------------------------- | --------------------------------------------------- |
+| 10  | No event emission         | No off-chain indexing      | ✅ Events added                                     |
+| 11  | Large WASM bundle (~10MB) | Slow first load            | ✅ Lazy-loaded                                      |
+| 12  | Game ID race condition    | Rare but unrecoverable     | ✅ Auto-retry added                                 |
+| 13  | Single-player mode broken | Dead end in UI             | ✅ Replaced with local simulation                   |
+| 14  | No iterated games         | Limited educational value  | ✅ Iterated tutorial + on-chain multi-round matches |
+| 15  | No tournament system      | Missing Nicky Case feature | ✅ Evolutionary tournament mode                     |
+| 16  | No noise simulation       | Missing Nicky Case feature | ✅ Noise slider in both modes                       |
+| 17  | No payoff matrix editor   | Missing Nicky Case feature | ✅ 5 presets + custom editing                       |
+| 18  | No strategy explanations  | Educational gap            | ✅ Strategy inspector component                     |
+| 19  | No persistent stats       | No progression tracking    | ✅ localStorage stats + game history                |
+| 20  | No achievements           | Missing delight layer      | ✅ Badge system + toast notifications               |
+| 21  | No stake guidance         | Blind staking              | ✅ Presets + recommended + filtering                |
+| 22  | No lobby feedback         | Silent waiting             | ✅ Waiting indicator + join notification            |
+| 23  | No copy game link         | Hard to share games        | ✅ Copy link button in lobby                        |
+| 24  | No match system           | Tutorial/multiplayer gap   | ✅ Best-of-3/5 with rematch                         |
 
 ### Acknowledge in README (won't fix)
 
-| #   | Issue                                       | Impact                                                    |
-| --- | ------------------------------------------- | --------------------------------------------------------- |
-| 14  | Reputation proofs not built                 | Future work                                               |
-| 15  | No proof generation timeout                 | Silent hang risk                                          |
-| 16  | Inefficient polling (no batching/websocket) | Scalability                                               |
-| 17  | ~~Contract redeployment needed~~            | ✅ Redeployed 2026-07-02 with recovery functions + events |
+| #   | Issue                                       | Impact                                                     |
+| --- | ------------------------------------------- | ---------------------------------------------------------- |
+| 14  | Reputation proofs not built                 | Future work                                                |
+| 15  | No proof generation timeout                 | Silent hang risk                                           |
+| 16  | Inefficient polling (no batching/websocket) | Scalability                                                |
+| 17  | ~~Contract redeployment needed~~            | ⬜ Previous deployment pruned; WASM ready for redeployment |

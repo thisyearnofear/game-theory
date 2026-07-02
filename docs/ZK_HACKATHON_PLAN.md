@@ -42,23 +42,25 @@ This is not privacy-for-privacy's-sake. The ZK proof is what makes fair, trustle
 
 1. **Noir circuit** (`circuits/move_commitment/`) — Proves `keccak256(move || nonce || game_id) == commitment` where `move ∈ {0, 1}`. Uses external `noir-lang/keccak256` library. Public inputs: `commitment_high`, `commitment_low` (two 128-bit Field elements for 32-byte alignment), `game_id`.
 
-2. **Soroban contract** (`contracts/zk_dilemma/`) — On-chain UltraHonk proof verification via `ultrahonk_soroban_verifier` (NethermindEth). Keccak256 commitment verification. XLM escrow with proper auth. Timeout-based forfeit logic. Recovery functions (`cancel_game`, `claim_refund`) for stuck games. Contract events for off-chain indexing. Self-join prevention. `soroban-sdk` 26.x for BN254 host functions.
+2. **Soroban contract** (`contracts/zk_dilemma/`) — On-chain UltraHonk proof verification via `ultrahonk_soroban_verifier` (NethermindEth). Keccak256 commitment verification. XLM escrow with proper auth. Timeout-based forfeit logic. Recovery functions (`cancel_game`, `claim_refund`) for stuck games. Contract events for off-chain indexing. Self-join prevention. `soroban-sdk` 26.x for BN254 host functions. **Multi-round match support** — `Match` struct, best-of-3/5, `create_match`/`join_match`/`start_next_round`/`join_next_round`/`rematch`/`cancel_match` functions, automatic round win/tie tracking via `resolve_game` and `claim_forfeit`.
 
 3. **Browser proof generation** — `@noir-lang/noir_js@1.0.0-beta.9` + `@aztec/bb.js@0.87.0` (pinned to match toolchain). Proof generated with `{ keccak: true }` (non-ZK keccak UltraHonk flavor) to match on-chain verifier. Circuit JSON served from `public/circuits/`. **Lazy-loaded** — bb.js/noir_js are dynamically imported on first proof generation, keeping the initial page load bundle at ~200KB (WASM only downloads when needed).
 
-4. **Frontend** — React + TypeScript. GameLobby, CommitMove, RevealMove, GameResult components. `useZKDilemma` hook with typed client. Wallet integration via Stellar Wallets Kit. **Auto-retry** for game_id race condition in create flow. **Mobile responsive** breakpoints. **Onboarding overlay** (3-step ZK tutorial) on first visit to `/play`. Cancel/refund UI for stuck games with countdown timers.
+4. **Frontend** — React + TypeScript. GameLobby, CommitMove, RevealMove, GameResult, OnboardingOverlay, StatsDisplay, MatchSetup, MatchScoreboard, MatchCommitMove components. `useZKDilemma` hook with typed client (all single-round + match functions). `useGameStats` hook for persistent stats. Wallet integration via Stellar Wallets Kit. **Auto-retry** for game_id race condition in create flow. **Mobile responsive** breakpoints. **Onboarding overlay** (3-step ZK tutorial) on first visit to `/play`. Cancel/refund UI for stuck games with countdown timers. **Stake presets** (1/5/10 XLM) with recommended indicator and lobby filtering. **Lobby feedback** — waiting indicator, copy game link, opponent-joined notification. **Achievement system** — unlockable badges with toast notifications. **Shareable results** — generate shareable cards from tournament outcomes.
 
-5. **Tests** — 9/9 Rust tests passing, including `test_verify_proof_real_proof` (verifies a real 14,592-byte UltraHonk proof on-chain), `test_cancel_game_after_commit_deadline`, `test_claim_refund_both_timeout`, `test_self_join_prevented`. Cross-verified: bb.js-generated proof verified against the Rust on-chain verifier.
+5. **Tests** — 15/15 Rust tests passing, including `test_verify_proof_real_proof` (verifies a real 14,592-byte UltraHonk proof on-chain), `test_cancel_game_after_commit_deadline`, `test_claim_refund_both_timeout`, `test_self_join_prevented`, `test_create_match_best_of_3`, `test_match_full_best_of_3`, `test_match_completed_after_two_wins`, `test_cancel_match_after_timeout`, `test_match_forfeit_awards_round`. Cross-verified: bb.js-generated proof verified against the Rust on-chain verifier.
 
-6. **Deployed** — Contract deployed and initialized on testnet: `CCJ6NWQDC7BAV2A6CU2D3D47F4MLGHRJMPANFLTQQMTZCHB4RVEDELQ7` (includes recovery functions + events, deployed 2026-07-02)
+6. **Deployed** — Contract previously deployed to testnet at `CCJ6NWQDC7BAV2A6CU2D3D47F4MLGHRJMPANFLTQQMTZCHB4RVEDELQ7` (pruned by testnet retention window). WASM is built and ready for redeployment with the new match functions.
 
-7. **WASM** — 28KB optimized contract WASM.
+7. **WASM** — Optimized contract WASM with multi-round match support. TypeScript bindings regenerated.
 
 8. **Tutorial mode** — Educational slide system with local simulation (no wallet/contract needed). AI tutor feedback via Venice AI. **9 stateful iterated strategies** (Tit-for-Tat, Tit-for-Two-Tat, Grudge, Pavlov, Prober, Generous TFT, Always Cooperate, Always Defect, Random). Move history table, trust altitude visual, noise slider, payoff matrix editor, strategy inspector.
 
 9. **Tournament mode** — Evolutionary tournament simulation matching Nicky Case's architecture. All 9 strategies compete in round-robin, weak eliminated, strong reproduce. Population bar chart, auto-play, noise slider, payoff matrix editor with presets, population-over-generations chart, winner detection.
 
-10. **Trustfall thematic UI** — The entire experience is built around the trust fall metaphor. Commit phase = "the fall" (falling animation during proof generation). Result = "the catch or the impact" (catch animation for cooperation, impact for defection). Trust altitude grows with consecutive mutual cooperation.
+10. **Trustfall thematic UI** — The entire experience is built around the trust fall metaphor. Commit phase = "the fall" (falling animation during proof generation). Result = "the catch or the impact" (catch animation for cooperation, impact for defection). Trust altitude grows with consecutive mutual cooperation. Custom cursor with proximity-aware interactions, 3D tilt on strategy cards, directional slide transitions.
+
+11. **Multi-round matches** — Best-of-3/5 match system closes the design gap between the tutorial (which teaches iterated play) and ZK multiplayer (which was single-round only). Match scoreboard shows visual win tally, round counter, and winner banner. After a match completes, either player can call `rematch` to start a new match with the same opponent and settings.
 
 ### ⬜ Not Built (Honest Gaps)
 
@@ -66,9 +68,9 @@ This is not privacy-for-privacy's-sake. The ZK proof is what makes fair, trustle
 
 2. **End-to-end browser test** — The cryptographic path (bb.js → on-chain verifier) is cross-verified, but a full two-wallet browser session has not been tested end-to-end.
 
-3. ~~**Contract redeployment**~~ — ✅ Done (2026-07-02). The WASM with recovery functions and events is now deployed to testnet at `CCJ6NWQDC7BAV2A6CU2D3D47F4MLGHRJMPANFLTQQMTZCHB4RVEDELQ7`.
+3. **Contract redeployment** — The previous testnet deployment was pruned by Soroban's ledger retention window. The WASM with multi-round match support is built and ready for redeployment, but has not been deployed yet.
 
-4. **On-chain iterated games** — The tutorial supports iterated play with stateful strategies, but the ZK multiplayer contract is still single-round. On-chain multi-round gameplay with move history is future work.
+4. ~~**On-chain iterated games**~~ — ✅ Done. Multi-round matches (best-of-3/5 with rematch) are now supported in the contract and frontend.
 
 ---
 
@@ -152,8 +154,9 @@ The proof is generated with `{ keccak: true }` (non-ZK keccak UltraHonk flavor) 
 │  │  Move history │  │  simulation  │  │  CommitMove        │  │
 │  │  Trust alt.   │  │  9 strategies│  │  RevealMove        │  │
 │  │  Noise slider │  │  Auto-play   │  │  GameResult        │  │
-│  │  Payoff edit  │  │  Payoff edit │  │                    │  │
-│  │  Inspector    │  │              │  │                    │  │
+│  │  Payoff edit  │  │  Payoff edit │  │  MatchSetup        │  │
+│  │  Inspector    │  │              │  │  MatchScoreboard   │  │
+│  │               │  │              │  │  StatsDisplay      │  │
 │  └──────────────┘  └──────────────┘  └────────────────────┘  │
 │                          │                                    │
 │  ┌───────────────────────┼────────────────────────────────┐  │
@@ -219,6 +222,8 @@ Note: Proofs are NOT persisted on-chain. They are verified at commit time and di
 
 ```rust
 fn initialize(env, vk_bytes: Bytes, xlm_token: Address)  // Set VK + token
+
+// Single-round games
 fn create_game(env, player, commitment, proof, stake) -> u64
 fn join_game(env, player, game_id, commitment, proof) -> Result
 fn reveal_move(env, player, game_id, move, nonce) -> Result
@@ -229,6 +234,17 @@ fn claim_refund(env, game_id) -> Result                  // Recovery: both timed
 fn get_game(env, game_id) -> Option<Game>
 fn get_game_count(env) -> u32
 fn get_vk(env) -> Option<Bytes>
+
+// Multi-round matches (best-of-3/5)
+fn create_match(env, player1, commitment, proof, stake, best_of) -> (u64, u64)  // (match_id, game_id)
+fn join_match(env, player2, match_id, commitment, proof) -> Result
+fn start_next_round(env, player1, match_id, commitment, proof) -> u64           // new game_id
+fn join_next_round(env, player2, match_id, commitment, proof) -> Result
+fn rematch(env, player, old_match_id, commitment, proof) -> (u64, u64)          // new match + game
+fn cancel_match(env, player1, match_id) -> Result                               // unjoined match
+fn cancel_match_timeout(env, player, match_id) -> Result                        // stalled match
+fn get_match(env, match_id) -> Option<Match>
+fn get_match_count(env) -> u32
 ```
 
 ### XLM Escrow
@@ -259,9 +275,9 @@ The contract emits events for off-chain indexing:
 - [x] Clear README.md explaining what was built, how ZK is used, and what's unfinished
 - [x] ZK is load-bearing: Noir proofs verify move validity on-chain
 - [x] Stellar integration: Soroban contract verifies proofs using BN254 host functions
-- [x] Contracts deployed on testnet with real addresses
+- [x] Contracts deployed on testnet with real addresses (pruned by retention window — WASM ready for redeployment)
 - [x] Honest about mock data or unfinished features in README
-- [x] Recovery mechanisms (cancel_game, claim_refund) for stuck/locked funds
+- [x] Recovery mechanisms (cancel_game, claim_refund, cancel_match) for stuck/locked funds
 - [x] Contract events for off-chain indexing
 - [x] Self-join vulnerability fixed
 - [x] Mobile responsive UI
@@ -273,9 +289,14 @@ The contract emits events for off-chain indexing:
 - [x] Noise simulation ("the wind caught you") in both tutorial and tournament
 - [x] Strategy inspector with plain-English decision logic explanations
 - [x] Trustfall thematic UI (the fall, the catch, the impact)
+- [x] Multi-round matches (best-of-3/5 with rematch) in contract + frontend
+- [x] Achievement system with toast notifications
+- [x] Persistent game stats and history (localStorage)
+- [x] Stake guidance presets and lobby filtering
+- [x] Shareable results from tournament outcomes
 - [ ] 2-3 minute demo video (script prepared at `docs/demo-script.md`)
 - [ ] End-to-end browser test with two wallets
-- [x] Contract redeployment with new recovery functions + events (2026-07-02)
+- [ ] Contract redeployment with multi-round match functions
 
 ---
 
