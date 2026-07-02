@@ -7,9 +7,13 @@ import { GameLobby } from "../components/zk/GameLobby";
 import { CommitMove } from "../components/zk/CommitMove";
 import { RevealMove } from "../components/zk/RevealMove";
 import { GameResult } from "../components/zk/GameResult";
+import { MatchScoreboard } from "../components/zk/MatchScoreboard";
+import { MatchSetup } from "../components/zk/MatchSetup";
+import { MatchCommitMove } from "../components/zk/MatchCommitMove";
 import { OnboardingOverlay } from "../components/zk/OnboardingOverlay";
 import ConnectAccount from "../components/ConnectAccount";
 import { ShimmerButton } from "../components/ui/ShimmerButton";
+import { ElectricButton } from "../components/ui/ElectricButton";
 import { useAchievementToast } from "../components/ui/AchievementToast";
 import { getUnlockedAchievements } from "../components/ui/AchievementBadge";
 import AudioManager from "../components/AudioManager";
@@ -17,8 +21,17 @@ import AudioManager from "../components/AudioManager";
 type ViewState =
   | { type: "lobby" }
   | { type: "create" }
+  | { type: "matchSetup" }
   | { type: "join"; gameId: number; hostAddress: string; stake: string }
-  | { type: "game"; gameId: number };
+  | { type: "game"; gameId: number }
+  | { type: "match"; matchId: number; gameId: number; role: "p1" | "p2" }
+  | {
+      type: "matchCommit";
+      matchId: number;
+      gameId: number;
+      role: "p1" | "p2";
+      phase: "startNext" | "joinNext" | "rematch";
+    };
 
 /** Card-like div with consistent styling */
 const CardDiv: React.FC<{
@@ -48,6 +61,8 @@ export const ZKGamePage: React.FC = () => {
     currentGame,
     cancelGame,
     claimRefund,
+    fetchMatch,
+    currentMatch,
     isLoading: txLoading,
   } = useZKDilemma();
 
@@ -57,6 +72,13 @@ export const ZKGamePage: React.FC = () => {
   const prevStatusRef = useRef<string | undefined>(undefined);
   const prevAchievementsRef = useRef<string[]>(getUnlockedAchievements());
   const { toastElement, showAchievement } = useAchievementToast();
+
+  // Pending match setup params (bestOf, stake) captured from MatchSetup,
+  // passed through to the CommitMove flow which submits the first round.
+  const [pendingMatchSetup, setPendingMatchSetup] = useState<{
+    bestOf: number;
+    stake: string;
+  } | null>(null);
 
   // Watch for newly unlocked achievements and show toast
   useEffect(() => {
@@ -111,24 +133,30 @@ export const ZKGamePage: React.FC = () => {
     }
   }, []);
 
-  // Poll game state when viewing a game
+  // Poll game state when viewing a game or match
   useEffect(() => {
-    if (view.type !== "game" && view.type !== "join") {
+    if (view.type !== "game" && view.type !== "join" && view.type !== "match") {
       return;
     }
     const id = view.gameId;
     const poll = setInterval(() => {
       void fetchGame(id);
+      if (view.type === "match") {
+        void fetchMatch(view.matchId);
+      }
     }, 5000);
     return () => clearInterval(poll);
-  }, [view.type, view.gameId, fetchGame]);
+  }, [view, fetchGame, fetchMatch]);
 
-  // Fetch game data when entering game view
+  // Fetch game/match data when entering game or match view
   useEffect(() => {
     if (view.type === "game") {
       void fetchGame(view.gameId);
+    } else if (view.type === "match") {
+      void fetchGame(view.gameId);
+      void fetchMatch(view.matchId);
     }
-  }, [view.type, (view as { gameId?: number }).gameId, fetchGame]);
+  }, [view, fetchGame, fetchMatch]);
 
   const handleSelectGame = useCallback((gameId: number) => {
     setView({ type: "game", gameId });
@@ -156,6 +184,71 @@ export const ZKGamePage: React.FC = () => {
   const handlePlayAgain = useCallback(() => {
     setView({ type: "create" });
   }, []);
+
+  // --- Match handlers ---
+
+  const handleCreateMatch = useCallback(() => {
+    setView({ type: "matchSetup" });
+  }, []);
+
+  const handleMatchSetupConfirm = useCallback(
+    (bestOf: number, stake: string) => {
+      setPendingMatchSetup({ bestOf, stake });
+      // Go to the create-game commit flow; the first round is created as
+      // part of create_match. We intercept completion to call createMatch.
+      setView({ type: "create" });
+    },
+    [],
+  );
+
+  const handleMatchSetupBack = useCallback(() => {
+    setView({ type: "lobby" });
+  }, []);
+
+  const handleStartNextRound = useCallback(
+    (matchId: number) => {
+      if (!currentMatch) return;
+      setView({
+        type: "matchCommit",
+        matchId,
+        gameId: currentMatch.current_game_id,
+        role: "p1",
+        phase: "startNext",
+      });
+    },
+    [currentMatch],
+  );
+
+  const handleRematch = useCallback(() => {
+    if (!currentMatch) return;
+    if (view.type !== "match") return;
+    // Pass the old match id; MatchCommitMove uses it for the rematch contract
+    // call. handleMatchCommitDone uses the new id from onComplete to transition.
+    setView({
+      type: "matchCommit",
+      matchId: view.matchId,
+      gameId: 0,
+      role: currentMatch.player1 === address ? "p1" : "p2",
+      phase: "rematch",
+    });
+  }, [currentMatch, address, view]);
+
+  const handleMatchCommitDone = useCallback(
+    async (newGameId: number, newMatchId?: number) => {
+      if (view.type !== "matchCommit") return;
+      const { role } = view;
+      // For rematch, a new match is created with a new id.
+      const targetMatchId = newMatchId ?? view.matchId;
+      await fetchMatch(targetMatchId);
+      setView({
+        type: "match",
+        matchId: targetMatchId,
+        gameId: newGameId,
+        role,
+      });
+    },
+    [view, fetchMatch],
+  );
 
   // If viewing a specific game
   if (view.type === "game" && currentGame) {
@@ -686,8 +779,400 @@ export const ZKGamePage: React.FC = () => {
     );
   }
 
+  // Match setup flow
+  if (view.type === "matchSetup") {
+    return (
+      <div style={{ padding: "24px" }}>
+        <MatchSetup
+          onCreateMatch={handleMatchSetupConfirm}
+          onBack={handleMatchSetupBack}
+        />
+        {toastElement}
+      </div>
+    );
+  }
+
+  // Match commit flow (create/join/startNext/joinNext/rematch)
+  if (view.type === "matchCommit") {
+    const phase =
+      view.phase === "rematch"
+        ? "rematch"
+        : view.phase === "startNext"
+          ? "startNext"
+          : view.phase === "joinNext"
+            ? "joinNext"
+            : view.role === "p1"
+              ? "create"
+              : "join";
+    return (
+      <div style={{ padding: "24px" }}>
+        <MatchCommitMove
+          phase={phase}
+          matchId={view.matchId}
+          gameId={view.gameId || undefined}
+          bestOf={pendingMatchSetup?.bestOf}
+          stake={pendingMatchSetup?.stake}
+          onComplete={(newGameId, newMatchId) => {
+            void handleMatchCommitDone(newGameId, newMatchId);
+          }}
+          onBack={handleBackToLobby}
+        />
+        {toastElement}
+      </div>
+    );
+  }
+
+  // Match view — scoreboard above the current round's game view
+  if (view.type === "match" && currentMatch) {
+    const bothRevealed =
+      currentGame?.move1 !== null && currentGame?.move2 !== null;
+    const isRoundResolved =
+      currentGame?.status === "Resolved" ||
+      currentGame?.status === "Forfeited" ||
+      currentGame?.status === "Cancelled";
+
+    const matchCompleted = currentMatch.status === "Completed";
+    const matchCancelled = currentMatch.status === "Cancelled";
+    const awaitingNextRound =
+      currentMatch.status === "AwaitingNextRound" && isRoundResolved;
+
+    return (
+      <div
+        className="zk-page-container"
+        style={{ padding: "24px", maxWidth: "800px", margin: "0 auto" }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "20px",
+          }}
+        >
+          <button
+            type="button"
+            onClick={handleBackToLobby}
+            style={{
+              background: "none",
+              border: "none",
+              color: "rgba(20, 26, 46, 0.35)",
+              cursor: "pointer",
+              fontFamily: "var(--font-body)",
+              fontSize: "16px",
+              padding: "8px 0",
+            }}
+          >
+            ← Lobby
+          </button>
+          <Text
+            as="h2"
+            size="lg"
+            style={{
+              fontFamily: "var(--font-body)",
+              color: "rgba(255,255,255,0.95)",
+              margin: 0,
+            }}
+          >
+            🏟️ Match #{view.matchId}
+          </Text>
+          <div />
+        </div>
+
+        {/* Scoreboard */}
+        <MatchScoreboard
+          match={currentMatch}
+          onStartNextRound={() => handleStartNextRound(view.matchId)}
+        />
+
+        {/* Completed match: winner + rematch */}
+        {matchCompleted && (
+          <CardDiv
+            style={{
+              textAlign: "center",
+              padding: "24px",
+              background: "rgba(16, 185, 129, 0.05)",
+              border: "1px solid rgba(16, 185, 129, 0.2)",
+            }}
+          >
+            <Text
+              as="p"
+              size="md"
+              style={{
+                color: "#10b981",
+                margin: "0 0 16px",
+                fontWeight: "bold",
+                fontFamily: "var(--font-body)",
+              }}
+            >
+              🏆 Match complete! Start a new match with the same opponent.
+            </Text>
+            <div
+              style={{
+                display: "flex",
+                gap: "12px",
+                justifyContent: "center",
+                flexWrap: "wrap",
+              }}
+            >
+              <ElectricButton color="violet" size="md" onClick={handleRematch}>
+                🔄 Rematch
+              </ElectricButton>
+              <ShimmerButton size="md" onClick={handleBackToLobby}>
+                ← Back to Lobby
+              </ShimmerButton>
+            </div>
+          </CardDiv>
+        )}
+
+        {/* Cancelled match */}
+        {matchCancelled && (
+          <CardDiv
+            style={{
+              textAlign: "center",
+              padding: "24px",
+              background: "rgba(239, 68, 68, 0.05)",
+              border: "1px solid rgba(239, 68, 68, 0.2)",
+            }}
+          >
+            <Text
+              as="p"
+              size="md"
+              style={{
+                color: "#ef4444",
+                margin: "0 0 16px",
+                fontWeight: "bold",
+                fontFamily: "var(--font-body)",
+              }}
+            >
+              ✖️ This match was cancelled.
+            </Text>
+            <ShimmerButton size="md" onClick={handleBackToLobby}>
+              ← Back to Lobby
+            </ShimmerButton>
+          </CardDiv>
+        )}
+
+        {/* Awaiting next round: commit next round prompt */}
+        {awaitingNextRound && !matchCompleted && (
+          <CardDiv
+            style={{
+              textAlign: "center",
+              padding: "24px",
+              background: "rgba(139, 92, 246, 0.05)",
+              border: "1px solid rgba(139, 92, 246, 0.2)",
+            }}
+          >
+            {view.role === "p1" ? (
+              <>
+                <Text
+                  as="p"
+                  size="md"
+                  style={{
+                    color: "var(--accent-violet)",
+                    margin: "0 0 16px",
+                    fontWeight: "bold",
+                    fontFamily: "var(--font-body)",
+                  }}
+                >
+                  ⏭️ Round resolved. Commit your next move to start round{" "}
+                  {currentMatch.current_round + 1}.
+                </Text>
+                <ElectricButton
+                  color="violet"
+                  size="md"
+                  onClick={() => handleStartNextRound(view.matchId)}
+                >
+                  ▶️ Commit Next Round
+                </ElectricButton>
+              </>
+            ) : (
+              <Text
+                as="p"
+                size="md"
+                style={{
+                  color: "var(--text-secondary)",
+                  margin: 0,
+                  fontFamily: "var(--font-body)",
+                }}
+              >
+                ⏳ Waiting for opponent to start the next round...
+              </Text>
+            )}
+          </CardDiv>
+        )}
+
+        {/* Active round: show the game view inline */}
+        {!isRoundResolved &&
+          !matchCompleted &&
+          !matchCancelled &&
+          currentGame && (
+            <>
+              <CardDiv
+                style={{ padding: "24px", marginBottom: "20px" }}
+                className={opponentJoined ? "tf-joined-glow" : undefined}
+              >
+                <Text
+                  as="h4"
+                  size="md"
+                  style={{
+                    margin: "0 0 16px 0",
+                    color: "var(--text-primary)",
+                    textAlign: "center",
+                    fontFamily: "var(--font-body)",
+                  }}
+                >
+                  🎮 Round {currentMatch.current_round} — Game #
+                  {currentMatch.current_game_id}
+                </Text>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "12px",
+                    fontSize: "14px",
+                  }}
+                >
+                  <div>
+                    <Text
+                      as="p"
+                      size="xs"
+                      style={{
+                        margin: "0 0 2px",
+                        color: "var(--text-secondary)",
+                      }}
+                    >
+                      Player 1
+                    </Text>
+                    <Text
+                      as="p"
+                      size="sm"
+                      style={{
+                        margin: 0,
+                        color:
+                          address === currentGame.player1 ? "#4CAF50" : "#333",
+                        fontWeight:
+                          address === currentGame.player1 ? "bold" : "normal",
+                      }}
+                    >
+                      {currentGame.player1.slice(0, 8)}...
+                      {address === currentGame.player1 && " (You)"}
+                    </Text>
+                  </div>
+                  <div>
+                    <Text
+                      as="p"
+                      size="xs"
+                      style={{
+                        margin: "0 0 2px",
+                        color: "var(--text-secondary)",
+                      }}
+                    >
+                      Player 2
+                    </Text>
+                    <Text
+                      as="p"
+                      size="sm"
+                      style={{
+                        margin: 0,
+                        color:
+                          address === currentGame.player2 ? "#F44336" : "#333",
+                        fontWeight:
+                          address === currentGame.player2 ? "bold" : "normal",
+                      }}
+                    >
+                      {currentGame.player2
+                        ? `${currentGame.player2.slice(0, 8)}...${address === currentGame.player2 ? " (You)" : ""}`
+                        : "—"}
+                    </Text>
+                  </div>
+                </div>
+              </CardDiv>
+
+              {/* Reveal move section */}
+              {currentGame.status === "BothCommitted" && (
+                <RevealMove
+                  gameId={view.gameId}
+                  gameState={currentGame}
+                  onRevealed={() => {
+                    void fetchGame(view.gameId);
+                  }}
+                />
+              )}
+
+              {/* Resolve / result when both revealed */}
+              {currentGame.status === "BothCommitted" && bothRevealed && (
+                <div style={{ marginTop: "16px" }}>
+                  <GameResult
+                    gameId={view.gameId}
+                    gameState={currentGame}
+                    onBack={handleBackToLobby}
+                    onPlayAgain={() => {
+                      void fetchMatch(view.matchId);
+                      void fetchGame(view.gameId);
+                    }}
+                  />
+                </div>
+              )}
+            </>
+          )}
+        {toastElement}
+      </div>
+    );
+  }
+
+  // Match view loading state
+  if (view.type === "match" && !currentMatch) {
+    return (
+      <div
+        style={{
+          textAlign: "center",
+          padding: "60px",
+          color: "rgba(20, 26, 46, 0.35)",
+          fontFamily: "var(--font-body)",
+        }}
+      >
+        <div style={{ fontSize: "40px", marginBottom: "16px" }}>⏳</div>
+        <Text as="p" size="md" style={{ margin: 0 }}>
+          Loading match...
+        </Text>
+      </div>
+    );
+  }
+
   // Create game flow
   if (view.type === "create") {
+    // If we came from MatchSetup, use the match commit flow instead.
+    if (pendingMatchSetup) {
+      return (
+        <div style={{ padding: "24px" }}>
+          <MatchCommitMove
+            phase="create"
+            matchId={0}
+            bestOf={pendingMatchSetup.bestOf}
+            stake={pendingMatchSetup.stake}
+            onComplete={(newGameId, newMatchId) => {
+              setPendingMatchSetup(null);
+              if (newMatchId) {
+                setView({
+                  type: "match",
+                  matchId: newMatchId,
+                  gameId: newGameId,
+                  role: "p1",
+                });
+              } else {
+                setView({ type: "game", gameId: newGameId });
+              }
+            }}
+            onBack={() => {
+              setPendingMatchSetup(null);
+              handleBackToLobby();
+            }}
+          />
+          {toastElement}
+        </div>
+      );
+    }
     return (
       <div style={{ padding: "24px" }}>
         <CommitMove
@@ -818,6 +1303,7 @@ export const ZKGamePage: React.FC = () => {
       <GameLobby
         onSelectGame={handleSelectGame}
         onCreateGame={handleCreateGame}
+        onCreateMatch={handleCreateMatch}
       />
       {toastElement}
     </div>

@@ -35,6 +35,7 @@ const matchesFilter = (stake: string, filter: StakeFilter): boolean => {
 interface GameLobbyProps {
   onSelectGame: (gameId: number) => void;
   onCreateGame: () => void;
+  onCreateMatch?: () => void;
 }
 
 /** Card-like div with consistent styling */
@@ -64,6 +65,7 @@ const CardDiv: React.FC<{
 export const GameLobby: React.FC<GameLobbyProps> = ({
   onSelectGame,
   onCreateGame,
+  onCreateMatch,
 }) => {
   const { address } = useWallet();
   const { games, isLoading, error, fetchGames, clearError } = useZKDilemma();
@@ -151,6 +153,17 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
           >
             🔄 Refresh
           </Button>
+          {onCreateMatch && (
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={onCreateMatch}
+              disabled={!address}
+              style={{ fontFamily: "var(--font-body)" }}
+            >
+              🏟️ Create Match
+            </Button>
+          )}
           <Button
             variant="primary"
             size="md"

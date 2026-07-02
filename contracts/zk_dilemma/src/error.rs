@@ -36,4 +36,14 @@ pub enum Error {
     // Recovery errors
     DeadlineNotPassed = 22,
     BothRevealed = 23,
+
+    // Match errors
+    MatchNotFound = 24,
+    MatchNotInProgress = 25,
+    MatchAlreadyComplete = 26,
+    NotInMatch = 27,
+    RoundNotReady = 28,
+    InvalidBestOf = 29,
+    WrongOpponent = 30,
+    MatchRoundMismatch = 31,
 }
