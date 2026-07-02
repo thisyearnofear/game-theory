@@ -1,13 +1,425 @@
-/* Import font for Stellar Design System */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Inconsolata:wght@500&display=swap");
-
 /* ============================================================================
- * Trustfall — thematic animations
- * The commit phase is "the fall": you let go, you're in the air, suspense.
- * The reveal is "the catch" (cooperation) or "the impact" (betrayal).
+ * Trustfall — Design System
+ *
+ * Typography: Instrument Serif (display) + Inter (body)
+ * Background: WebGL topographic shader (see TopographicBackground.tsx)
+ * Cards: Glassmorphism with light-sweep hover
+ * Interactions: Card lift, button press, tilt
  * ============================================================================ */
 
-/* The falling figure during proof generation / tx submission */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300..700&family=Inconsolata:wght@500&family=Instrument+Serif:ital@0;1&display=swap");
+
+/* ============================================================================
+ * Design Tokens
+ * ============================================================================ */
+
+:root {
+  /* Typography */
+  --font-display: "Instrument Serif", Georgia, serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "Inconsolata", "SF Mono", monospace;
+
+  /* Type scale */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.5rem;
+  --text-4xl: 3.5rem;
+  --text-5xl: 5rem;
+
+  /* Colors — trust terrain palette */
+  --bg-deep: #0a0e1a;
+  --bg-mid: #141a2e;
+  --bg-surface: rgba(255, 255, 255, 0.06);
+  --bg-surface-hover: rgba(255, 255, 255, 0.1);
+  --bg-glass: rgba(20, 26, 46, 0.55);
+  --bg-glass-light: rgba(255, 255, 255, 0.08);
+
+  --border-glass: rgba(255, 255, 255, 0.12);
+  --border-glass-hover: rgba(255, 255, 255, 0.2);
+
+  --text-primary: rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.65);
+  --text-muted: rgba(255, 255, 255, 0.4);
+
+  --accent-violet: #667eea;
+  --accent-purple: #764ba2;
+  --accent-warm: #f0a020;
+  --accent-cool: #4a90d9;
+  --accent-cooperate: #4ade80;
+  --accent-defect: #f87171;
+
+  /* Shadows — multi-layer for depth */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.2);
+  --shadow-glow-violet: 0 0 40px rgba(102, 126, 234, 0.15);
+  --shadow-glow-warm: 0 0 40px rgba(240, 160, 32, 0.2);
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 40px;
+  --space-2xl: 64px;
+
+  /* Radii */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+
+  /* Transitions */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 0.2s;
+  --duration-normal: 0.4s;
+  --duration-slow: 0.6s;
+}
+
+/* ============================================================================
+ * Base
+ * ============================================================================ */
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+  background: var(--bg-deep);
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Fallback background if WebGL fails */
+.slide-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0e1a 0%, #141a2e 50%, #1a1f3a 100%);
+  font-family: var(--font-body);
+  position: relative;
+  overflow: hidden;
+}
+
+/* ============================================================================
+ * Glassmorphism Cards
+ * ============================================================================ */
+
+.slide-card {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--space-xl) var(--space-lg);
+  background: var(--bg-glass);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-xl);
+  margin-top: var(--space-lg);
+  box-shadow: var(--shadow-lg), var(--shadow-glow-violet);
+  position: relative;
+  z-index: 2;
+  overflow: hidden;
+}
+
+/* Light sweep on hover — inspired by holocard.frag diagonal sheen */
+.slide-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.06) 50%,
+    transparent 60%
+  );
+  transition: left 0.8s var(--ease-out);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.slide-card:hover::before {
+  left: 120%;
+}
+
+/* ============================================================================
+ * Typography
+ * ============================================================================ */
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+h1 {
+  font-size: var(--text-4xl);
+  line-height: 1.05;
+}
+
+h2 {
+  font-size: var(--text-3xl);
+  line-height: 1.1;
+}
+
+h3 {
+  font-size: var(--text-2xl);
+  line-height: 1.2;
+}
+
+h4 {
+  font-size: var(--text-xl);
+  line-height: 1.3;
+}
+
+p {
+  font-family: var(--font-body);
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* Italic display variant for emphasis */
+.font-display-italic {
+  font-family: var(--font-display);
+  font-style: italic;
+}
+
+/* ============================================================================
+ * Glass surfaces — reusable component classes
+ * ============================================================================ */
+
+.glass-panel {
+  background: var(--bg-glass-light);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  transition: all var(--duration-normal) var(--ease-out);
+}
+
+.glass-panel:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-glass-hover);
+}
+
+/* ============================================================================
+ * Micro-interactions
+ * ============================================================================ */
+
+/* Card lift on hover */
+.lift-on-hover {
+  transition:
+    transform var(--duration-normal) var(--ease-out),
+    box-shadow var(--duration-normal) var(--ease-out);
+  will-change: transform;
+}
+
+.lift-on-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Button press feedback */
+.press-feedback {
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.press-feedback:active {
+  transform: scale(0.97);
+}
+
+/* ============================================================================
+ * Characters (cooperate/defect avatars)
+ * ============================================================================ */
+
+.character {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: inline-block;
+  margin: var(--space-sm);
+  transition: transform var(--duration-normal) var(--ease-spring);
+  cursor: pointer;
+  position: relative;
+}
+
+.character:hover {
+  transform: scale(1.12) translateY(-2px);
+}
+
+.cooperator {
+  background: var(--accent-cooperate);
+  box-shadow: 0 0 24px rgba(74, 222, 128, 0.3);
+}
+
+.defector {
+  background: var(--accent-defect);
+  box-shadow: 0 0 24px rgba(248, 113, 113, 0.3);
+}
+
+.character::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60%;
+  height: 60%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+/* ============================================================================
+ * Payoff matrix
+ * ============================================================================ */
+
+.payoff-matrix {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  gap: var(--space-sm);
+  max-width: 400px;
+  margin: var(--space-lg) auto;
+  font-family: var(--font-body);
+}
+
+.payoff-cell {
+  padding: var(--space-md);
+  text-align: center;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.payoff-cell:hover {
+  transform: scale(1.05);
+}
+
+.payoff-header {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+}
+
+.payoff-cooperate {
+  background: rgba(74, 222, 128, 0.12);
+  color: var(--accent-cooperate);
+}
+
+.payoff-defect {
+  background: rgba(248, 113, 113, 0.12);
+  color: var(--accent-defect);
+}
+
+.payoff-mixed {
+  background: rgba(240, 160, 32, 0.12);
+  color: var(--accent-warm);
+}
+
+/* ============================================================================
+ * Floating decorative elements
+ * ============================================================================ */
+
+.floating-elements {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.floating-coin {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  background: rgba(240, 160, 32, 0.3);
+  border-radius: 50%;
+  animation: float 6s ease-in-out infinite;
+  backdrop-filter: blur(4px);
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(180deg);
+  }
+}
+
+/* ============================================================================
+ * Slide transitions (GSAP-enhanced, CSS fallback)
+ * ============================================================================ */
+
+.slide-enter {
+  animation: slideIn 0.6s var(--ease-out);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================================
+ * Trust altitude bar
+ * ============================================================================ */
+
+.tf-height-bar {
+  background: linear-gradient(
+    180deg,
+    var(--accent-violet) 0%,
+    var(--accent-purple) 100%
+  );
+  border-radius: var(--radius-sm);
+  transition: height 0.6s var(--ease-out);
+  box-shadow: 0 0 16px rgba(102, 126, 234, 0.4);
+}
+
+.tf-height-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  position: relative;
+  border: 1px solid var(--border-glass);
+}
+
+.tf-ground-line {
+  border-top: 2px dashed rgba(255, 255, 255, 0.1);
+  width: 100%;
+}
+
+/* ============================================================================
+ * Thematic animations — trust fall concept
+ * ============================================================================ */
+
 @keyframes tf-fall {
   0% {
     transform: translateY(0) rotate(0deg);
@@ -72,20 +484,20 @@
 @keyframes tf-glow-warm {
   0%,
   100% {
-    box-shadow: 0 0 20px rgba(255, 180, 80, 0.3);
+    box-shadow: 0 0 20px rgba(240, 160, 32, 0.3);
   }
   50% {
-    box-shadow: 0 0 40px rgba(255, 180, 80, 0.6);
+    box-shadow: 0 0 40px rgba(240, 160, 32, 0.5);
   }
 }
 
 @keyframes tf-glow-cold {
   0%,
   100% {
-    box-shadow: 0 0 20px rgba(100, 150, 200, 0.2);
+    box-shadow: 0 0 20px rgba(74, 144, 217, 0.2);
   }
   50% {
-    box-shadow: 0 0 40px rgba(100, 150, 200, 0.4);
+    box-shadow: 0 0 40px rgba(74, 144, 217, 0.35);
   }
 }
 
@@ -108,98 +520,99 @@
   }
 }
 
-@keyframes tf-fade-in-up {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Applied classes */
+/* Applied animation classes */
 .tf-falling {
   animation: tf-fall 2.5s ease-in forwards;
 }
-
 .tf-suspended {
   animation: tf-sway 3s ease-in-out infinite;
 }
-
 .tf-impact {
   animation: tf-impact 0.6s ease-out;
 }
-
 .tf-catch {
   animation: tf-catch 0.8s ease-out;
 }
-
 .tf-shake {
   animation: tf-shake 0.5s ease-out;
 }
-
-.tf-fade-in-up {
-  animation: tf-fade-in-up 0.6s ease-out forwards;
-}
-
 .tf-glow-warm {
   animation: tf-glow-warm 2s ease-in-out infinite;
 }
-
 .tf-glow-cold {
   animation: tf-glow-cold 2s ease-in-out infinite;
 }
 
-/* The edge — stake-as-height visual */
-.tf-height-bar {
-  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
-  border-radius: 4px;
-  transition: height 0.4s ease-out;
-}
-
-.tf-height-track {
-  background: rgba(0, 0, 0, 0.08);
-  border-radius: 4px;
-  overflow: hidden;
-  position: relative;
-}
-
-/* Ground line for the height visual */
-.tf-ground-line {
-  border-top: 2px dashed rgba(0, 0, 0, 0.15);
-  width: 100%;
-}
-
 /* ============================================================================
- * Responsive breakpoints for ZK game components
- * Mobile-first: base styles target desktop, media queries adjust for mobile
+ * Responsive
  * ============================================================================ */
 
 @media (max-width: 640px) {
-  /* Collapse 2-column grids to single column */
   .zk-game-grid {
     grid-template-columns: 1fr !important;
   }
 
-  /* Reduce max-widths on mobile */
   .zk-page-container {
     max-width: 100% !important;
-    padding: 12px !important;
+    padding: var(--space-md) !important;
   }
 
   .zk-card-container {
     max-width: 100% !important;
   }
 
-  /* Stack move selection buttons vertically on very small screens */
   .zk-move-buttons {
     flex-direction: column !important;
   }
 
-  /* Adjust font sizes */
   .zk-game-header {
-    font-size: 18px !important;
+    font-size: var(--text-lg) !important;
   }
+
+  h1 {
+    font-size: var(--text-3xl);
+  }
+  h2 {
+    font-size: var(--text-2xl);
+  }
+
+  .slide-card {
+    padding: var(--space-lg) var(--space-md);
+    margin-top: var(--space-md);
+  }
+}
+
+/* ============================================================================
+ * Utility
+ * ============================================================================ */
+
+.text-gradient {
+  background: linear-gradient(
+    135deg,
+    var(--accent-violet) 0%,
+    var(--accent-warm) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-cooperate {
+  color: var(--accent-cooperate);
+}
+
+.text-defect {
+  color: var(--accent-defect);
+}
+
+.text-warm {
+  color: var(--accent-warm);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-muted {
+  color: var(--text-muted);
 }

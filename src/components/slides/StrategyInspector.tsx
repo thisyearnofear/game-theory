@@ -149,7 +149,7 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
           as="h4"
           size="md"
           style={{
-            fontFamily: "FuturaHandwritten",
+            fontFamily: "var(--font-body)",
             color: info.color,
             margin: 0,
           }}
@@ -164,8 +164,8 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
           as="p"
           size="xs"
           style={{
-            fontFamily: "FuturaHandwritten",
-            color: "#999",
+            fontFamily: "var(--font-body)",
+            color: "var(--text-muted)",
             margin: "0 0 4px 0",
             fontSize: "0.75rem",
             fontWeight: "bold",
@@ -177,8 +177,8 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
           as="p"
           size="sm"
           style={{
-            fontFamily: "FuturaHandwritten",
-            color: "#333",
+            fontFamily: "var(--font-body)",
+            color: "var(--text-primary)",
             margin: 0,
             fontSize: "0.85rem",
             lineHeight: 1.4,
@@ -194,8 +194,8 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
           as="p"
           size="xs"
           style={{
-            fontFamily: "FuturaHandwritten",
-            color: "#999",
+            fontFamily: "var(--font-body)",
+            color: "var(--text-muted)",
             margin: "0 0 4px 0",
             fontSize: "0.75rem",
             fontWeight: "bold",
@@ -207,8 +207,8 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
           as="p"
           size="sm"
           style={{
-            fontFamily: "FuturaHandwritten",
-            color: "#333",
+            fontFamily: "var(--font-body)",
+            color: "var(--text-primary)",
             margin: 0,
             fontSize: "0.85rem",
           }}
@@ -231,7 +231,7 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
             as="p"
             size="xs"
             style={{
-              fontFamily: "FuturaHandwritten",
+              fontFamily: "var(--font-body)",
               color: "#4CAF50",
               margin: "0 0 4px 0",
               fontSize: "0.75rem",
@@ -244,8 +244,8 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
             as="p"
             size="xs"
             style={{
-              fontFamily: "FuturaHandwritten",
-              color: "#333",
+              fontFamily: "var(--font-body)",
+              color: "var(--text-primary)",
               margin: 0,
               fontSize: "0.8rem",
               lineHeight: 1.3,
@@ -259,7 +259,7 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
             as="p"
             size="xs"
             style={{
-              fontFamily: "FuturaHandwritten",
+              fontFamily: "var(--font-body)",
               color: "#F44336",
               margin: "0 0 4px 0",
               fontSize: "0.75rem",
@@ -272,8 +272,8 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
             as="p"
             size="xs"
             style={{
-              fontFamily: "FuturaHandwritten",
-              color: "#333",
+              fontFamily: "var(--font-body)",
+              color: "var(--text-primary)",
               margin: 0,
               fontSize: "0.8rem",
               lineHeight: 1.3,
@@ -297,7 +297,7 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
           as="p"
           size="xs"
           style={{
-            fontFamily: "FuturaHandwritten",
+            fontFamily: "var(--font-body)",
             color: "#667eea",
             margin: "0 0 4px 0",
             fontSize: "0.75rem",
@@ -310,8 +310,8 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
           as="p"
           size="xs"
           style={{
-            fontFamily: "FuturaHandwritten",
-            color: "#555",
+            fontFamily: "var(--font-body)",
+            color: "var(--text-secondary)",
             margin: 0,
             fontSize: "0.8rem",
             lineHeight: 1.4,

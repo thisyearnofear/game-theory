@@ -21,14 +21,18 @@ interface GameResultProps {
 const CardDiv: React.FC<{
   children: React.ReactNode;
   style?: React.CSSProperties;
-}> = ({ children, style }) => (
+  className?: string;
+}> = ({ children, style, className }) => (
   <div
+    className={className}
     style={{
-      background: "white",
-      borderRadius: "12px",
+      background: "var(--bg-glass)",
+      backdropFilter: "blur(16px) saturate(160%)",
+      border: "1px solid var(--border-glass)",
+      borderRadius: "var(--radius-md)",
       padding: "24px",
-      boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-      fontFamily: "FuturaHandwritten",
+      boxShadow: "var(--shadow-md)",
+      fontFamily: "var(--font-body)",
       ...style,
     }}
   >
@@ -205,9 +209,9 @@ export const GameResult: React.FC<GameResultProps> = ({
           size="lg"
           style={{
             margin: "0 0 8px 0",
-            color: "#333",
+            color: "var(--text-primary)",
             textAlign: "center",
-            fontFamily: "FuturaHandwritten",
+            fontFamily: "var(--font-body)",
           }}
         >
           {isResolved || isForfeited ? headline.title : "The Moment of Truth"}
@@ -217,9 +221,9 @@ export const GameResult: React.FC<GameResultProps> = ({
           size="sm"
           style={{
             margin: "0 0 20px 0",
-            color: "#666",
+            color: "var(--text-secondary)",
             textAlign: "center",
-            fontFamily: "FuturaHandwritten",
+            fontFamily: "var(--font-body)",
           }}
         >
           Game #{gameId} —{" "}
@@ -281,7 +285,7 @@ export const GameResult: React.FC<GameResultProps> = ({
               >
                 P1{isPlayer1 ? " (You)" : ""}
               </div>
-              <div style={{ fontSize: "10px", color: "#999" }}>
+              <div style={{ fontSize: "10px", color: "var(--text-muted)" }}>
                 {formatAddress(gameState.player1)}
               </div>
             </div>
@@ -332,7 +336,7 @@ export const GameResult: React.FC<GameResultProps> = ({
               >
                 P2{isPlayer2 ? " (You)" : ""}
               </div>
-              <div style={{ fontSize: "10px", color: "#999" }}>
+              <div style={{ fontSize: "10px", color: "var(--text-muted)" }}>
                 {gameState.player2
                   ? formatAddress(gameState.player2)
                   : "Waiting..."}
@@ -347,7 +351,7 @@ export const GameResult: React.FC<GameResultProps> = ({
               justifyContent: "center",
               gap: "40px",
               fontSize: "13px",
-              fontFamily: "FuturaHandwritten",
+              fontFamily: "var(--font-body)",
             }}
           >
             <span
@@ -396,9 +400,9 @@ export const GameResult: React.FC<GameResultProps> = ({
               size="sm"
               style={{
                 margin: "0 0 12px 0",
-                color: "#333",
+                color: "var(--text-primary)",
                 textAlign: "center",
-                fontFamily: "FuturaHandwritten",
+                fontFamily: "var(--font-body)",
               }}
             >
               {bothCooperated ? "💰 You both landed soft" : "💰 The landing"}
@@ -415,7 +419,7 @@ export const GameResult: React.FC<GameResultProps> = ({
                 <Text
                   as="p"
                   size="xs"
-                  style={{ margin: "0 0 4px", color: "#666" }}
+                  style={{ margin: "0 0 4px", color: "var(--text-secondary)" }}
                 >
                   Player 1{isPlayer1 ? " (You)" : ""}
                 </Text>
@@ -435,7 +439,7 @@ export const GameResult: React.FC<GameResultProps> = ({
                 <Text
                   as="p"
                   size="xs"
-                  style={{ margin: "0 0 4px", color: "#666" }}
+                  style={{ margin: "0 0 4px", color: "var(--text-secondary)" }}
                 >
                   Player 2{isPlayer2 ? " (You)" : ""}
                 </Text>
@@ -457,7 +461,7 @@ export const GameResult: React.FC<GameResultProps> = ({
               size="xs"
               style={{
                 margin: "8px 0 0",
-                color: "#999",
+                color: "var(--text-muted)",
                 textAlign: "center",
               }}
             >
@@ -529,7 +533,7 @@ export const GameResult: React.FC<GameResultProps> = ({
               size="md"
               onClick={() => void handleResolve()}
               disabled={isLoading}
-              style={{ fontFamily: "FuturaHandwritten", flex: 1 }}
+              style={{ fontFamily: "var(--font-body)", flex: 1 }}
             >
               {isLoading ? "⏳ Landing..." : "🪙 Resolve the Landing"}
             </Button>
@@ -542,7 +546,7 @@ export const GameResult: React.FC<GameResultProps> = ({
               onClick={() => void handleClaimForfeit()}
               disabled={isLoading}
               style={{
-                fontFamily: "FuturaHandwritten",
+                fontFamily: "var(--font-body)",
                 flex: 1,
                 color: "#F44336",
               }}
@@ -555,7 +559,7 @@ export const GameResult: React.FC<GameResultProps> = ({
             variant="tertiary"
             size="md"
             onClick={onBack}
-            style={{ fontFamily: "FuturaHandwritten" }}
+            style={{ fontFamily: "var(--font-body)" }}
           >
             ← Back
           </Button>

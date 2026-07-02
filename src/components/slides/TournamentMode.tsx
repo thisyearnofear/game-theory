@@ -175,7 +175,7 @@ export const TournamentMode: React.FC = () => {
         as="h3"
         size="lg"
         style={{
-          fontFamily: "FuturaHandwritten",
+          fontFamily: "var(--font-body)",
           color: "rgba(255,255,255,0.95)",
           margin: "0 0 8px 0",
         }}
@@ -186,7 +186,7 @@ export const TournamentMode: React.FC = () => {
         as="p"
         size="sm"
         style={{
-          fontFamily: "FuturaHandwritten",
+          fontFamily: "var(--font-body)",
           color: "rgba(255,255,255,0.6)",
           margin: "0 0 20px 0",
           fontSize: "0.85rem",
@@ -214,7 +214,7 @@ export const TournamentMode: React.FC = () => {
             as="p"
             size="md"
             style={{
-              fontFamily: "FuturaHandwritten",
+              fontFamily: "var(--font-body)",
               color: "#ffb050",
               margin: 0,
               fontSize: "1.1rem",
@@ -227,7 +227,7 @@ export const TournamentMode: React.FC = () => {
             onClick={reset}
             variant="secondary"
             size="sm"
-            style={{ marginTop: "10px", fontFamily: "FuturaHandwritten" }}
+            style={{ marginTop: "10px", fontFamily: "var(--font-body)" }}
           >
             🔄 Start New Tournament
           </Button>
@@ -248,7 +248,7 @@ export const TournamentMode: React.FC = () => {
             as="p"
             size="xs"
             style={{
-              fontFamily: "FuturaHandwritten",
+              fontFamily: "var(--font-body)",
               color: "rgba(255,255,255,0.5)",
               margin: 0,
             }}
@@ -259,7 +259,7 @@ export const TournamentMode: React.FC = () => {
             as="p"
             size="md"
             style={{
-              fontFamily: "FuturaHandwritten",
+              fontFamily: "var(--font-body)",
               color: "rgba(255,255,255,0.95)",
               margin: 0,
               fontWeight: "bold",
@@ -274,7 +274,7 @@ export const TournamentMode: React.FC = () => {
             as="p"
             size="xs"
             style={{
-              fontFamily: "FuturaHandwritten",
+              fontFamily: "var(--font-body)",
               color: "rgba(255,255,255,0.5)",
               margin: 0,
             }}
@@ -285,7 +285,7 @@ export const TournamentMode: React.FC = () => {
             as="p"
             size="md"
             style={{
-              fontFamily: "FuturaHandwritten",
+              fontFamily: "var(--font-body)",
               color: "rgba(255,255,255,0.95)",
               margin: 0,
               fontWeight: "bold",
@@ -300,7 +300,7 @@ export const TournamentMode: React.FC = () => {
             as="p"
             size="xs"
             style={{
-              fontFamily: "FuturaHandwritten",
+              fontFamily: "var(--font-body)",
               color: "rgba(255,255,255,0.5)",
               margin: 0,
             }}
@@ -311,7 +311,7 @@ export const TournamentMode: React.FC = () => {
             as="p"
             size="md"
             style={{
-              fontFamily: "FuturaHandwritten",
+              fontFamily: "var(--font-body)",
               color:
                 stage === "playing"
                   ? "#667eea"
@@ -319,7 +319,7 @@ export const TournamentMode: React.FC = () => {
                     ? "#F44336"
                     : stage === "reproducing"
                       ? "#4CAF50"
-                      : "rgba(255,255,255,0.7)",
+                      : "rgba(20, 26, 46, 0.35)",
               margin: 0,
               fontWeight: "bold",
               fontSize: "1rem",
@@ -377,7 +377,7 @@ export const TournamentMode: React.FC = () => {
                   as="span"
                   size="xs"
                   style={{
-                    fontFamily: "FuturaHandwritten",
+                    fontFamily: "var(--font-body)",
                     color: isEliminated ? "rgba(255,255,255,0.3)" : info.color,
                     fontSize: "0.8rem",
                   }}
@@ -389,7 +389,7 @@ export const TournamentMode: React.FC = () => {
                   as="span"
                   size="xs"
                   style={{
-                    fontFamily: "FuturaHandwritten",
+                    fontFamily: "var(--font-body)",
                     color: "rgba(255,255,255,0.6)",
                     fontSize: "0.75rem",
                   }}
@@ -458,7 +458,7 @@ export const TournamentMode: React.FC = () => {
           onClick={playTournament}
           disabled={stage !== "rest" || !!winner}
           size="md"
-          style={{ fontFamily: "FuturaHandwritten", width: "130px" }}
+          style={{ fontFamily: "var(--font-body)", width: "130px" }}
         >
           {stage === "playing" ? "⚔️ Playing..." : "⚔️ Play Tournament"}
         </Button>
@@ -467,7 +467,7 @@ export const TournamentMode: React.FC = () => {
           disabled={stage !== "rest" || scores.length === 0 || !!winner}
           variant="secondary"
           size="md"
-          style={{ fontFamily: "FuturaHandwritten", width: "130px" }}
+          style={{ fontFamily: "var(--font-body)", width: "130px" }}
         >
           {stage === "eliminating"
             ? "💀..."
@@ -491,7 +491,7 @@ export const TournamentMode: React.FC = () => {
           variant="secondary"
           size="md"
           style={{
-            fontFamily: "FuturaHandwritten",
+            fontFamily: "var(--font-body)",
             width: "120px",
             background: autoPlay ? "rgba(102, 126, 234, 0.3)" : "transparent",
           }}
@@ -502,7 +502,7 @@ export const TournamentMode: React.FC = () => {
           onClick={reset}
           variant="secondary"
           size="md"
-          style={{ fontFamily: "FuturaHandwritten", width: "100px" }}
+          style={{ fontFamily: "var(--font-body)", width: "100px" }}
         >
           🔄 Reset
         </Button>
@@ -522,8 +522,8 @@ export const TournamentMode: React.FC = () => {
           as="p"
           size="sm"
           style={{
-            fontFamily: "FuturaHandwritten",
-            color: "rgba(255,255,255,0.7)",
+            fontFamily: "var(--font-body)",
+            color: "rgba(20, 26, 46, 0.35)",
             margin: "0 0 12px 0",
             fontSize: "0.85rem",
             textAlign: "left",
@@ -545,7 +545,7 @@ export const TournamentMode: React.FC = () => {
               as="span"
               size="xs"
               style={{
-                fontFamily: "FuturaHandwritten",
+                fontFamily: "var(--font-body)",
                 color: "rgba(255,255,255,0.6)",
                 fontSize: "0.8rem",
               }}
@@ -556,7 +556,7 @@ export const TournamentMode: React.FC = () => {
               as="span"
               size="xs"
               style={{
-                fontFamily: "FuturaHandwritten",
+                fontFamily: "var(--font-body)",
                 color: config.noise > 0.1 ? "#ffb050" : "rgba(255,255,255,0.6)",
                 fontSize: "0.8rem",
                 fontWeight: "bold",
@@ -582,7 +582,7 @@ export const TournamentMode: React.FC = () => {
             as="p"
             size="xs"
             style={{
-              fontFamily: "FuturaHandwritten",
+              fontFamily: "var(--font-body)",
               color: "rgba(255,255,255,0.4)",
               margin: "4px 0 0 0",
               fontSize: "0.72rem",
@@ -612,7 +612,7 @@ export const TournamentMode: React.FC = () => {
               as="span"
               size="xs"
               style={{
-                fontFamily: "FuturaHandwritten",
+                fontFamily: "var(--font-body)",
                 color: "rgba(255,255,255,0.6)",
                 fontSize: "0.8rem",
               }}
@@ -623,7 +623,7 @@ export const TournamentMode: React.FC = () => {
               as="span"
               size="xs"
               style={{
-                fontFamily: "FuturaHandwritten",
+                fontFamily: "var(--font-body)",
                 color: "rgba(255,255,255,0.6)",
                 fontSize: "0.8rem",
                 fontWeight: "bold",
@@ -660,7 +660,7 @@ export const TournamentMode: React.FC = () => {
               as="span"
               size="xs"
               style={{
-                fontFamily: "FuturaHandwritten",
+                fontFamily: "var(--font-body)",
                 color: "rgba(255,255,255,0.6)",
                 fontSize: "0.8rem",
               }}
@@ -671,7 +671,7 @@ export const TournamentMode: React.FC = () => {
               as="span"
               size="xs"
               style={{
-                fontFamily: "FuturaHandwritten",
+                fontFamily: "var(--font-body)",
                 color: "rgba(255,255,255,0.6)",
                 fontSize: "0.8rem",
                 fontWeight: "bold",
@@ -723,8 +723,8 @@ export const TournamentMode: React.FC = () => {
             as="h4"
             size="sm"
             style={{
-              fontFamily: "FuturaHandwritten",
-              color: "#333",
+              fontFamily: "var(--font-body)",
+              color: "var(--text-primary)",
               margin: "0 0 12px 0",
               textAlign: "center",
             }}
@@ -736,7 +736,7 @@ export const TournamentMode: React.FC = () => {
               width: "100%",
               borderCollapse: "collapse",
               fontSize: "13px",
-              fontFamily: "FuturaHandwritten",
+              fontFamily: "var(--font-body)",
             }}
           >
             <thead>
@@ -744,15 +744,27 @@ export const TournamentMode: React.FC = () => {
                 <th
                   style={{
                     padding: "6px 4px",
-                    color: "#666",
+                    color: "var(--text-secondary)",
                     textAlign: "left",
                   }}
                 >
                   Strategy
                 </th>
-                <th style={{ padding: "6px 4px", color: "#666" }}>Pop</th>
-                <th style={{ padding: "6px 4px", color: "#666" }}>Avg Score</th>
-                <th style={{ padding: "6px 4px", color: "#666" }}>Total</th>
+                <th
+                  style={{ padding: "6px 4px", color: "var(--text-secondary)" }}
+                >
+                  Pop
+                </th>
+                <th
+                  style={{ padding: "6px 4px", color: "var(--text-secondary)" }}
+                >
+                  Avg Score
+                </th>
+                <th
+                  style={{ padding: "6px 4px", color: "var(--text-secondary)" }}
+                >
+                  Total
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -776,7 +788,9 @@ export const TournamentMode: React.FC = () => {
                     {i === 0 && "👑 "}
                     {s.emoji} {s.name}
                   </td>
-                  <td style={{ padding: "6px 4px", color: "#333" }}>
+                  <td
+                    style={{ padding: "6px 4px", color: "var(--text-primary)" }}
+                  >
                     {s.population}
                   </td>
                   <td
@@ -788,7 +802,9 @@ export const TournamentMode: React.FC = () => {
                   >
                     {s.avgScore.toFixed(1)}
                   </td>
-                  <td style={{ padding: "6px 4px", color: "#999" }}>
+                  <td
+                    style={{ padding: "6px 4px", color: "var(--text-muted)" }}
+                  >
                     {s.totalScore}
                   </td>
                 </tr>
@@ -813,8 +829,8 @@ export const TournamentMode: React.FC = () => {
             as="h4"
             size="sm"
             style={{
-              fontFamily: "FuturaHandwritten",
-              color: "rgba(255,255,255,0.7)",
+              fontFamily: "var(--font-body)",
+              color: "rgba(20, 26, 46, 0.35)",
               margin: "0 0 12px 0",
               textAlign: "center",
             }}
@@ -952,7 +968,7 @@ export const TournamentMode: React.FC = () => {
                 as="span"
                 size="xs"
                 style={{
-                  fontFamily: "FuturaHandwritten",
+                  fontFamily: "var(--font-body)",
                   color: "rgba(255,255,255,0.5)",
                   fontSize: "0.72rem",
                 }}

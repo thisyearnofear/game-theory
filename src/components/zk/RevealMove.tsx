@@ -104,11 +104,15 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
           borderRadius: "12px",
           padding: "24px",
           boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-          fontFamily: "FuturaHandwritten",
+          fontFamily: "var(--font-body)",
           textAlign: "center",
         }}
       >
-        <Text as="p" size="md" style={{ color: "#666", margin: 0 }}>
+        <Text
+          as="p"
+          size="md"
+          style={{ color: "var(--text-secondary)", margin: 0 }}
+        >
           👀 Spectating — wait for players to reveal their moves
         </Text>
       </div>
@@ -124,7 +128,7 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
           padding: "24px",
           boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
           border: "1px solid rgba(16, 185, 129, 0.2)",
-          fontFamily: "FuturaHandwritten",
+          fontFamily: "var(--font-body)",
           textAlign: "center",
         }}
       >
@@ -148,7 +152,7 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
           padding: "24px",
           boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
           border: "1px solid rgba(59, 130, 246, 0.2)",
-          fontFamily: "FuturaHandwritten",
+          fontFamily: "var(--font-body)",
           textAlign: "center",
         }}
       >
@@ -161,7 +165,11 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
           {opponentRevealed ? "resolution..." : "your opponent to reveal..."}
         </Text>
         {!opponentRevealed && timeRemaining > 0 && (
-          <Text as="p" size="sm" style={{ color: "#666", marginTop: "8px" }}>
+          <Text
+            as="p"
+            size="sm"
+            style={{ color: "var(--text-secondary)", marginTop: "8px" }}
+          >
             ⏱️ You can claim forfeit after the deadline (
             {Math.floor(timeRemaining / 60)}m {timeRemaining % 60}s remaining)
           </Text>
@@ -179,7 +187,7 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
           padding: "24px",
           boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
           border: "1px solid rgba(244, 67, 54, 0.2)",
-          fontFamily: "FuturaHandwritten",
+          fontFamily: "var(--font-body)",
           textAlign: "center",
         }}
       >
@@ -208,7 +216,7 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
         borderRadius: "12px",
         padding: "24px",
         boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-        fontFamily: "FuturaHandwritten",
+        fontFamily: "var(--font-body)",
       }}
     >
       <Text
@@ -216,7 +224,7 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
         size="md"
         style={{
           margin: "0 0 16px 0",
-          color: "#333",
+          color: "var(--text-primary)",
           textAlign: "center",
         }}
       >
@@ -244,9 +252,9 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
         size="sm"
         style={{
           margin: "0 0 8px 0",
-          color: "#666",
+          color: "var(--text-secondary)",
           textAlign: "center",
-          fontFamily: "FuturaHandwritten",
+          fontFamily: "var(--font-body)",
         }}
       >
         {selectedMove
@@ -275,7 +283,7 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
               selectedMove === "C" ? "rgba(76, 175, 80, 0.1)" : "white",
             cursor: isLoading ? "not-allowed" : "pointer",
             transition: "all 0.2s",
-            fontFamily: "FuturaHandwritten",
+            fontFamily: "var(--font-body)",
             opacity: isLoading ? 0.6 : 1,
           }}
         >
@@ -304,7 +312,7 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
               selectedMove === "D" ? "rgba(244, 67, 54, 0.1)" : "white",
             cursor: isLoading ? "not-allowed" : "pointer",
             transition: "all 0.2s",
-            fontFamily: "FuturaHandwritten",
+            fontFamily: "var(--font-body)",
             opacity: isLoading ? 0.6 : 1,
           }}
         >
@@ -328,7 +336,7 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
           size="sm"
           style={{
             margin: "0 0 6px 0",
-            color: "#333",
+            color: "var(--text-primary)",
             fontWeight: "bold",
           }}
         >
@@ -339,7 +347,7 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
           size="xs"
           style={{
             margin: "0 0 8px 0",
-            color: "#999",
+            color: "var(--text-muted)",
           }}
         >
           Enter the nonce you used when committing (you saved it locally)
@@ -397,7 +405,7 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
         disabled={!selectedMove || !revealNonce || isLoading}
         style={{
           width: "100%",
-          fontFamily: "FuturaHandwritten",
+          fontFamily: "var(--font-body)",
         }}
       >
         {isLoading ? "📡 Revealing..." : "🔓 Show My Hand"}

@@ -87,8 +87,8 @@ export const OnboardingOverlay: React.FC = () => {
           size="lg"
           style={{
             margin: "0 0 12px",
-            fontFamily: "FuturaHandwritten",
-            color: "#333",
+            fontFamily: "var(--font-body)",
+            color: "var(--text-primary)",
           }}
         >
           {current.title}
@@ -97,10 +97,10 @@ export const OnboardingOverlay: React.FC = () => {
           as="p"
           size="sm"
           style={{
-            color: "#666",
+            color: "var(--text-secondary)",
             lineHeight: 1.5,
             margin: "0 0 24px",
-            fontFamily: "FuturaHandwritten",
+            fontFamily: "var(--font-body)",
           }}
         >
           {current.body}
@@ -144,7 +144,7 @@ export const OnboardingOverlay: React.FC = () => {
               variant="primary"
               size="md"
               onClick={dismiss}
-              style={{ fontFamily: "FuturaHandwritten" }}
+              style={{ fontFamily: "var(--font-body)" }}
             >
               Let's Play →
             </Button>
@@ -153,7 +153,7 @@ export const OnboardingOverlay: React.FC = () => {
               variant="primary"
               size="md"
               onClick={() => setStep(step + 1)}
-              style={{ fontFamily: "FuturaHandwritten" }}
+              style={{ fontFamily: "var(--font-body)" }}
             >
               Next →
             </Button>
@@ -166,11 +166,11 @@ export const OnboardingOverlay: React.FC = () => {
           style={{
             background: "none",
             border: "none",
-            color: "#999",
+            color: "var(--text-muted)",
             cursor: "pointer",
             fontSize: "13px",
             marginTop: "16px",
-            fontFamily: "FuturaHandwritten",
+            fontFamily: "var(--font-body)",
           }}
         >
           Skip tutorial

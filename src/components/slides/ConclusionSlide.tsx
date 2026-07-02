@@ -1,322 +1,272 @@
 import React, { useState } from "react";
-import { Button, Text } from "@stellar/design-system";
+import { Button } from "@stellar/design-system";
 import { useWallet } from "../../hooks/useWallet";
 import { SlideProps } from "../SlideSystem";
 
-export const ConclusionSlide: React.FC<SlideProps> = ({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onNext,
-}: SlideProps) => {
+export const ConclusionSlide: React.FC<SlideProps> = () => {
   const [showApplications, setShowApplications] = useState(false);
   const { address } = useWallet();
 
   const realWorldApplications = [
     {
-      title: "🏦 DeFi Protocols",
+      title: "DeFi Protocols",
+      icon: "🏦",
       description:
         "Reputation systems for lending, staking rewards for good behavior",
     },
     {
-      title: "🌐 Social Networks",
+      title: "Social Networks",
+      icon: "🌐",
       description: "Trust scores, content moderation, community governance",
     },
     {
-      title: "🛒 Marketplaces",
+      title: "Marketplaces",
+      icon: "🛒",
       description: "Seller ratings, buyer protection, dispute resolution",
     },
     {
-      title: "🏛️ Governance",
+      title: "Governance",
+      icon: "🏛️",
       description: "Voting systems, coalition building, policy cooperation",
     },
     {
-      title: "🌍 Climate Action",
+      title: "Climate Action",
+      icon: "🌍",
       description:
         "Carbon credits, international cooperation, tragedy of commons",
     },
   ];
 
-  return (
-    <div style={{ maxWidth: "600px", margin: "0 auto", textAlign: "center" }}>
-      <div style={{ fontSize: "60px", marginBottom: "20px" }}>🌟</div>
+  const rules = [
+    {
+      num: "1",
+      title: "Be Nice",
+      color: "var(--accent-cooperate)",
+      text: "Don't defect first. Start with cooperation.",
+    },
+    {
+      num: "2",
+      title: "Be Provocable",
+      color: "var(--accent-defect)",
+      text: "Retaliate against defection. Don't be a pushover.",
+    },
+    {
+      num: "3",
+      title: "Be Forgiving",
+      color: "var(--accent-cool)",
+      text: "Return to cooperation after punishment.",
+    },
+    {
+      num: "4",
+      title: "Be Clear",
+      color: "var(--accent-purple)",
+      text: "Make your strategy easy to understand.",
+    },
+  ];
 
-      <Text
-        as="p"
-        size="md"
+  return (
+    <div style={{ maxWidth: "640px", margin: "0 auto", textAlign: "center" }}>
+      <div
+        data-animate
         style={{
-          fontFamily: "FuturaHandwritten",
-          color: "rgba(255,255,255,0.9)",
-          fontSize: "1.2rem",
-          marginBottom: "30px",
-          lineHeight: "1.6",
+          fontSize: "56px",
+          marginBottom: "20px",
+          filter: "drop-shadow(0 0 24px rgba(240, 160, 32, 0.4))",
+        }}
+      >
+        🌟
+      </div>
+
+      <p
+        data-animate
+        style={{
+          fontFamily: "var(--font-display)",
+          fontSize: "var(--text-xl)",
+          color: "var(--text-secondary)",
+          marginBottom: "32px",
         }}
       >
         So, what have we learned about trust?
-      </Text>
+      </p>
 
       <div
+        data-animate
+        className="glass-panel"
         style={{
-          background: "rgba(255,255,255,0.9)",
-          padding: "30px",
-          borderRadius: "20px",
-          marginBottom: "30px",
+          padding: "32px",
+          marginBottom: "28px",
         }}
       >
-        <Text
-          as="h3"
-          size="md"
+        <h3
           style={{
-            fontFamily: "FuturaHandwritten",
-            color: "#333",
-            marginBottom: "20px",
+            fontFamily: "var(--font-display)",
+            fontSize: "var(--text-xl)",
+            marginBottom: "24px",
+            color: "var(--text-primary)",
           }}
         >
           The Rules of Trust
-        </Text>
+        </h3>
 
-        <div style={{ textAlign: "left", maxWidth: "400px", margin: "0 auto" }}>
-          <div style={{ marginBottom: "15px" }}>
-            <Text
-              as="p"
-              size="md"
-              style={{
-                fontFamily: "FuturaHandwritten",
-                color: "#4CAF50",
-                fontWeight: "bold",
-              }}
-            >
-              1. Be Nice
-            </Text>
-            <Text
-              as="p"
-              size="md"
-              style={{
-                fontFamily: "FuturaHandwritten",
-                color: "#666",
-                fontSize: "0.9rem",
-              }}
-            >
-              Don't defect first. Start with cooperation.
-            </Text>
-          </div>
-
-          <div style={{ marginBottom: "15px" }}>
-            <Text
-              as="p"
-              size="md"
-              style={{
-                fontFamily: "FuturaHandwritten",
-                color: "#F44336",
-                fontWeight: "bold",
-              }}
-            >
-              2. Be Provocable
-            </Text>
-            <Text
-              as="p"
-              size="md"
-              style={{
-                fontFamily: "FuturaHandwritten",
-                color: "#666",
-                fontSize: "0.9rem",
-              }}
-            >
-              Retaliate against defection. Don't be a pushover.
-            </Text>
-          </div>
-
-          <div style={{ marginBottom: "15px" }}>
-            <Text
-              as="p"
-              size="md"
-              style={{
-                fontFamily: "FuturaHandwritten",
-                color: "#2196F3",
-                fontWeight: "bold",
-              }}
-            >
-              3. Be Forgiving
-            </Text>
-            <Text
-              as="p"
-              size="md"
-              style={{
-                fontFamily: "FuturaHandwritten",
-                color: "#666",
-                fontSize: "0.9rem",
-              }}
-            >
-              Return to cooperation after punishment.
-            </Text>
-          </div>
-
-          <div>
-            <Text
-              as="p"
-              size="md"
-              style={{
-                fontFamily: "FuturaHandwritten",
-                color: "#9C27B0",
-                fontWeight: "bold",
-              }}
-            >
-              4. Be Clear
-            </Text>
-            <Text
-              as="p"
-              size="md"
-              style={{
-                fontFamily: "FuturaHandwritten",
-                color: "#666",
-                fontSize: "0.9rem",
-              }}
-            >
-              Make your strategy easy to understand.
-            </Text>
-          </div>
+        <div style={{ textAlign: "left", maxWidth: "420px", margin: "0 auto" }}>
+          {rules.map((rule) => (
+            <div key={rule.num} style={{ marginBottom: "16px" }}>
+              <p
+                style={{
+                  fontFamily: "var(--font-body)",
+                  color: rule.color,
+                  fontWeight: 600,
+                  fontSize: "var(--text-base)",
+                  marginBottom: "2px",
+                }}
+              >
+                {rule.num}. {rule.title}
+              </p>
+              <p
+                style={{
+                  fontFamily: "var(--font-body)",
+                  color: "var(--text-secondary)",
+                  fontSize: "var(--text-sm)",
+                  margin: 0,
+                }}
+              >
+                {rule.text}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
 
-      <Button
-        onClick={() => setShowApplications(!showApplications)}
-        size="md"
-        style={{
-          fontFamily: "FuturaHandwritten",
-          marginBottom: "20px",
-          background: "rgba(255,255,255,0.9)",
-          color: "#667eea",
-        }}
-      >
-        {showApplications ? "Hide" : "Show"} Real-World Applications
-      </Button>
+      <div data-animate>
+        <Button
+          onClick={() => setShowApplications(!showApplications)}
+          size="md"
+          variant="tertiary"
+          style={{ marginBottom: "20px" }}
+        >
+          {showApplications ? "Hide" : "Show"} Real-World Applications
+        </Button>
+      </div>
 
       {showApplications && (
         <div
+          data-animate
+          className="glass-panel"
           style={{
-            background: "rgba(255,255,255,0.8)",
-            padding: "25px",
-            borderRadius: "15px",
-            marginBottom: "30px",
+            padding: "24px",
+            marginBottom: "28px",
           }}
         >
-          <Text
-            as="h4"
-            size="md"
+          <h4
             style={{
-              fontFamily: "FuturaHandwritten",
-              color: "#333",
+              fontFamily: "var(--font-display)",
+              fontSize: "var(--text-lg)",
               marginBottom: "20px",
+              color: "var(--text-primary)",
             }}
           >
             Trust in the Real World
-          </Text>
+          </h4>
 
-          {realWorldApplications.map((app, index) => (
+          {realWorldApplications.map((app) => (
             <div
-              key={index}
+              key={app.title}
+              className="glass-panel lift-on-hover"
               style={{
                 textAlign: "left",
-                marginBottom: "15px",
-                padding: "10px",
-                background: "rgba(255,255,255,0.5)",
-                borderRadius: "8px",
+                marginBottom: "10px",
+                padding: "14px 16px",
               }}
             >
-              <Text
-                as="p"
-                size="md"
+              <p
                 style={{
-                  fontFamily: "FuturaHandwritten",
-                  fontWeight: "bold",
-                  color: "#333",
-                  marginBottom: "5px",
+                  fontFamily: "var(--font-body)",
+                  fontWeight: 600,
+                  color: "var(--text-primary)",
+                  marginBottom: "4px",
+                  fontSize: "var(--text-sm)",
                 }}
               >
-                {app.title}
-              </Text>
-              <Text
-                as="p"
-                size="md"
+                {app.icon} {app.title}
+              </p>
+              <p
                 style={{
-                  fontFamily: "FuturaHandwritten",
-                  color: "#666",
-                  fontSize: "0.9rem",
+                  fontFamily: "var(--font-body)",
+                  color: "var(--text-secondary)",
+                  fontSize: "var(--text-xs)",
+                  margin: 0,
                 }}
               >
                 {app.description}
-              </Text>
+              </p>
             </div>
           ))}
         </div>
       )}
 
-      <Text
-        as="p"
-        size="md"
+      <p
+        data-animate
         style={{
-          fontFamily: "FuturaHandwritten",
-          color: "rgba(255,255,255,0.9)",
-          fontSize: "1.1rem",
+          fontFamily: "var(--font-display)",
           fontStyle: "italic",
-          marginBottom: "30px",
-          lineHeight: "1.5",
+          fontSize: "var(--text-lg)",
+          color: "var(--text-muted)",
+          marginBottom: "28px",
+          lineHeight: 1.5,
         }}
       >
         "In the end, we're all in this together. The question isn't whether you{" "}
         <em>can</em> trust someone.
         <br />
-        The question is whether you can trust someone <strong>enough</strong>."
-      </Text>
+        The question is whether you can trust someone{" "}
+        <strong style={{ color: "var(--accent-warm)" }}>enough</strong>."
+      </p>
 
       {address && (
         <div
+          data-animate
+          className="glass-panel"
           style={{
-            background: "rgba(255,255,255,0.9)",
             padding: "20px",
-            borderRadius: "15px",
             marginBottom: "20px",
           }}
         >
-          <Text
-            as="p"
-            size="md"
+          <p
             style={{
-              fontFamily: "FuturaHandwritten",
-              color: "#333",
-              marginBottom: "15px",
+              fontFamily: "var(--font-body)",
+              color: "var(--text-primary)",
+              marginBottom: "12px",
+              fontSize: "var(--text-base)",
             }}
           >
             🎉 Congratulations! You've completed the journey.
-          </Text>
-          <Text
-            as="p"
-            size="md"
+          </p>
+          <p
             style={{
-              fontFamily: "FuturaHandwritten",
-              color: "#667eea",
-              fontSize: "0.9rem",
+              fontFamily: "var(--font-mono)",
+              color: "var(--accent-violet)",
+              fontSize: "var(--text-xs)",
+              wordBreak: "break-all",
             }}
           >
-            Your wallet: {address.slice(0, 8)}...{address.slice(-8)}
-            <br />
-            Ready to build trust in the real world?
-          </Text>
+            {address.slice(0, 8)}...{address.slice(-8)}
+          </p>
         </div>
       )}
 
-      <Text
-        as="p"
-        size="md"
+      <p
+        data-animate
         style={{
-          fontFamily: "FuturaHandwritten",
-          color: "rgba(255,255,255,0.7)",
-          fontSize: "0.8rem",
-          marginTop: "30px",
+          fontFamily: "var(--font-body)",
+          color: "var(--text-muted)",
+          fontSize: "var(--text-xs)",
+          marginTop: "32px",
         }}
       >
         Based on "The Evolution of Trust" by Nicky Case
         <br />
         Enhanced with blockchain technology on Stellar
-      </Text>
+      </p>
     </div>
   );
 };

@@ -86,7 +86,7 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
             as="h2"
             size="lg"
             style={{
-              fontFamily: "FuturaHandwritten",
+              fontFamily: "var(--font-body)",
               color: "rgba(255,255,255,0.95)",
               margin: 0,
             }}
@@ -97,8 +97,8 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
             as="p"
             size="sm"
             style={{
-              fontFamily: "FuturaHandwritten",
-              color: "rgba(255,255,255,0.7)",
+              fontFamily: "var(--font-body)",
+              color: "rgba(20, 26, 46, 0.35)",
               marginTop: "6px",
             }}
           >
@@ -113,7 +113,7 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
             size="md"
             onClick={refresh}
             disabled={isLoading}
-            style={{ fontFamily: "FuturaHandwritten" }}
+            style={{ fontFamily: "var(--font-body)" }}
           >
             🔄 Refresh
           </Button>
@@ -122,7 +122,7 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
             size="md"
             onClick={onCreateGame}
             disabled={!address}
-            style={{ fontFamily: "FuturaHandwritten" }}
+            style={{ fontFamily: "var(--font-body)" }}
           >
             ➕ Start a Trustfall
           </Button>
@@ -137,7 +137,7 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
             padding: "12px 16px",
             marginBottom: "16px",
             color: "#c62828",
-            fontFamily: "FuturaHandwritten",
+            fontFamily: "var(--font-body)",
             fontSize: "14px",
           }}
         >
@@ -152,8 +152,8 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
             as="h3"
             size="md"
             style={{
-              fontFamily: "FuturaHandwritten",
-              color: "rgba(255,255,255,0.9)",
+              fontFamily: "var(--font-body)",
+              color: "rgba(20, 26, 46, 0.55)",
               marginBottom: "12px",
             }}
           >
@@ -186,7 +186,7 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    fontFamily: "FuturaHandwritten",
+                    fontFamily: "var(--font-body)",
                   }}
                 >
                   <div>
@@ -194,7 +194,7 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
                       style={{
                         fontWeight: "bold",
                         margin: 0,
-                        color: "#333",
+                        color: "var(--text-primary)",
                         fontSize: "16px",
                       }}
                     >
@@ -203,7 +203,7 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
                     <p
                       style={{
                         margin: "4px 0 0 0",
-                        color: "#666",
+                        color: "var(--text-secondary)",
                         fontSize: "14px",
                       }}
                     >
@@ -218,7 +218,7 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
                         color: "#667eea",
                         fontWeight: "bold",
                         fontSize: "14px",
-                        fontFamily: "FuturaHandwritten",
+                        fontFamily: "var(--font-body)",
                       }}
                     >
                       {formatStake(game.stake)}
@@ -238,8 +238,8 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
           as="h3"
           size="md"
           style={{
-            fontFamily: "FuturaHandwritten",
-            color: "rgba(255,255,255,0.9)",
+            fontFamily: "var(--font-body)",
+            color: "rgba(20, 26, 46, 0.55)",
             marginBottom: "12px",
           }}
         >
@@ -252,8 +252,8 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
               as="p"
               size="md"
               style={{
-                fontFamily: "FuturaHandwritten",
-                color: "rgba(255,255,255,0.7)",
+                fontFamily: "var(--font-body)",
+                color: "rgba(20, 26, 46, 0.35)",
               }}
             >
               Loading games...
@@ -261,14 +261,18 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
           </div>
         ) : openGames.length === 0 ? (
           <CardDiv
-            style={{ textAlign: "center", padding: "32px", color: "#666" }}
+            style={{
+              textAlign: "center",
+              padding: "32px",
+              color: "var(--text-secondary)",
+            }}
           >
             <div style={{ fontSize: "48px", marginBottom: "12px" }}>🎲</div>
             <p
               style={{
                 margin: 0,
                 fontSize: "16px",
-                fontFamily: "FuturaHandwritten",
+                fontFamily: "var(--font-body)",
               }}
             >
               No open games right now
@@ -277,8 +281,8 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
               style={{
                 marginTop: "8px",
                 fontSize: "14px",
-                color: "#999",
-                fontFamily: "FuturaHandwritten",
+                color: "var(--text-muted)",
+                fontFamily: "var(--font-body)",
               }}
             >
               Create a new game to challenge someone!
@@ -305,7 +309,7 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
                 style={{
                   cursor: "pointer",
                   transition: "transform 0.2s, box-shadow 0.2s",
-                  fontFamily: "FuturaHandwritten",
+                  fontFamily: "var(--font-body)",
                 }}
               >
                 <div
@@ -320,7 +324,7 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
                       style={{
                         fontWeight: "bold",
                         margin: 0,
-                        color: "#333",
+                        color: "var(--text-primary)",
                         fontSize: "16px",
                       }}
                     >
@@ -329,7 +333,7 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
                     <p
                       style={{
                         margin: "4px 0 0 0",
-                        color: "#666",
+                        color: "var(--text-secondary)",
                         fontSize: "14px",
                       }}
                     >
@@ -339,7 +343,7 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
                     <p
                       style={{
                         margin: "2px 0 0 0",
-                        color: "#999",
+                        color: "var(--text-muted)",
                         fontSize: "12px",
                       }}
                     >
@@ -367,7 +371,7 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
                       disabled={!address}
                       style={{
                         marginTop: "6px",
-                        fontFamily: "FuturaHandwritten",
+                        fontFamily: "var(--font-body)",
                       }}
                     >
                       Join
@@ -383,7 +387,7 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
       {/* How it works */}
       <CardDiv
         style={{
-          fontFamily: "FuturaHandwritten",
+          fontFamily: "var(--font-body)",
           background: "rgba(255,255,255,0.08)",
           border: "1px solid rgba(255,255,255,0.15)",
         }}
@@ -391,7 +395,7 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
         <p
           style={{
             margin: 0,
-            color: "rgba(255,255,255,0.8)",
+            color: "rgba(20, 26, 46, 0.45)",
             lineHeight: "1.5",
             fontSize: "14px",
           }}
@@ -432,7 +436,7 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
 
   const c = config[status] || {
     label: status,
-    color: "#666",
+    color: "var(--text-secondary)",
     bg: "transparent",
   };
 

@@ -382,8 +382,8 @@ export const GameSlide: React.FC<SlideProps> = () => {
           as="h3"
           size="md"
           style={{
-            fontFamily: "FuturaHandwritten",
-            color: "rgba(255,255,255,0.9)",
+            fontFamily: "var(--font-body)",
+            color: "rgba(20, 26, 46, 0.55)",
             marginBottom: "15px",
           }}
         >
@@ -418,8 +418,8 @@ export const GameSlide: React.FC<SlideProps> = () => {
                 color:
                   mode === "multiplayer" && gameMode !== mode
                     ? "rgba(255,255,255,0.5)"
-                    : "rgba(255,255,255,0.9)",
-                fontFamily: "FuturaHandwritten",
+                    : "rgba(20, 26, 46, 0.55)",
+                fontFamily: "var(--font-body)",
                 fontSize: "14px",
                 cursor: mode === "multiplayer" ? "not-allowed" : "pointer",
                 transition: "all 0.2s",
@@ -456,7 +456,7 @@ export const GameSlide: React.FC<SlideProps> = () => {
                 height: "40px",
                 borderRadius: "50%",
                 fontSize: "16px",
-                background: showTutor ? "#667eea" : "rgba(255,255,255,0.7)",
+                background: showTutor ? "#667eea" : "rgba(20, 26, 46, 0.35)",
               }}
             >
               🧙‍♂️
@@ -478,8 +478,8 @@ export const GameSlide: React.FC<SlideProps> = () => {
                 as="p"
                 size="sm"
                 style={{
-                  fontFamily: "FuturaHandwritten",
-                  color: "rgba(255,255,255,0.7)",
+                  fontFamily: "var(--font-body)",
+                  color: "rgba(20, 26, 46, 0.35)",
                   margin: "0 0 10px 0",
                   fontSize: "0.85rem",
                 }}
@@ -523,7 +523,7 @@ export const GameSlide: React.FC<SlideProps> = () => {
                 as="p"
                 size="xs"
                 style={{
-                  fontFamily: "FuturaHandwritten",
+                  fontFamily: "var(--font-body)",
                   color: "rgba(255,255,255,0.6)",
                   margin: "6px 0 0 0",
                   fontSize: "0.75rem",
@@ -567,8 +567,8 @@ export const GameSlide: React.FC<SlideProps> = () => {
                   as="p"
                   size="md"
                   style={{
-                    fontFamily: "FuturaHandwritten",
-                    color: "rgba(255,255,255,0.9)",
+                    fontFamily: "var(--font-body)",
+                    color: "rgba(20, 26, 46, 0.55)",
                     fontSize: "0.9rem",
                     marginTop: "5px",
                   }}
@@ -581,8 +581,8 @@ export const GameSlide: React.FC<SlideProps> = () => {
                 as="span"
                 size="md"
                 style={{
-                  fontFamily: "FuturaHandwritten",
-                  color: "rgba(255,255,255,0.9)",
+                  fontFamily: "var(--font-body)",
+                  color: "rgba(20, 26, 46, 0.55)",
                   fontSize: "1.5rem",
                 }}
               >
@@ -600,7 +600,7 @@ export const GameSlide: React.FC<SlideProps> = () => {
                   as="p"
                   size="md"
                   style={{
-                    fontFamily: "FuturaHandwritten",
+                    fontFamily: "var(--font-body)",
                     color: strategyInfo.color,
                     fontSize: "0.9rem",
                     marginTop: "5px",
@@ -644,8 +644,8 @@ export const GameSlide: React.FC<SlideProps> = () => {
               as="p"
               size="sm"
               style={{
-                fontFamily: "FuturaHandwritten",
-                color: "rgba(255,255,255,0.7)",
+                fontFamily: "var(--font-body)",
+                color: "rgba(20, 26, 46, 0.35)",
                 margin: "0 0 8px 0",
                 fontSize: "0.85rem",
               }}
@@ -659,7 +659,7 @@ export const GameSlide: React.FC<SlideProps> = () => {
               }
               disabled={loading}
               style={{
-                fontFamily: "FuturaHandwritten",
+                fontFamily: "var(--font-body)",
                 padding: "8px",
                 marginBottom: "10px",
                 width: "100%",
@@ -678,7 +678,7 @@ export const GameSlide: React.FC<SlideProps> = () => {
               as="p"
               size="xs"
               style={{
-                fontFamily: "FuturaHandwritten",
+                fontFamily: "var(--font-body)",
                 color: "rgba(255,255,255,0.5)",
                 margin: 0,
                 fontSize: "0.75rem",
@@ -726,7 +726,7 @@ export const GameSlide: React.FC<SlideProps> = () => {
                 as="span"
                 size="xs"
                 style={{
-                  fontFamily: "FuturaHandwritten",
+                  fontFamily: "var(--font-body)",
                   color: "rgba(255,255,255,0.6)",
                   fontSize: "0.8rem",
                 }}
@@ -737,7 +737,7 @@ export const GameSlide: React.FC<SlideProps> = () => {
                 as="span"
                 size="xs"
                 style={{
-                  fontFamily: "FuturaHandwritten",
+                  fontFamily: "var(--font-body)",
                   color: noise > 0.1 ? "#ffb050" : "rgba(255,255,255,0.6)",
                   fontSize: "0.8rem",
                   fontWeight: "bold",
@@ -760,7 +760,7 @@ export const GameSlide: React.FC<SlideProps> = () => {
               as="p"
               size="xs"
               style={{
-                fontFamily: "FuturaHandwritten",
+                fontFamily: "var(--font-body)",
                 color: "rgba(255,255,255,0.4)",
                 margin: "4px 0 0 0",
                 fontSize: "0.72rem",
@@ -784,7 +784,7 @@ export const GameSlide: React.FC<SlideProps> = () => {
               variant="tertiary"
               size="sm"
               style={{
-                fontFamily: "FuturaHandwritten",
+                fontFamily: "var(--font-body)",
                 width: "100%",
                 background: showPayoffEditor
                   ? "rgba(102, 126, 234, 0.15)"
@@ -813,7 +813,7 @@ export const GameSlide: React.FC<SlideProps> = () => {
               variant="tertiary"
               size="sm"
               style={{
-                fontFamily: "FuturaHandwritten",
+                fontFamily: "var(--font-body)",
                 width: "100%",
                 background: inspectedStrategy
                   ? "rgba(102, 126, 234, 0.15)"
@@ -929,7 +929,7 @@ export const GameSlide: React.FC<SlideProps> = () => {
               as="p"
               size="md"
               style={{
-                fontFamily: "FuturaHandwritten",
+                fontFamily: "var(--font-body)",
                 background: "rgba(244, 67, 54, 0.1)",
                 color: "#F44336",
                 padding: "12px",
@@ -949,13 +949,13 @@ export const GameSlide: React.FC<SlideProps> = () => {
               as="p"
               size="md"
               style={{
-                fontFamily: "FuturaHandwritten",
+                fontFamily: "var(--font-body)",
                 whiteSpace: "pre-line",
-                background: "rgba(255,255,255,0.9)",
+                background: "rgba(20, 26, 46, 0.55)",
                 padding: "15px",
                 borderRadius: "10px",
                 fontSize: "0.9rem",
-                color: "#333",
+                color: "var(--text-primary)",
               }}
             >
               {result}
@@ -978,8 +978,8 @@ export const GameSlide: React.FC<SlideProps> = () => {
                 as="h4"
                 size="sm"
                 style={{
-                  fontFamily: "FuturaHandwritten",
-                  color: "#333",
+                  fontFamily: "var(--font-body)",
+                  color: "var(--text-primary)",
                   margin: "0 0 12px 0",
                   textAlign: "center",
                 }}
@@ -992,17 +992,57 @@ export const GameSlide: React.FC<SlideProps> = () => {
                   width: "100%",
                   borderCollapse: "collapse",
                   fontSize: "13px",
-                  fontFamily: "FuturaHandwritten",
+                  fontFamily: "var(--font-body)",
                 }}
               >
                 <thead>
                   <tr style={{ borderBottom: "2px solid #ddd" }}>
-                    <th style={{ padding: "6px 4px", color: "#666" }}>#</th>
-                    <th style={{ padding: "6px 4px", color: "#666" }}>You</th>
-                    <th style={{ padding: "6px 4px", color: "#666" }}>AI</th>
-                    <th style={{ padding: "6px 4px", color: "#666" }}>You</th>
-                    <th style={{ padding: "6px 4px", color: "#666" }}>AI</th>
-                    <th style={{ padding: "6px 4px", color: "#666" }}>
+                    <th
+                      style={{
+                        padding: "6px 4px",
+                        color: "var(--text-secondary)",
+                      }}
+                    >
+                      #
+                    </th>
+                    <th
+                      style={{
+                        padding: "6px 4px",
+                        color: "var(--text-secondary)",
+                      }}
+                    >
+                      You
+                    </th>
+                    <th
+                      style={{
+                        padding: "6px 4px",
+                        color: "var(--text-secondary)",
+                      }}
+                    >
+                      AI
+                    </th>
+                    <th
+                      style={{
+                        padding: "6px 4px",
+                        color: "var(--text-secondary)",
+                      }}
+                    >
+                      You
+                    </th>
+                    <th
+                      style={{
+                        padding: "6px 4px",
+                        color: "var(--text-secondary)",
+                      }}
+                    >
+                      AI
+                    </th>
+                    <th
+                      style={{
+                        padding: "6px 4px",
+                        color: "var(--text-secondary)",
+                      }}
+                    >
                       Outcome
                     </th>
                   </tr>
@@ -1016,7 +1056,12 @@ export const GameSlide: React.FC<SlideProps> = () => {
                         key={r.round}
                         style={{ borderBottom: "1px solid #eee" }}
                       >
-                        <td style={{ padding: "6px 4px", color: "#999" }}>
+                        <td
+                          style={{
+                            padding: "6px 4px",
+                            color: "var(--text-muted)",
+                          }}
+                        >
                           {r.round}
                         </td>
                         <td style={{ padding: "6px 4px" }}>
@@ -1067,7 +1112,11 @@ export const GameSlide: React.FC<SlideProps> = () => {
                   <Text
                     as="p"
                     size="xs"
-                    style={{ margin: 0, color: "#666", fontSize: "0.75rem" }}
+                    style={{
+                      margin: 0,
+                      color: "var(--text-secondary)",
+                      fontSize: "0.75rem",
+                    }}
                   >
                     Your total
                   </Text>
@@ -1088,7 +1137,11 @@ export const GameSlide: React.FC<SlideProps> = () => {
                   <Text
                     as="p"
                     size="xs"
-                    style={{ margin: 0, color: "#666", fontSize: "0.75rem" }}
+                    style={{
+                      margin: 0,
+                      color: "var(--text-secondary)",
+                      fontSize: "0.75rem",
+                    }}
                   >
                     AI total
                   </Text>
@@ -1134,7 +1187,7 @@ export const GameSlide: React.FC<SlideProps> = () => {
                   as="h4"
                   size="md"
                   style={{
-                    fontFamily: "FuturaHandwritten",
+                    fontFamily: "var(--font-body)",
                     color: aiPersona.color,
                     margin: 0,
                   }}
@@ -1146,8 +1199,8 @@ export const GameSlide: React.FC<SlideProps> = () => {
                 as="p"
                 size="md"
                 style={{
-                  fontFamily: "FuturaHandwritten",
-                  color: "#333",
+                  fontFamily: "var(--font-body)",
+                  color: "var(--text-primary)",
                   lineHeight: "1.4",
                   margin: 0,
                 }}
@@ -1174,7 +1227,7 @@ export const GameSlide: React.FC<SlideProps> = () => {
                 as="h3"
                 size="md"
                 style={{
-                  fontFamily: "FuturaHandwritten",
+                  fontFamily: "var(--font-body)",
                   color: "#667eea",
                   margin: "0 0 15px 0",
                 }}
@@ -1195,8 +1248,8 @@ export const GameSlide: React.FC<SlideProps> = () => {
                     as="p"
                     size="sm"
                     style={{
-                      fontFamily: "FuturaHandwritten",
-                      color: "#666",
+                      fontFamily: "var(--font-body)",
+                      color: "var(--text-secondary)",
                       margin: "0 0 5px 0",
                       fontSize: "0.85rem",
                     }}
@@ -1207,8 +1260,8 @@ export const GameSlide: React.FC<SlideProps> = () => {
                     as="p"
                     size="md"
                     style={{
-                      fontFamily: "FuturaHandwritten",
-                      color: "#333",
+                      fontFamily: "var(--font-body)",
+                      color: "var(--text-primary)",
                       margin: 0,
                       fontSize: "1.1rem",
                       fontWeight: "bold",
@@ -1224,8 +1277,8 @@ export const GameSlide: React.FC<SlideProps> = () => {
                     as="p"
                     size="sm"
                     style={{
-                      fontFamily: "FuturaHandwritten",
-                      color: "#666",
+                      fontFamily: "var(--font-body)",
+                      color: "var(--text-secondary)",
                       margin: "0 0 5px 0",
                       fontSize: "0.85rem",
                     }}
@@ -1236,8 +1289,8 @@ export const GameSlide: React.FC<SlideProps> = () => {
                     as="p"
                     size="md"
                     style={{
-                      fontFamily: "FuturaHandwritten",
-                      color: "#333",
+                      fontFamily: "var(--font-body)",
+                      color: "var(--text-primary)",
                       margin: 0,
                       fontSize: "1.1rem",
                       fontWeight: "bold",
@@ -1252,8 +1305,8 @@ export const GameSlide: React.FC<SlideProps> = () => {
                     as="p"
                     size="sm"
                     style={{
-                      fontFamily: "FuturaHandwritten",
-                      color: "#666",
+                      fontFamily: "var(--font-body)",
+                      color: "var(--text-secondary)",
                       margin: "0 0 5px 0",
                       fontSize: "0.85rem",
                     }}
@@ -1264,8 +1317,8 @@ export const GameSlide: React.FC<SlideProps> = () => {
                     as="p"
                     size="md"
                     style={{
-                      fontFamily: "FuturaHandwritten",
-                      color: "#333",
+                      fontFamily: "var(--font-body)",
+                      color: "var(--text-primary)",
                       margin: 0,
                       fontSize: "1.1rem",
                       fontWeight: "bold",
@@ -1280,8 +1333,8 @@ export const GameSlide: React.FC<SlideProps> = () => {
                     as="p"
                     size="sm"
                     style={{
-                      fontFamily: "FuturaHandwritten",
-                      color: "#666",
+                      fontFamily: "var(--font-body)",
+                      color: "var(--text-secondary)",
                       margin: "0 0 5px 0",
                       fontSize: "0.85rem",
                     }}
@@ -1292,8 +1345,8 @@ export const GameSlide: React.FC<SlideProps> = () => {
                     as="p"
                     size="md"
                     style={{
-                      fontFamily: "FuturaHandwritten",
-                      color: "#333",
+                      fontFamily: "var(--font-body)",
+                      color: "var(--text-primary)",
                       margin: 0,
                       fontSize: "1.1rem",
                       fontWeight: "bold",
@@ -1308,8 +1361,8 @@ export const GameSlide: React.FC<SlideProps> = () => {
                 as="p"
                 size="sm"
                 style={{
-                  fontFamily: "FuturaHandwritten",
-                  color: "#666",
+                  fontFamily: "var(--font-body)",
+                  color: "var(--text-secondary)",
                   fontSize: "0.85rem",
                   margin: 0,
                   fontStyle: "italic",

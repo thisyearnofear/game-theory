@@ -42,14 +42,14 @@ export const PayoffMatrixEditor: React.FC<PayoffMatrixEditorProps> = ({
     if (R > T && T > P && P > S) return { name: "Stag Hunt", color: "#FF9800" };
     if (T > R && R > S && S > P)
       return { name: "Snowdrift / Chicken", color: "#F44336" };
-    return { name: "Custom", color: "#999" };
+    return { name: "Custom", color: "var(--text-muted)" };
   })();
 
   const cellStyle: React.CSSProperties = {
     padding: compact ? "6px" : "10px",
     borderRadius: "6px",
     textAlign: "center",
-    fontFamily: "FuturaHandwritten",
+    fontFamily: "var(--font-body)",
     fontSize: compact ? "0.75rem" : "0.85rem",
   };
 
@@ -60,8 +60,8 @@ export const PayoffMatrixEditor: React.FC<PayoffMatrixEditorProps> = ({
     border: "1px solid rgba(255,255,255,0.2)",
     borderRadius: "4px",
     background: "rgba(255,255,255,0.05)",
-    color: "rgba(255,255,255,0.9)",
-    fontFamily: "FuturaHandwritten",
+    color: "rgba(20, 26, 46, 0.55)",
+    fontFamily: "var(--font-body)",
     fontSize: "0.85rem",
   };
 
@@ -78,8 +78,8 @@ export const PayoffMatrixEditor: React.FC<PayoffMatrixEditorProps> = ({
         as="p"
         size="sm"
         style={{
-          fontFamily: "FuturaHandwritten",
-          color: "rgba(255,255,255,0.7)",
+          fontFamily: "var(--font-body)",
+          color: "rgba(20, 26, 46, 0.35)",
           margin: "0 0 10px 0",
           fontSize: "0.85rem",
           textAlign: "left",
@@ -113,8 +113,8 @@ export const PayoffMatrixEditor: React.FC<PayoffMatrixEditorProps> = ({
                 selectedPreset === preset.id
                   ? "rgba(102, 126, 234, 0.2)"
                   : "transparent",
-              color: "rgba(255,255,255,0.7)",
-              fontFamily: "FuturaHandwritten",
+              color: "rgba(20, 26, 46, 0.35)",
+              fontFamily: "var(--font-body)",
               fontSize: "0.75rem",
               cursor: "pointer",
               transition: "all 0.2s",
@@ -284,7 +284,13 @@ export const PayoffMatrixEditor: React.FC<PayoffMatrixEditorProps> = ({
             onChange={(e) => updateValue("P", parseFloat(e.target.value) || 0)}
             style={inputStyle}
           />
-          <div style={{ color: "#999", fontSize: "0.7rem", marginTop: "2px" }}>
+          <div
+            style={{
+              color: "var(--text-muted)",
+              fontSize: "0.7rem",
+              marginTop: "2px",
+            }}
+          >
             Punishment
           </div>
         </div>
@@ -296,7 +302,7 @@ export const PayoffMatrixEditor: React.FC<PayoffMatrixEditorProps> = ({
           as="p"
           size="xs"
           style={{
-            fontFamily: "FuturaHandwritten",
+            fontFamily: "var(--font-body)",
             color: dilemmaType.color,
             margin: 0,
             fontSize: "0.8rem",
@@ -310,7 +316,7 @@ export const PayoffMatrixEditor: React.FC<PayoffMatrixEditorProps> = ({
             as="p"
             size="xs"
             style={{
-              fontFamily: "FuturaHandwritten",
+              fontFamily: "var(--font-body)",
               color: "rgba(255,255,255,0.4)",
               margin: "4px 0 0 0",
               fontSize: "0.72rem",

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Button, Text } from "@stellar/design-system";
+import { Button } from "@stellar/design-system";
 import AudioManager from "./AudioManager";
+import { useSlideAnimation } from "../hooks/useSlideAnimation";
 import "../styles/slides.css";
 
 // SINGLE SOURCE OF TRUTH for slide configuration
@@ -24,7 +25,10 @@ interface SlideSystemProps {
   onComplete?: () => void;
 }
 
-export const SlideSystem: React.FC<SlideSystemProps> = ({ slides, onComplete }) => {
+export const SlideSystem: React.FC<SlideSystemProps> = ({
+  slides,
+  onComplete,
+}) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slideData] = useState<Record<string, unknown>>({});
   const [audioManager] = useState(() => AudioManager.getInstance());
@@ -32,7 +36,7 @@ export const SlideSystem: React.FC<SlideSystemProps> = ({ slides, onComplete }) 
   // PERFORMANT: Initialize audio on first load
   useEffect(() => {
     audioManager.preloadSounds();
-    
+
     // Start background music if available
     const firstSlideMusic = slides[0]?.music;
     if (firstSlideMusic) {
@@ -46,7 +50,7 @@ export const SlideSystem: React.FC<SlideSystemProps> = ({ slides, onComplete }) 
     if (currentSlideConfig?.music) {
       audioManager.playBackgroundMusic(currentSlideConfig.music);
     }
-    
+
     // Play slide transition sound
     if (currentSlide > 0) {
       audioManager.playSound("click");
@@ -74,16 +78,15 @@ export const SlideSystem: React.FC<SlideSystemProps> = ({ slides, onComplete }) 
 
   const currentSlideConfig = slides[currentSlide];
   const SlideComponent = currentSlideConfig.component;
+  const slideRef = useSlideAnimation<HTMLDivElement>();
 
   return (
-    <div className="slide-container" style={{ 
-      background: currentSlideConfig.background || "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" 
-    }}>
+    <div className="slide-container" ref={slideRef}>
       {/* ENHANCEMENT: Audio controls */}
       <div className="audio-controls">
         <button
           type="button"
-          className={`audio-button ${!audioManager.isMusicEnabled ? 'disabled' : ''}`}
+          className={`audio-button ${!audioManager.isMusicEnabled ? "disabled" : ""}`}
           onClick={() => audioManager.toggleMusic()}
           title="Toggle Music"
         >
@@ -91,7 +94,7 @@ export const SlideSystem: React.FC<SlideSystemProps> = ({ slides, onComplete }) 
         </button>
         <button
           type="button"
-          className={`audio-button ${!audioManager.isSFXEnabled ? 'disabled' : ''}`}
+          className={`audio-button ${!audioManager.isSFXEnabled ? "disabled" : ""}`}
           onClick={() => audioManager.toggleSFX()}
           title="Toggle Sound Effects"
         >
@@ -105,38 +108,57 @@ export const SlideSystem: React.FC<SlideSystemProps> = ({ slides, onComplete }) 
           <button
             type="button"
             key={`slide-${slide.id}-${index}`}
-            className={`progress-dot ${currentSlide === index ? 'active' : ''}`}
+            className={`progress-dot ${currentSlide === index ? "active" : ""}`}
             onClick={() => handleSlideJump(index)}
           />
         ))}
       </div>
 
       {/* MODULAR: Slide content */}
-      <div style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "calc(100vh - 120px)",
-        padding: "40px 20px",
-        textAlign: "center",
-        maxWidth: "900px",
-        margin: "0 auto"
-      }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "calc(100vh - 120px)",
+          padding: "40px 20px",
+          textAlign: "center",
+          maxWidth: "900px",
+          margin: "0 auto",
+        }}
+      >
         {currentSlideConfig.title && (
-          <Text as="h1" size="xl" className="slide-title fade-in">
+          <h1
+            data-animate
+            className="slide-title"
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: "var(--text-4xl)",
+              marginBottom: "var(--space-md)",
+            }}
+          >
             {currentSlideConfig.title}
-          </Text>
-        )}
-        
-        {currentSlideConfig.subtitle && (
-          <Text as="h2" size="lg" className="slide-subtitle fade-in">
-            {currentSlideConfig.subtitle}
-          </Text>
+          </h1>
         )}
 
-        <div className="bounce-in">
-          <SlideComponent 
+        {currentSlideConfig.subtitle && (
+          <h2
+            data-animate
+            className="slide-subtitle"
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: "var(--text-2xl)",
+              color: "var(--text-secondary)",
+              marginBottom: "var(--space-lg)",
+            }}
+          >
+            {currentSlideConfig.subtitle}
+          </h2>
+        )}
+
+        <div data-animate>
+          <SlideComponent
             onNext={handleNext}
             onPrev={handlePrev}
             slideData={slideData}
@@ -145,23 +167,27 @@ export const SlideSystem: React.FC<SlideSystemProps> = ({ slides, onComplete }) 
       </div>
 
       {/* CLEAN: Navigation */}
-      <div style={{
-        position: "fixed",
-        bottom: "30px",
-        left: "50%",
-        transform: "translateX(-50%)",
-        display: "flex",
-        gap: "15px",
-        zIndex: 10
-      }}>
-        <Button variant="secondary"
+      <div
+        style={{
+          position: "fixed",
+          bottom: "30px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          display: "flex",
+          gap: "15px",
+          zIndex: 10,
+        }}
+      >
+        <Button
+          variant="secondary"
           onClick={handlePrev}
-          disabled={currentSlide === 0} size="md">
+          disabled={currentSlide === 0}
+          size="md"
+        >
           ← Previous
         </Button>
-        
-        <Button variant="primary"
-          onClick={handleNext} size="md">
+
+        <Button variant="primary" onClick={handleNext} size="md">
           {currentSlide === slides.length - 1 ? "Complete" : "Next →"}
         </Button>
       </div>

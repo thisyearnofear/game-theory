@@ -182,8 +182,8 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
           as="p"
           size="md"
           style={{
-            fontFamily: "FuturaHandwritten",
-            color: "rgba(255,255,255,0.8)",
+            fontFamily: "var(--font-body)",
+            color: "rgba(20, 26, 46, 0.45)",
           }}
         >
           Connect your wallet to commit a move
@@ -207,9 +207,9 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
         style={{
           background: "none",
           border: "none",
-          color: "rgba(255,255,255,0.7)",
+          color: "rgba(20, 26, 46, 0.35)",
           cursor: isLoadingState ? "not-allowed" : "pointer",
-          fontFamily: "FuturaHandwritten",
+          fontFamily: "var(--font-body)",
           fontSize: "16px",
           padding: "8px 0",
           marginBottom: "16px",
@@ -225,9 +225,9 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
           size="lg"
           style={{
             margin: "0 0 8px 0",
-            color: "#333",
+            color: "var(--text-primary)",
             textAlign: "center",
-            fontFamily: "FuturaHandwritten",
+            fontFamily: "var(--font-body)",
           }}
         >
           {mode === "create" ? "🧍 Stand at the Edge" : "🧍 Step to the Edge"}
@@ -238,9 +238,9 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
           size="sm"
           style={{
             margin: "0 0 24px 0",
-            color: "#666",
+            color: "var(--text-secondary)",
             textAlign: "center",
-            fontFamily: "FuturaHandwritten",
+            fontFamily: "var(--font-body)",
           }}
         >
           {mode === "create"
@@ -255,9 +255,9 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
             size="sm"
             style={{
               margin: "0 0 12px 0",
-              color: "#333",
+              color: "var(--text-primary)",
               fontWeight: "bold",
-              fontFamily: "FuturaHandwritten",
+              fontFamily: "var(--font-body)",
             }}
           >
             Choose Your Move
@@ -284,7 +284,7 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
                   selectedMove === "C" ? "rgba(76, 175, 80, 0.1)" : "white",
                 cursor: isLoadingState ? "not-allowed" : "pointer",
                 transition: "transform 0.2s ease, all 0.2s",
-                fontFamily: "FuturaHandwritten",
+                fontFamily: "var(--font-body)",
                 opacity: isLoadingState ? 0.6 : 1,
               }}
               onMouseEnter={(e) => {
@@ -306,7 +306,11 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
                 Cooperate
               </div>
               <div
-                style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}
+                style={{
+                  fontSize: "12px",
+                  color: "var(--text-secondary)",
+                  marginTop: "4px",
+                }}
               >
                 You'll catch them
               </div>
@@ -326,7 +330,7 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
                   selectedMove === "D" ? "rgba(244, 67, 54, 0.1)" : "white",
                 cursor: isLoadingState ? "not-allowed" : "pointer",
                 transition: "transform 0.2s ease, all 0.2s",
-                fontFamily: "FuturaHandwritten",
+                fontFamily: "var(--font-body)",
                 opacity: isLoadingState ? 0.6 : 1,
               }}
               onMouseEnter={(e) => {
@@ -348,7 +352,11 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
                 Defect
               </div>
               <div
-                style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}
+                style={{
+                  fontSize: "12px",
+                  color: "var(--text-secondary)",
+                  marginTop: "4px",
+                }}
               >
                 You'll step aside
               </div>
@@ -364,9 +372,9 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
               size="sm"
               style={{
                 margin: "0 0 8px 0",
-                color: "#333",
+                color: "var(--text-primary)",
                 fontWeight: "bold",
-                fontFamily: "FuturaHandwritten",
+                fontFamily: "var(--font-body)",
               }}
             >
               Stake (XLM) — the height of your fall
@@ -380,7 +388,7 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
               min="0.1"
               step="0.1"
               disabled={isLoadingState}
-              style={{ textAlign: "center", fontFamily: "FuturaHandwritten" }}
+              style={{ textAlign: "center", fontFamily: "var(--font-body)" }}
             />
             {/* Height visual — stake as fall height */}
             <div
@@ -416,9 +424,9 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
               size="xs"
               style={{
                 margin: "4px 0 0",
-                color: "#999",
+                color: "var(--text-muted)",
                 textAlign: "center",
-                fontFamily: "FuturaHandwritten",
+                fontFamily: "var(--font-body)",
               }}
             >
               {(() => {
@@ -452,12 +460,20 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
             }}
           >
             <div />
-            <div style={{ fontWeight: "bold", color: "#666" }}>They C</div>
-            <div style={{ fontWeight: "bold", color: "#666" }}>They D</div>
-            <div style={{ fontWeight: "bold", color: "#333" }}>You C</div>
+            <div style={{ fontWeight: "bold", color: "var(--text-secondary)" }}>
+              They C
+            </div>
+            <div style={{ fontWeight: "bold", color: "var(--text-secondary)" }}>
+              They D
+            </div>
+            <div style={{ fontWeight: "bold", color: "var(--text-primary)" }}>
+              You C
+            </div>
             <div style={{ color: "#4CAF50" }}>Both: 2×</div>
             <div style={{ color: "#ef6c00" }}>You: 0, Them: 3×</div>
-            <div style={{ fontWeight: "bold", color: "#333" }}>You D</div>
+            <div style={{ fontWeight: "bold", color: "var(--text-primary)" }}>
+              You D
+            </div>
             <div style={{ color: "#ef6c00" }}>You: 3×, Them: 0</div>
             <div style={{ color: "#c62828" }}>Both: 0</div>
           </div>
@@ -472,7 +488,7 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
               padding: "12px",
               marginBottom: "16px",
               border: "1px solid #ffe082",
-              fontFamily: "FuturaHandwritten",
+              fontFamily: "var(--font-body)",
             }}
           >
             <p
@@ -484,7 +500,13 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
             >
               🔑 Save Your Nonce!
             </p>
-            <p style={{ margin: "0 0 4px", fontSize: "12px", color: "#666" }}>
+            <p
+              style={{
+                margin: "0 0 4px",
+                fontSize: "12px",
+                color: "var(--text-secondary)",
+              }}
+            >
               You'll need this to reveal your move:
             </p>
             <p
@@ -499,7 +521,13 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
             >
               {savedNonce.toString()}
             </p>
-            <p style={{ margin: "4px 0 0", fontSize: "11px", color: "#999" }}>
+            <p
+              style={{
+                margin: "4px 0 0",
+                fontSize: "11px",
+                color: "var(--text-muted)",
+              }}
+            >
               (Saved in your browser session)
             </p>
           </div>
@@ -514,7 +542,7 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
               padding: "16px",
               marginBottom: "16px",
               fontSize: "12px",
-              color: "#333",
+              color: "var(--text-primary)",
               fontFamily: "monospace",
               textAlign: "center",
               overflow: "hidden",
@@ -534,9 +562,9 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
                 </div>
                 <div
                   style={{
-                    fontFamily: "FuturaHandwritten",
+                    fontFamily: "var(--font-body)",
                     fontSize: "14px",
-                    color: "#555",
+                    color: "var(--text-secondary)",
                   }}
                 >
                   You're falling... your ZK proof is binding your move.
@@ -557,9 +585,9 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
                 </div>
                 <div
                   style={{
-                    fontFamily: "FuturaHandwritten",
+                    fontFamily: "var(--font-body)",
                     fontSize: "14px",
-                    color: "#555",
+                    color: "var(--text-secondary)",
                   }}
                 >
                   Suspended in the air — committing to the blockchain...
@@ -567,7 +595,7 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
               </div>
             )}
             {commitDebug && (
-              <div style={{ marginTop: "4px", color: "#666" }}>
+              <div style={{ marginTop: "4px", color: "var(--text-secondary)" }}>
                 {commitDebug}
               </div>
             )}
@@ -582,7 +610,7 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
               color: "#F44336",
               marginBottom: "16px",
               textAlign: "center",
-              fontFamily: "FuturaHandwritten",
+              fontFamily: "var(--font-body)",
             }}
           >
             ⚠️ {txError}
@@ -597,7 +625,7 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
               color: "#F44336",
               marginBottom: "16px",
               textAlign: "center",
-              fontFamily: "FuturaHandwritten",
+              fontFamily: "var(--font-body)",
             }}
           >
             ⚠️ {error}
@@ -612,7 +640,7 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
           disabled={!canSubmit || isLoadingState}
           style={{
             width: "100%",
-            fontFamily: "FuturaHandwritten",
+            fontFamily: "var(--font-body)",
             fontSize: "18px",
             padding: "14px",
           }}
@@ -629,7 +657,7 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
       <CardDiv
         style={{
           marginTop: "16px",
-          fontFamily: "FuturaHandwritten",
+          fontFamily: "var(--font-body)",
           background: "rgba(255,255,255,0.08)",
           border: "1px solid rgba(255,255,255,0.15)",
         }}
@@ -639,7 +667,7 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
           size="xs"
           style={{
             margin: 0,
-            color: "rgba(255,255,255,0.8)",
+            color: "rgba(20, 26, 46, 0.45)",
             lineHeight: "1.5",
           }}
         >

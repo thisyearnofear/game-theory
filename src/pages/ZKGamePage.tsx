@@ -130,9 +130,9 @@ export const ZKGamePage: React.FC = () => {
             style={{
               background: "none",
               border: "none",
-              color: "rgba(255,255,255,0.7)",
+              color: "rgba(20, 26, 46, 0.35)",
               cursor: "pointer",
-              fontFamily: "FuturaHandwritten",
+              fontFamily: "var(--font-body)",
               fontSize: "16px",
               padding: "8px 0",
             }}
@@ -143,7 +143,7 @@ export const ZKGamePage: React.FC = () => {
             as="h2"
             size="lg"
             style={{
-              fontFamily: "FuturaHandwritten",
+              fontFamily: "var(--font-body)",
               color: "rgba(255,255,255,0.95)",
               margin: 0,
             }}
@@ -160,9 +160,9 @@ export const ZKGamePage: React.FC = () => {
             size="md"
             style={{
               margin: "0 0 16px 0",
-              color: "#333",
+              color: "var(--text-primary)",
               textAlign: "center",
-              fontFamily: "FuturaHandwritten",
+              fontFamily: "var(--font-body)",
             }}
           >
             {currentGame.status === "AwaitingPlayer2"
@@ -185,7 +185,7 @@ export const ZKGamePage: React.FC = () => {
               <Text
                 as="p"
                 size="xs"
-                style={{ margin: "0 0 2px", color: "#666" }}
+                style={{ margin: "0 0 2px", color: "var(--text-secondary)" }}
               >
                 Player 1
               </Text>
@@ -207,7 +207,7 @@ export const ZKGamePage: React.FC = () => {
               <Text
                 as="p"
                 size="xs"
-                style={{ margin: "0 0 2px", color: "#666" }}
+                style={{ margin: "0 0 2px", color: "var(--text-secondary)" }}
               >
                 Player 2
               </Text>
@@ -230,7 +230,7 @@ export const ZKGamePage: React.FC = () => {
               <Text
                 as="p"
                 size="xs"
-                style={{ margin: "0 0 2px", color: "#666" }}
+                style={{ margin: "0 0 2px", color: "var(--text-secondary)" }}
               >
                 Stake
               </Text>
@@ -247,11 +247,15 @@ export const ZKGamePage: React.FC = () => {
               <Text
                 as="p"
                 size="xs"
-                style={{ margin: "0 0 2px", color: "#666" }}
+                style={{ margin: "0 0 2px", color: "var(--text-secondary)" }}
               >
                 Moves
               </Text>
-              <Text as="p" size="sm" style={{ margin: 0, color: "#333" }}>
+              <Text
+                as="p"
+                size="sm"
+                style={{ margin: 0, color: "var(--text-primary)" }}
+              >
                 {currentGame.move1 ? "✅" : "⏳"} P1{" "}
                 {currentGame.move2 ? "✅" : "⏳"} P2
               </Text>
@@ -294,7 +298,7 @@ export const ZKGamePage: React.FC = () => {
                   style={{
                     color: "#64748b",
                     margin: "0 0 8px",
-                    fontFamily: "FuturaHandwritten",
+                    fontFamily: "var(--font-body)",
                   }}
                 >
                   Reveal deadline passed and neither player revealed.
@@ -308,7 +312,7 @@ export const ZKGamePage: React.FC = () => {
                     });
                   }}
                   disabled={txLoading}
-                  style={{ fontFamily: "FuturaHandwritten" }}
+                  style={{ fontFamily: "var(--font-body)" }}
                 >
                   {txLoading
                     ? "⏳ Processing..."
@@ -342,7 +346,7 @@ export const ZKGamePage: React.FC = () => {
                     color: "#f59e0b",
                     margin: 0,
                     fontWeight: "bold",
-                    fontFamily: "FuturaHandwritten",
+                    fontFamily: "var(--font-body)",
                   }}
                 >
                   ⏳ Waiting for an opponent to join your game
@@ -351,9 +355,9 @@ export const ZKGamePage: React.FC = () => {
                   as="p"
                   size="sm"
                   style={{
-                    color: "#666",
+                    color: "var(--text-secondary)",
                     marginTop: "8px",
-                    fontFamily: "FuturaHandwritten",
+                    fontFamily: "var(--font-body)",
                   }}
                 >
                   {canCancel
@@ -372,7 +376,7 @@ export const ZKGamePage: React.FC = () => {
                     disabled={txLoading}
                     style={{
                       marginTop: "12px",
-                      fontFamily: "FuturaHandwritten",
+                      fontFamily: "var(--font-body)",
                     }}
                   >
                     {txLoading
@@ -402,7 +406,7 @@ export const ZKGamePage: React.FC = () => {
                   color: "#10b981",
                   margin: "0 0 12px",
                   fontWeight: "bold",
-                  fontFamily: "FuturaHandwritten",
+                  fontFamily: "var(--font-body)",
                 }}
               >
                 ✅ Both players revealed! Resolve to distribute payouts.
@@ -429,9 +433,9 @@ export const ZKGamePage: React.FC = () => {
                 as="p"
                 size="md"
                 style={{
-                  color: "#666",
+                  color: "var(--text-secondary)",
                   margin: 0,
-                  fontFamily: "FuturaHandwritten",
+                  fontFamily: "var(--font-body)",
                 }}
               >
                 🔍 This game is waiting for a second player.
@@ -449,7 +453,7 @@ export const ZKGamePage: React.FC = () => {
                 disabled={!address}
                 style={{
                   marginTop: "12px",
-                  fontFamily: "FuturaHandwritten",
+                  fontFamily: "var(--font-body)",
                 }}
               >
                 🎮 Join This Game
@@ -473,7 +477,7 @@ export const ZKGamePage: React.FC = () => {
               style={{
                 color: "#F44336",
                 margin: 0,
-                fontFamily: "FuturaHandwritten",
+                fontFamily: "var(--font-body)",
               }}
             >
               ⚠️ Game not found
@@ -482,7 +486,7 @@ export const ZKGamePage: React.FC = () => {
               variant="tertiary"
               size="md"
               onClick={handleBackToLobby}
-              style={{ marginTop: "12px", fontFamily: "FuturaHandwritten" }}
+              style={{ marginTop: "12px", fontFamily: "var(--font-body)" }}
             >
               ← Back to Lobby
             </Button>
@@ -499,8 +503,8 @@ export const ZKGamePage: React.FC = () => {
         style={{
           textAlign: "center",
           padding: "60px",
-          color: "rgba(255,255,255,0.7)",
-          fontFamily: "FuturaHandwritten",
+          color: "rgba(20, 26, 46, 0.35)",
+          fontFamily: "var(--font-body)",
         }}
       >
         <div style={{ fontSize: "40px", marginBottom: "16px" }}>⏳</div>
@@ -548,7 +552,7 @@ export const ZKGamePage: React.FC = () => {
         padding: "24px",
         minHeight: "calc(100vh - 80px)",
         background: !address
-          ? "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+          ? "linear-gradient(135deg, #0a0e1a 0%, #141a2e 50%, #1a1f3a 100%)"
           : undefined,
       }}
     >
@@ -567,8 +571,8 @@ export const ZKGamePage: React.FC = () => {
             as="p"
             size="lg"
             style={{
-              fontFamily: "FuturaHandwritten",
-              color: "rgba(255,255,255,0.9)",
+              fontFamily: "var(--font-body)",
+              color: "rgba(20, 26, 46, 0.55)",
               marginBottom: "8px",
             }}
           >
@@ -578,8 +582,8 @@ export const ZKGamePage: React.FC = () => {
             as="p"
             size="md"
             style={{
-              fontFamily: "FuturaHandwritten",
-              color: "rgba(255,255,255,0.7)",
+              fontFamily: "var(--font-body)",
+              color: "rgba(20, 26, 46, 0.35)",
             }}
           >
             Connect a Stellar wallet to play Trustfall with real stakes
@@ -603,9 +607,9 @@ export const ZKGamePage: React.FC = () => {
           style={{
             background: "rgba(255,255,255,0.1)",
             border: "1px solid rgba(255,255,255,0.2)",
-            color: "rgba(255,255,255,0.7)",
+            color: "rgba(20, 26, 46, 0.35)",
             cursor: "pointer",
-            fontFamily: "FuturaHandwritten",
+            fontFamily: "var(--font-body)",
             fontSize: "14px",
             padding: "8px 16px",
             borderRadius: "8px",

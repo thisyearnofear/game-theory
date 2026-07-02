@@ -53,7 +53,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <Text
             as="h2"
             size="lg"
-            style={{ marginBottom: "10px", color: "#333" }}
+            style={{ marginBottom: "10px", color: "var(--text-primary)" }}
           >
             Something went wrong
           </Text>
@@ -62,7 +62,7 @@ export class ErrorBoundary extends Component<Props, State> {
             size="sm"
             style={{
               marginBottom: "20px",
-              color: "#666",
+              color: "var(--text-secondary)",
               maxWidth: "400px",
             }}
           >

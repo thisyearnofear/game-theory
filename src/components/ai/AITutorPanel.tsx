@@ -117,7 +117,7 @@ export const AITutorPanel: React.FC<AITutorPanelProps> = ({
         boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
         transition: "bottom 0.5s ease-out",
         zIndex: 50,
-        fontFamily: "FuturaHandwritten",
+        fontFamily: "var(--font-body)",
         backdropFilter: "blur(10px)",
       }}
     >
@@ -145,7 +145,7 @@ export const AITutorPanel: React.FC<AITutorPanelProps> = ({
               size="md"
               style={{
                 margin: 0,
-                color: "#333",
+                color: "var(--text-primary)",
                 fontSize: "1rem",
               }}
             >
@@ -171,7 +171,7 @@ export const AITutorPanel: React.FC<AITutorPanelProps> = ({
             size="md"
             style={{
               margin: 0,
-              color: "#666",
+              color: "var(--text-secondary)",
               fontSize: "0.8rem",
             }}
           >
@@ -211,7 +211,7 @@ export const AITutorPanel: React.FC<AITutorPanelProps> = ({
             style={{
               display: "flex",
               alignItems: "center",
-              color: "#666",
+              color: "var(--text-secondary)",
             }}
           >
             <span style={{ marginRight: "10px", fontSize: "16px" }}>🤔</span>
@@ -234,7 +234,7 @@ export const AITutorPanel: React.FC<AITutorPanelProps> = ({
                   style={{
                     margin: 0,
                     fontSize: "0.7rem",
-                    color: "#999",
+                    color: "var(--text-muted)",
                   }}
                 >
                   Powered by Venice AI
@@ -248,7 +248,7 @@ export const AITutorPanel: React.FC<AITutorPanelProps> = ({
             size="md"
             style={{
               margin: 0,
-              color: "#333",
+              color: "var(--text-primary)",
               fontSize: "0.9rem",
               lineHeight: "1.4",
             }}
@@ -321,7 +321,7 @@ export const AITutorPanel: React.FC<AITutorPanelProps> = ({
           size="md"
           style={{
             fontSize: "0.7rem",
-            color: "#999",
+            color: "var(--text-muted)",
             textAlign: "center",
             marginTop: "8px",
             fontStyle: "italic",

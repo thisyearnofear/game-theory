@@ -1,145 +1,60 @@
-@font-face{
-	font-family: 'FuturaHandwritten';
-	font-style: normal;
-	src: url('/assets/FuturaHandwritten.ttf') format('truetype');
+/* ============================================================================
+ * Slides — layout and decorative elements
+ * Typography and card styles are in index.css
+ * ============================================================================ */
+
+html,
+body {
+  width: 100%;
+  height: 100%;
 }
 
-html,body{
-	width: 100%;
-	height: 100%;
-}
+/* Slide container is styled in index.css with fallback gradient */
+/* The WebGL TopographicBackground sits behind this */
 
-body{
-	margin:0;
-	overflow-x: hidden;
-	background: #fff;
-	font-family: 'FuturaHandwritten', sans-serif;
-	color: #333;
-	font-size: 20px;
-}
-
-.slide-container {
-	min-height: 100vh;
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-	font-family: 'FuturaHandwritten', sans-serif;
-	position: relative;
-	overflow: hidden;
-}
-
-.slide-card {
-	max-width: 900px;
-	margin: 0 auto;
-	padding: 40px 20px;
-	background: white;
-	border-radius: 20px;
-	margin-top: 20px;
-	box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-	position: relative;
-	z-index: 2;
-}
-
-.character {
-	width: 80px;
-	height: 80px;
-	border-radius: 50%;
-	display: inline-block;
-	margin: 10px;
-	transition: transform 0.3s ease;
-	cursor: pointer;
-}
-
-.character:hover {
-	transform: scale(1.1);
-}
-
-.cooperator {
-	background: #4CAF50;
-	position: relative;
-}
-
-.defector {
-	background: #F44336;
-	position: relative;
-}
-
-.character::after {
-	content: '';
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-	width: 60%;
-	height: 60%;
-	border-radius: 50%;
-	background: white;
-}
-
-.payoff-matrix {
-	display: grid;
-	grid-template-columns: 1fr 1fr 1fr;
-	grid-template-rows: 1fr 1fr 1fr;
-	gap: 10px;
-	max-width: 400px;
-	margin: 20px auto;
-	font-family: 'FuturaHandwritten', sans-serif;
-}
-
-.payoff-cell {
-	padding: 15px;
-	text-align: center;
-	border-radius: 10px;
-	font-weight: bold;
-}
-
-.payoff-header {
-	background: #f0f0f0;
-	color: #333;
-}
-
-.payoff-cooperate {
-	background: #e8f5e8;
-	color: #2e7d32;
-}
-
-.payoff-defect {
-	background: #ffebee;
-	color: #c62828;
-}
-
-.payoff-mixed {
-	background: #fff3e0;
-	color: #ef6c00;
-}
-
+/* Floating decorative elements */
 .floating-elements {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	pointer-events: none;
-	z-index: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .floating-coin {
-	position: absolute;
-	width: 30px;
-	height: 30px;
-	background: #FFD700;
-	border-radius: 50%;
-	animation: float 6s ease-in-out infinite;
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  background: rgba(240, 160, 32, 0.25);
+  border-radius: 50%;
+  animation: float 6s ease-in-out infinite;
+  backdrop-filter: blur(4px);
 }
 
 @keyframes float {
-	0%, 100% { transform: translateY(0px) rotate(0deg); }
-	50% { transform: translateY(-20px) rotate(180deg); }
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(180deg);
+  }
 }
 
+/* Slide entrance — CSS fallback, GSAP enhances when available */
 .slide-enter {
-	animation: slideIn 0.5s ease-out;
+  animation: slideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes slideIn {
-	from { opacity: 0; transform: translateY(30px); }
-	to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
