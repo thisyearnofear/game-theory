@@ -230,7 +230,7 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
             fontFamily: "FuturaHandwritten",
           }}
         >
-          {mode === "create" ? "🔐 Create New Game" : "🔐 Join Game"}
+          {mode === "create" ? "🧍 Stand at the Edge" : "🧍 Step to the Edge"}
         </Text>
 
         <Text
@@ -244,8 +244,8 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
           }}
         >
           {mode === "create"
-            ? "Choose your move, commit it with a ZK proof, and stake XLM."
-            : `Joining Game #${gameId} hosted by ${hostAddress?.slice(0, 8)}...`}
+            ? "Choose your move. When you let go, a ZK proof binds you — no take-backs."
+            : `Game #${gameId} — ${hostAddress?.slice(0, 8)}... is waiting. Will you catch them?`}
         </Text>
 
         {/* Move Selection */}
@@ -283,9 +283,17 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
                 background:
                   selectedMove === "C" ? "rgba(76, 175, 80, 0.1)" : "white",
                 cursor: isLoadingState ? "not-allowed" : "pointer",
-                transition: "all 0.2s",
+                transition: "transform 0.2s ease, all 0.2s",
                 fontFamily: "FuturaHandwritten",
                 opacity: isLoadingState ? 0.6 : 1,
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoadingState)
+                  e.currentTarget.style.transform =
+                    "translateY(-4px) rotate(-3deg)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "";
               }}
             >
               <div style={{ fontSize: "32px", marginBottom: "8px" }}>🤝</div>
@@ -300,7 +308,7 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
               <div
                 style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}
               >
-                Mutual benefit
+                You'll catch them
               </div>
             </button>
 
@@ -317,9 +325,17 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
                 background:
                   selectedMove === "D" ? "rgba(244, 67, 54, 0.1)" : "white",
                 cursor: isLoadingState ? "not-allowed" : "pointer",
-                transition: "all 0.2s",
+                transition: "transform 0.2s ease, all 0.2s",
                 fontFamily: "FuturaHandwritten",
                 opacity: isLoadingState ? 0.6 : 1,
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoadingState)
+                  e.currentTarget.style.transform =
+                    "translateY(4px) rotate(3deg)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "";
               }}
             >
               <div style={{ fontSize: "32px", marginBottom: "8px" }}>⚔️</div>
@@ -334,7 +350,7 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
               <div
                 style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}
               >
-                Self-interest
+                You'll step aside
               </div>
             </button>
           </div>
@@ -353,7 +369,7 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
                 fontFamily: "FuturaHandwritten",
               }}
             >
-              Stake (XLM)
+              Stake (XLM) — the height of your fall
             </Text>
             <Input
               id="stake-input"
@@ -366,6 +382,55 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
               disabled={isLoadingState}
               style={{ textAlign: "center", fontFamily: "FuturaHandwritten" }}
             />
+            {/* Height visual — stake as fall height */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-end",
+                gap: "8px",
+                marginTop: "12px",
+                height: "60px",
+              }}
+            >
+              <div
+                className="tf-height-track"
+                style={{
+                  flex: 1,
+                  height: "50px",
+                  display: "flex",
+                  alignItems: "flex-end",
+                }}
+              >
+                <div
+                  className="tf-height-bar"
+                  style={{
+                    width: "100%",
+                    height: `${Math.min(100, Math.max(8, (parseFloat(stake) || 0) * 5))}%`,
+                  }}
+                />
+              </div>
+              <div style={{ fontSize: "24px", lineHeight: "50px" }}>🧍</div>
+            </div>
+            <Text
+              as="p"
+              size="xs"
+              style={{
+                margin: "4px 0 0",
+                color: "#999",
+                textAlign: "center",
+                fontFamily: "FuturaHandwritten",
+              }}
+            >
+              {(() => {
+                const s = parseFloat(stake) || 0;
+                if (s <= 0) return "Enter a stake to see the height";
+                if (s < 1) return "A small step";
+                if (s < 5) return "A real fall";
+                if (s < 20) return "A long way down";
+                if (s < 100) return "A cliff edge";
+                return "The abyss";
+              })()}
+            </Text>
           </div>
         )}
 
@@ -446,27 +511,59 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
             style={{
               background: "#f0f4ff",
               borderRadius: "8px",
-              padding: "12px",
+              padding: "16px",
               marginBottom: "16px",
               fontSize: "12px",
               color: "#333",
               fontFamily: "monospace",
+              textAlign: "center",
+              overflow: "hidden",
             }}
           >
             {status === "generating" && (
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "8px" }}
-              >
-                <span className="spinner" />
-                Generating ZK proof...
+              <div>
+                <div
+                  className="tf-falling"
+                  style={{
+                    fontSize: "36px",
+                    marginBottom: "8px",
+                    display: "inline-block",
+                  }}
+                >
+                  🧍
+                </div>
+                <div
+                  style={{
+                    fontFamily: "FuturaHandwritten",
+                    fontSize: "14px",
+                    color: "#555",
+                  }}
+                >
+                  You're falling... your ZK proof is binding your move.
+                </div>
               </div>
             )}
             {status === "submitting" && (
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "8px" }}
-              >
-                <span className="spinner" />
-                Submitting to blockchain...
+              <div>
+                <div
+                  className="tf-suspended"
+                  style={{
+                    fontSize: "36px",
+                    marginBottom: "8px",
+                    display: "inline-block",
+                  }}
+                >
+                  🕳️
+                </div>
+                <div
+                  style={{
+                    fontFamily: "FuturaHandwritten",
+                    fontSize: "14px",
+                    color: "#555",
+                  }}
+                >
+                  Suspended in the air — committing to the blockchain...
+                </div>
               </div>
             )}
             {commitDebug && (
@@ -516,15 +613,15 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
           style={{
             width: "100%",
             fontFamily: "FuturaHandwritten",
+            fontSize: "18px",
+            padding: "14px",
           }}
         >
           {isLoadingState
             ? status === "generating"
-              ? "🔐 Generating Proof..."
-              : "📡 Submitting..."
-            : mode === "create"
-              ? "🎮 Create Game"
-              : "🎮 Join Game"}
+              ? " Falling..."
+              : " Committing..."
+            : "✋ Let go"}
         </Button>
       </CardDiv>
 
@@ -546,9 +643,9 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
             lineHeight: "1.5",
           }}
         >
-          <strong>🔒 Privacy Guarantee:</strong> Your move is hashed and
-          zero-knowledge proven before submission. The contract only learns your
-          move when you reveal it after your opponent commits.
+          <strong>🔒 The math catches you:</strong> Your move is zero-knowledge
+          proven before you let go — the contract knows your commitment is real,
+          but can't see your move until you reveal it.
         </Text>
       </CardDiv>
     </div>

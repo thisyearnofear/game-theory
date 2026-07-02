@@ -124,7 +124,7 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
             disabled={!address}
             style={{ fontFamily: "FuturaHandwritten" }}
           >
-            ➕ Create Game
+            ➕ Start a Trustfall
           </Button>
         </div>
       </div>
@@ -159,7 +159,9 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
           >
             🔥 My Active Games
           </Text>
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "10px" }}
+          >
             {myActiveGames.map((game) => (
               <CardDiv
                 key={game.id}
@@ -241,7 +243,7 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
             marginBottom: "12px",
           }}
         >
-          🚪 Open Games to Join
+          🚪 Open Trustfalls to Join
         </Text>
 
         {isLoading ? (
@@ -263,7 +265,11 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
           >
             <div style={{ fontSize: "48px", marginBottom: "12px" }}>🎲</div>
             <p
-              style={{ margin: 0, fontSize: "16px", fontFamily: "FuturaHandwritten" }}
+              style={{
+                margin: 0,
+                fontSize: "16px",
+                fontFamily: "FuturaHandwritten",
+              }}
             >
               No open games right now
             </p>
@@ -279,7 +285,9 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
             </p>
           </CardDiv>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "10px" }}
+          >
             {openGames.map((game) => (
               <CardDiv
                 key={game.id}

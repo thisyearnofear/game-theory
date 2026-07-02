@@ -220,7 +220,7 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
           textAlign: "center",
         }}
       >
-        🙋 Reveal Your Move
+        🙋 Show Your Hand
       </Text>
 
       {/* Timer */}
@@ -233,8 +233,8 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
             fontSize: "14px",
           }}
         >
-          ⏱️ Reveal window: {Math.floor(timeRemaining / 60)}m{" "}
-          {timeRemaining % 60}s remaining
+          ⏱️ Time to reveal: {Math.floor(timeRemaining / 60)}m{" "}
+          {timeRemaining % 60}s before you forfeit
         </div>
       )}
 
@@ -250,7 +250,7 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
         }}
       >
         {selectedMove
-          ? "Confirm your committed move (must match your commitment)"
+          ? "Confirm the move you committed — your nonce proves it matches"
           : "Select the move you committed earlier"}
       </Text>
       <div
@@ -400,7 +400,7 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
           fontFamily: "FuturaHandwritten",
         }}
       >
-        {isLoading ? "📡 Revealing..." : "🔓 Reveal Move"}
+        {isLoading ? "📡 Revealing..." : "🔓 Show My Hand"}
       </Button>
     </div>
   );

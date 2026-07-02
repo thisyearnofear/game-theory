@@ -31,19 +31,19 @@ export const OnboardingOverlay: React.FC = () => {
 
   const steps = [
     {
-      icon: "🎮",
-      title: "Choose Your Move",
-      body: "Pick Cooperate or Defect. Your move is kept secret — the opponent can't see it.",
+      icon: "🧍",
+      title: "Stand at the Edge",
+      body: "Pick Cooperate (catch them) or Defect (step aside). Your move is kept secret — they can't see it.",
     },
     {
       icon: "🔐",
-      title: "Zero-Knowledge Proof",
-      body: "Your browser generates a ZK proof that your move is valid (0 or 1) without revealing which one. This takes a few seconds.",
+      title: "Let Go — The Math Catches You",
+      body: "Your browser generates a ZK proof that your move is valid, binding you to it. This takes a few seconds — that's the fall.",
     },
     {
       icon: "🤝",
-      title: "Commit, Then Reveal",
-      body: "Both players commit first (binding), then reveal after. The contract verifies everything on-chain. Payouts are automatic.",
+      title: "The Catch or the Impact",
+      body: "Both players reveal. If you both cooperated, you're caught — trust rewarded. If someone defected, someone hits the ground.",
     },
   ];
 

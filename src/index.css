@@ -2,6 +2,177 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Inconsolata:wght@500&display=swap");
 
 /* ============================================================================
+ * Trustfall — thematic animations
+ * The commit phase is "the fall": you let go, you're in the air, suspense.
+ * The reveal is "the catch" (cooperation) or "the impact" (betrayal).
+ * ============================================================================ */
+
+/* The falling figure during proof generation / tx submission */
+@keyframes tf-fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  15% {
+    transform: translateY(8px) rotate(-3deg);
+  }
+  40% {
+    transform: translateY(40px) rotate(-8deg);
+  }
+  70% {
+    transform: translateY(80px) rotate(-12deg);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateY(100px) rotate(-15deg);
+    opacity: 0.6;
+  }
+}
+
+@keyframes tf-sway {
+  0%,
+  100% {
+    transform: translateX(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateX(6px) rotate(2deg);
+  }
+}
+
+@keyframes tf-impact {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.05) translateY(4px);
+  }
+  50% {
+    transform: scale(0.95) translateY(8px);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes tf-catch {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes tf-glow-warm {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(255, 180, 80, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(255, 180, 80, 0.6);
+  }
+}
+
+@keyframes tf-glow-cold {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(100, 150, 200, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(100, 150, 200, 0.4);
+  }
+}
+
+@keyframes tf-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(6px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes tf-fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Applied classes */
+.tf-falling {
+  animation: tf-fall 2.5s ease-in forwards;
+}
+
+.tf-suspended {
+  animation: tf-sway 3s ease-in-out infinite;
+}
+
+.tf-impact {
+  animation: tf-impact 0.6s ease-out;
+}
+
+.tf-catch {
+  animation: tf-catch 0.8s ease-out;
+}
+
+.tf-shake {
+  animation: tf-shake 0.5s ease-out;
+}
+
+.tf-fade-in-up {
+  animation: tf-fade-in-up 0.6s ease-out forwards;
+}
+
+.tf-glow-warm {
+  animation: tf-glow-warm 2s ease-in-out infinite;
+}
+
+.tf-glow-cold {
+  animation: tf-glow-cold 2s ease-in-out infinite;
+}
+
+/* The edge — stake-as-height visual */
+.tf-height-bar {
+  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px;
+  transition: height 0.4s ease-out;
+}
+
+.tf-height-track {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Ground line for the height visual */
+.tf-ground-line {
+  border-top: 2px dashed rgba(0, 0, 0, 0.15);
+  width: 100%;
+}
+
+/* ============================================================================
  * Responsive breakpoints for ZK game components
  * Mobile-first: base styles target desktop, media queries adjust for mobile
  * ============================================================================ */

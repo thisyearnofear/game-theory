@@ -53,11 +53,12 @@ export const GameResult: React.FC<GameResultProps> = ({
   const isPlayer2 = address === gameState.player2;
   const isPlayer = isPlayer1 || isPlayer2;
 
-  const bothRevealed =
-    gameState.move1 !== null && gameState.move2 !== null;
+  const bothRevealed = gameState.move1 !== null && gameState.move2 !== null;
   const isResolved = gameState.status === "Resolved";
   const isForfeited = gameState.status === "Forfeited";
-  const isActive = gameState.status === "BothCommitted" || gameState.status === "AwaitingPlayer2";
+  const isActive =
+    gameState.status === "BothCommitted" ||
+    gameState.status === "AwaitingPlayer2";
 
   // Check reveal deadline for forfeit claim
   const deadline = Number(gameState.reveal_deadline);
@@ -113,12 +114,6 @@ export const GameResult: React.FC<GameResultProps> = ({
   const formatAddress = (addr: string): string =>
     `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 
-  const getMoveEmoji = (move: GameMove | null): string => {
-    if (move === "C") return "🤝";
-    if (move === "D") return "⚔️";
-    return "❓";
-  };
-
   const getMoveLabel = (move: GameMove | null): string => {
     if (move === "C") return "Cooperated";
     if (move === "D") return "Defected";
@@ -136,6 +131,72 @@ export const GameResult: React.FC<GameResultProps> = ({
     return "😔";
   };
 
+  // Trustfall outcome classification
+  const bothCooperated = gameState.move1 === "C" && gameState.move2 === "C";
+  const bothDefected = gameState.move1 === "D" && gameState.move2 === "D";
+  const youWereBetrayed =
+    isPlayer &&
+    ((isPlayer1 && gameState.move1 === "C" && gameState.move2 === "D") ||
+      (isPlayer2 && gameState.move2 === "C" && gameState.move1 === "D"));
+  const youBetrayed =
+    isPlayer &&
+    ((isPlayer1 && gameState.move1 === "D" && gameState.move2 === "C") ||
+      (isPlayer2 && gameState.move2 === "D" && gameState.move1 === "C"));
+
+  const outcomeClass = bothCooperated
+    ? "tf-catch"
+    : bothDefected
+      ? "tf-impact"
+      : youWereBetrayed
+        ? "tf-shake"
+        : youBetrayed
+          ? "tf-fade-in-up"
+          : "";
+
+  const outcomeBg = bothCooperated
+    ? "linear-gradient(135deg, rgba(255, 180, 80, 0.12), rgba(255, 140, 60, 0.08))"
+    : bothDefected || youWereBetrayed
+      ? "linear-gradient(135deg, rgba(100, 120, 160, 0.12), rgba(60, 80, 120, 0.08))"
+      : "linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(76, 175, 80, 0.08))";
+
+  const outcomeGlow = bothCooperated ? "tf-glow-warm" : "";
+
+  const getOutcomeHeadline = (): { title: string; subtitle: string } => {
+    if (!bothRevealed && !isResolved && !isForfeited)
+      return {
+        title: "Suspended in the air...",
+        subtitle: "Waiting for the reveal",
+      };
+    if (isForfeited)
+      return {
+        title: "No one caught anyone",
+        subtitle: "Someone didn't show up for the reveal",
+      };
+    if (bothCooperated)
+      return {
+        title: "Caught",
+        subtitle: "You both showed up. Trust rewarded.",
+      };
+    if (bothDefected)
+      return {
+        title: "Mutual Destruction",
+        subtitle: "You both stepped aside. Nobody caught anyone.",
+      };
+    if (youWereBetrayed)
+      return {
+        title: "You Hit the Ground",
+        subtitle: "You reached out. They stepped aside.",
+      };
+    if (youBetrayed)
+      return {
+        title: "You Stepped Aside",
+        subtitle: "They reached out. You let them fall.",
+      };
+    return { title: "The Moment of Truth", subtitle: "" };
+  };
+
+  const headline = getOutcomeHeadline();
+
   return (
     <div style={{ maxWidth: "600px", margin: "0 auto" }}>
       <CardDiv>
@@ -143,69 +204,154 @@ export const GameResult: React.FC<GameResultProps> = ({
           as="h3"
           size="lg"
           style={{
-            margin: "0 0 20px 0",
+            margin: "0 0 8px 0",
             color: "#333",
             textAlign: "center",
             fontFamily: "FuturaHandwritten",
           }}
         >
-          🎯 Game #{gameId} —{" "}
-          {isResolved ? "Resolved" : isForfeited ? "Forfeited" : "In Progress"}
+          {isResolved || isForfeited ? headline.title : "The Moment of Truth"}
         </Text>
-
-        {/* Moves Display */}
-        <div
+        <Text
+          as="p"
+          size="sm"
           style={{
-            display: "grid",
-            gridTemplateColumns: "1fr auto 1fr",
-            gap: "16px",
-            alignItems: "center",
-            marginBottom: "24px",
+            margin: "0 0 20px 0",
+            color: "#666",
+            textAlign: "center",
+            fontFamily: "FuturaHandwritten",
           }}
         >
-          {/* Player 1 */}
-          <div style={{ textAlign: "center" }}>
+          Game #{gameId} —{" "}
+          {headline.subtitle ||
+            (isResolved
+              ? "Resolved"
+              : isForfeited
+                ? "Forfeited"
+                : "In Progress")}
+        </Text>
+
+        {/* The Moment of Truth — catch/impact visual */}
+        <div
+          className={outcomeClass}
+          style={{
+            background: outcomeBg,
+            borderRadius: "16px",
+            padding: "32px 20px",
+            marginBottom: "24px",
+            textAlign: "center",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          {/* Two figures facing each other */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: "40px",
+              marginBottom: "16px",
+            }}
+          >
+            {/* Player 1 figure */}
+            <div style={{ textAlign: "center" }}>
+              <div
+                style={{
+                  fontSize: "48px",
+                  marginBottom: "4px",
+                  display: "inline-block",
+                }}
+                className={
+                  isResolved && gameState.move1 === "C" ? "tf-catch" : ""
+                }
+              >
+                {gameState.move1 === "C"
+                  ? "🤝"
+                  : gameState.move1 === "D"
+                    ? "⚔️"
+                    : "🧍"}
+              </div>
+              <div
+                style={{
+                  fontSize: "11px",
+                  color: isPlayer1 ? "#4CAF50" : "#999",
+                  fontWeight: "bold",
+                }}
+              >
+                P1{isPlayer1 ? " (You)" : ""}
+              </div>
+              <div style={{ fontSize: "10px", color: "#999" }}>
+                {formatAddress(gameState.player1)}
+              </div>
+            </div>
+
+            {/* Center outcome */}
             <div
+              className={outcomeGlow}
               style={{
-                width: "60px",
-                height: "60px",
+                fontSize: "56px",
                 borderRadius: "50%",
-                background: isPlayer1
-                  ? "rgba(76, 175, 80, 0.2)"
-                  : "rgba(158, 158, 158, 0.2)",
+                padding: "8px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "28px",
-                margin: "0 auto 8px",
-                border: isPlayer1 ? "2px solid #4CAF50" : "2px solid transparent",
+                minWidth: "80px",
+                minHeight: "80px",
               }}
             >
-              {getMoveEmoji(gameState.move1)}
+              {getOutcomeEmoji(gameState.move1, gameState.move2)}
             </div>
-            <Text
-              as="p"
-              size="sm"
+
+            {/* Player 2 figure */}
+            <div style={{ textAlign: "center" }}>
+              <div
+                style={{
+                  fontSize: "48px",
+                  marginBottom: "4px",
+                  display: "inline-block",
+                }}
+                className={
+                  isResolved && gameState.move2 === "C" ? "tf-catch" : ""
+                }
+              >
+                {gameState.player2
+                  ? gameState.move2 === "C"
+                    ? "🤝"
+                    : gameState.move2 === "D"
+                      ? "⚔️"
+                      : "🧍"
+                  : "👤"}
+              </div>
+              <div
+                style={{
+                  fontSize: "11px",
+                  color: isPlayer2 ? "#F44336" : "#999",
+                  fontWeight: "bold",
+                }}
+              >
+                P2{isPlayer2 ? " (You)" : ""}
+              </div>
+              <div style={{ fontSize: "10px", color: "#999" }}>
+                {gameState.player2
+                  ? formatAddress(gameState.player2)
+                  : "Waiting..."}
+              </div>
+            </div>
+          </div>
+
+          {/* Move labels */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: "40px",
+              fontSize: "13px",
+              fontFamily: "FuturaHandwritten",
+            }}
+          >
+            <span
               style={{
-                margin: "0",
-                fontWeight: "bold",
-                color: "#333",
-              }}
-            >
-              P1 {isPlayer1 && "(You)"}
-            </Text>
-            <Text
-              as="p"
-              size="xs"
-              style={{ margin: "2px 0 0", color: "#666" }}
-            >
-              {formatAddress(gameState.player1)}
-            </Text>
-            <Text
-              as="p"
-              size="xs"
-              style={{
-                margin: "4px 0 0",
                 color:
                   gameState.move1 === "C"
                     ? "#4CAF50"
@@ -215,72 +361,9 @@ export const GameResult: React.FC<GameResultProps> = ({
               }}
             >
               {getMoveLabel(gameState.move1)}
-            </Text>
-          </div>
-
-          {/* VS / Outcome */}
-          <div style={{ textAlign: "center" }}>
-            <Text
-              as="p"
-              size="md"
+            </span>
+            <span
               style={{
-                margin: "0 0 4px",
-                fontWeight: "bold",
-                color: "#666",
-              }}
-            >
-              VS
-            </Text>
-            <div style={{ fontSize: "32px" }}>
-              {getOutcomeEmoji(gameState.move1, gameState.move2)}
-            </div>
-          </div>
-
-          {/* Player 2 */}
-          <div style={{ textAlign: "center" }}>
-            <div
-              style={{
-                width: "60px",
-                height: "60px",
-                borderRadius: "50%",
-                background: isPlayer2
-                  ? "rgba(244, 67, 54, 0.2)"
-                  : "rgba(158, 158, 158, 0.2)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "28px",
-                margin: "0 auto 8px",
-                border: isPlayer2 ? "2px solid #F44336" : "2px solid transparent",
-              }}
-            >
-              {gameState.player2 ? getMoveEmoji(gameState.move2) : "👤"}
-            </div>
-            <Text
-              as="p"
-              size="sm"
-              style={{
-                margin: "0",
-                fontWeight: "bold",
-                color: "#333",
-              }}
-            >
-              P2 {isPlayer2 && "(You)"}
-            </Text>
-            <Text
-              as="p"
-              size="xs"
-              style={{ margin: "2px 0 0", color: "#666" }}
-            >
-              {gameState.player2
-                ? formatAddress(gameState.player2)
-                : "Waiting for player..."}
-            </Text>
-            <Text
-              as="p"
-              size="xs"
-              style={{
-                margin: "4px 0 0",
                 color:
                   gameState.move2 === "C"
                     ? "#4CAF50"
@@ -289,18 +372,22 @@ export const GameResult: React.FC<GameResultProps> = ({
                       : "#999",
               }}
             >
-              {getMoveLabel(gameState.move2)}
-            </Text>
+              {gameState.player2 ? getMoveLabel(gameState.move2) : "—"}
+            </span>
           </div>
         </div>
 
-        {/* Payouts (if resolved) */}
+        {/* Payouts (if resolved) — the landing */}
         {(isResolved || result) && (
           <CardDiv
+            className="tf-fade-in-up"
             style={{
-              background:
-                "linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(76, 175, 80, 0.1))",
-              border: "1px solid rgba(102, 126, 234, 0.2)",
+              background: bothCooperated
+                ? "linear-gradient(135deg, rgba(255, 180, 80, 0.12), rgba(255, 140, 60, 0.06))"
+                : "linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(76, 175, 80, 0.06))",
+              border: bothCooperated
+                ? "1px solid rgba(255, 180, 80, 0.3)"
+                : "1px solid rgba(102, 126, 234, 0.15)",
               marginBottom: "16px",
             }}
           >
@@ -314,7 +401,7 @@ export const GameResult: React.FC<GameResultProps> = ({
                 fontFamily: "FuturaHandwritten",
               }}
             >
-              💰 Payouts
+              {bothCooperated ? "💰 You both landed soft" : "💰 The landing"}
             </Text>
             <div
               style={{
@@ -330,7 +417,7 @@ export const GameResult: React.FC<GameResultProps> = ({
                   size="xs"
                   style={{ margin: "0 0 4px", color: "#666" }}
                 >
-                  Player 1
+                  Player 1{isPlayer1 ? " (You)" : ""}
                 </Text>
                 <Text
                   as="p"
@@ -350,7 +437,7 @@ export const GameResult: React.FC<GameResultProps> = ({
                   size="xs"
                   style={{ margin: "0 0 4px", color: "#666" }}
                 >
-                  Player 2
+                  Player 2{isPlayer2 ? " (You)" : ""}
                 </Text>
                 <Text
                   as="p"
@@ -385,16 +472,16 @@ export const GameResult: React.FC<GameResultProps> = ({
             style={{
               marginBottom: "16px",
               textAlign: "center",
-              background: "rgba(244, 67, 54, 0.05)",
-              border: "1px solid rgba(244, 67, 54, 0.2)",
+              background: "rgba(100, 120, 160, 0.06)",
+              border: "1px solid rgba(100, 120, 160, 0.2)",
             }}
           >
             <Text
               as="p"
               size="sm"
-              style={{ margin: 0, color: "#F44336", fontWeight: "bold" }}
+              style={{ margin: 0, color: "#667eea", fontWeight: "bold" }}
             >
-              🏴 Game forfeited — one player didn't reveal in time
+              🏴 Nobody caught anyone — one player didn't show up for the reveal
             </Text>
           </CardDiv>
         )}
@@ -444,7 +531,7 @@ export const GameResult: React.FC<GameResultProps> = ({
               disabled={isLoading}
               style={{ fontFamily: "FuturaHandwritten", flex: 1 }}
             >
-              {isLoading ? "⏳ Resolving..." : "🪙 Resolve Game"}
+              {isLoading ? "⏳ Landing..." : "🪙 Resolve the Landing"}
             </Button>
           )}
 
@@ -460,7 +547,7 @@ export const GameResult: React.FC<GameResultProps> = ({
                 color: "#F44336",
               }}
             >
-              {isLoading ? "⏳ Claiming..." : "🏴 Claim Forfeit"}
+              {isLoading ? "⏳ Claiming..." : "🏴 Claim the Fall"}
             </Button>
           )}
 
