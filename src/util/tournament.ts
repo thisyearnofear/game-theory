@@ -3,6 +3,8 @@ import {
   playRepeatedGame,
   type IteratedStrategy,
   type StrategyId,
+  type PayoffMatrix,
+  NC_DEFAULT,
 } from "./strategies";
 
 export interface PopulationEntry {
@@ -29,6 +31,7 @@ export interface EvolutionConfig {
   turnsPerMatch: number;
   noise: number; // 0-1
   selectionSize: number; // how many to eliminate + reproduce
+  payoffs: PayoffMatrix;
 }
 
 /**
@@ -64,6 +67,7 @@ export function runTournament(
         agents[j].strategy,
         config.turnsPerMatch,
         config.noise,
+        config.payoffs,
       );
       const sA = scores.get(agents[i].strategyId)!;
       const sB = scores.get(agents[j].strategyId)!;
@@ -142,4 +146,5 @@ export const DEFAULT_CONFIG: EvolutionConfig = {
   turnsPerMatch: 10,
   noise: 0,
   selectionSize: 5,
+  payoffs: NC_DEFAULT,
 };

@@ -1,6 +1,77 @@
 export type GameMove = "C" | "D";
 
 // ============================================================================
+// Payoff Matrix — configurable P/S/R/T values
+// ============================================================================
+
+export interface PayoffMatrix {
+  /** Punishment: both defect — neither gets anything */
+  P: number;
+  /** Sucker: you cooperate, they defect */
+  S: number;
+  /** Reward: both cooperate */
+  R: number;
+  /** Temptation: you defect, they cooperate */
+  T: number;
+}
+
+/** Classic Prisoner's Dilemma: T > R > P > S, 2R > T + S */
+export const CLASSIC_PD: PayoffMatrix = { P: 0, S: -1, R: 2, T: 3 };
+
+/** Nicky Case default: all positive, T > R > P > S */
+export const NC_DEFAULT: PayoffMatrix = { P: 0, S: -1, R: 2, T: 3 };
+
+/** Stag Hunt: R is high, but P is also decent — less temptation to defect */
+export const STAG_HUNT: PayoffMatrix = { P: 1, S: 0, R: 3, T: 2 };
+
+/** Harmony Game: cooperation always dominates — no real dilemma */
+export const HARMONY: PayoffMatrix = { P: 0, S: 1, R: 3, T: 2 };
+
+/** Snowdrift / Chicken: mutual defection is catastrophic */
+export const SNOWDRIFT: PayoffMatrix = { P: -3, S: 1, R: 2, T: 3 };
+
+/** High Temptation: defecting is very profitable — harsher dilemma */
+export const HIGH_TEMPTATION: PayoffMatrix = { P: 0, S: -1, R: 2, T: 10 };
+
+export const PAYOFF_PRESETS: Array<{
+  id: string;
+  name: string;
+  description: string;
+  matrix: PayoffMatrix;
+}> = [
+  {
+    id: "classic",
+    name: "Classic PD",
+    description: "The original: T=3, R=2, P=0, S=-1",
+    matrix: CLASSIC_PD,
+  },
+  {
+    id: "stag_hunt",
+    name: "Stag Hunt",
+    description: "Less temptation: T=2, R=3, P=1, S=0",
+    matrix: STAG_HUNT,
+  },
+  {
+    id: "harmony",
+    name: "Harmony",
+    description: "Cooperation dominates: T=2, R=3, P=0, S=1",
+    matrix: HARMONY,
+  },
+  {
+    id: "snowdrift",
+    name: "Snowdrift",
+    description: "Mutual defection is catastrophic: P=-3",
+    matrix: SNOWDRIFT,
+  },
+  {
+    id: "high_temptation",
+    name: "High Temptation",
+    description: "Defecting pays big: T=10",
+    matrix: HIGH_TEMPTATION,
+  },
+];
+
+// ============================================================================
 // Legacy interface (kept for backward compatibility with ZK components)
 // ============================================================================
 export interface AIStrategy {
@@ -11,21 +82,23 @@ export interface AIStrategy {
 }
 
 /**
- * Calculate payoff for a single round
+ * Calculate payoff for a single round using a custom payoff matrix.
+ * The payoff values are multiplied by the stake.
  */
 export const calculatePayoff = (
   playerMove: GameMove,
   aiMove: GameMove,
   stake: number,
+  payoffs: PayoffMatrix = NC_DEFAULT,
 ): { playerPayout: number; aiPayout: number } => {
   if (playerMove === "C" && aiMove === "C") {
-    return { playerPayout: 2 * stake, aiPayout: 2 * stake };
+    return { playerPayout: payoffs.R * stake, aiPayout: payoffs.R * stake };
   } else if (playerMove === "C" && aiMove === "D") {
-    return { playerPayout: 0, aiPayout: 3 * stake };
+    return { playerPayout: payoffs.S * stake, aiPayout: payoffs.T * stake };
   } else if (playerMove === "D" && aiMove === "C") {
-    return { playerPayout: 3 * stake, aiPayout: 0 };
+    return { playerPayout: payoffs.T * stake, aiPayout: payoffs.S * stake };
   } else {
-    return { playerPayout: 0, aiPayout: 0 };
+    return { playerPayout: payoffs.P * stake, aiPayout: payoffs.P * stake };
   }
 };
 
@@ -311,6 +384,7 @@ export function playRepeatedGame(
   strategyB: IteratedStrategy,
   rounds: number,
   noise = 0,
+  payoffs: PayoffMatrix = NC_DEFAULT,
 ): {
   totalA: number;
   totalB: number;
@@ -322,7 +396,7 @@ export function playRepeatedGame(
 
   let totalA = 0;
   let totalB = 0;
-  const payoffs: Array<[number, number]> = [];
+  const payoffRecords: Array<[number, number]> = [];
   const moves: Array<{ a: GameMove; b: GameMove }> = [];
 
   for (let i = 0; i < rounds; i++) {
@@ -333,17 +407,17 @@ export function playRepeatedGame(
     if (Math.random() < noise) a = a === "C" ? "D" : "C";
     if (Math.random() < noise) b = b === "C" ? "D" : "C";
 
-    const result = calculatePayoff(a, b, 1);
+    const result = calculatePayoff(a, b, 1, payoffs);
     totalA += result.playerPayout;
     totalB += result.aiPayout;
-    payoffs.push([result.playerPayout, result.aiPayout]);
+    payoffRecords.push([result.playerPayout, result.aiPayout]);
     moves.push({ a, b });
 
     strategyA.remember(a, b);
     strategyB.remember(b, a);
   }
 
-  return { totalA, totalB, payoffs, moves };
+  return { totalA, totalB, payoffs: payoffRecords, moves };
 }
 
 // ============================================================================

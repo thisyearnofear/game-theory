@@ -12,9 +12,13 @@ import {
   type IteratedStrategy,
   type StrategyId,
   type GameMove,
+  type PayoffMatrix,
   calculatePayoff,
+  NC_DEFAULT,
 } from "../../util/strategies";
 import { TournamentMode } from "./TournamentMode";
+import { PayoffMatrixEditor } from "./PayoffMatrixEditor";
+import { StrategyInspector } from "./StrategyInspector";
 
 const GAME_MODES = {
   singlePlayer: {
@@ -60,6 +64,12 @@ export const GameSlide: React.FC<SlideProps> = () => {
   const [txError, setTxError] = useState<string>("");
   const [rounds, setRounds] = useState<RoundRecord[]>([]);
   const [showSummary, setShowSummary] = useState(false);
+  const [payoffMatrix, setPayoffMatrix] = useState<PayoffMatrix>(NC_DEFAULT);
+  const [noise, setNoise] = useState(0);
+  const [showPayoffEditor, setShowPayoffEditor] = useState(false);
+  const [inspectedStrategy, setInspectedStrategy] = useState<StrategyId | null>(
+    null,
+  );
 
   // The strategy instance — kept in a ref so it maintains state across rounds
   const strategyRef = useRef<IteratedStrategy>(createStrategy("tft"));
@@ -234,20 +244,32 @@ export const GameSlide: React.FC<SlideProps> = () => {
     setTxError("");
 
     try {
-      const playerMove = move === "cooperate" ? "C" : "D";
+      let playerMove = move === "cooperate" ? "C" : "D";
       const stakeAmount = parseFloat(stake) || 1;
 
       // Get AI's move from the stateful strategy
-      const aiMove = strategyRef.current.play();
+      let aiMove = strategyRef.current.play();
 
-      // Calculate payoffs
+      // Apply noise — "the wind caught you" — random move flips
+      let noiseFlipped = false;
+      if (Math.random() < noise) {
+        playerMove = playerMove === "C" ? "D" : "C";
+        noiseFlipped = true;
+      }
+      if (Math.random() < noise) {
+        aiMove = aiMove === "C" ? "D" : "C";
+        noiseFlipped = true;
+      }
+
+      // Calculate payoffs using the custom payoff matrix
       const { playerPayout, aiPayout } = calculatePayoff(
         playerMove,
         aiMove,
         stakeAmount,
+        payoffMatrix,
       );
 
-      // Let the strategy remember what happened
+      // Let the strategy remember what happened (it sees the noise-affected move)
       strategyRef.current.remember(aiMove, playerMove);
 
       // Determine outcome
@@ -310,7 +332,7 @@ export const GameSlide: React.FC<SlideProps> = () => {
       const newAltitude = outcome === "caught" ? trustAltitude + 1 : 0;
 
       setResult(
-        `Round ${roundNum}: You ${playerMoveText} | ${strategyRef.current.name} ${aiMoveText}\n${outcomeLabel}\nThis round: You ${playerPayout} XLM | AI ${aiPayout} XLM\nTotal: You ${newCumulativePlayer} XLM | AI ${newCumulativeAI} XLM${newAltitude > 0 ? `\n🏔️ Trust altitude: ${newAltitude}` : ""}`,
+        `Round ${roundNum}: You ${playerMoveText} | ${strategyRef.current.name} ${aiMoveText}${noiseFlipped ? "\n💨 The wind caught someone — a move was flipped by noise!" : ""}\n${outcomeLabel}\nThis round: You ${playerPayout} XLM | AI ${aiPayout} XLM\nTotal: You ${newCumulativePlayer} XLM | AI ${newCumulativeAI} XLM${newAltitude > 0 ? `\n🏔️ Trust altitude: ${newAltitude}` : ""}`,
       );
 
       // Generate AI feedback
@@ -590,7 +612,7 @@ export const GameSlide: React.FC<SlideProps> = () => {
             </div>
           )}
 
-          {/* Payoff Matrix */}
+          {/* Payoff Matrix — reflects current custom payoffs */}
           <div
             className="payoff-matrix"
             style={{ fontSize: "12px", margin: "20px auto" }}
@@ -600,12 +622,20 @@ export const GameSlide: React.FC<SlideProps> = () => {
             <div className="payoff-cell payoff-header">AI Defects</div>
 
             <div className="payoff-cell payoff-header">You Cooperate</div>
-            <div className="payoff-cell payoff-cooperate">Both get 2×</div>
-            <div className="payoff-cell payoff-mixed">You: 0, AI: 3×</div>
+            <div className="payoff-cell payoff-cooperate">
+              Both get {payoffMatrix.R}×
+            </div>
+            <div className="payoff-cell payoff-mixed">
+              You: {payoffMatrix.S}×, AI: {payoffMatrix.T}×
+            </div>
 
             <div className="payoff-cell payoff-header">You Defect</div>
-            <div className="payoff-cell payoff-mixed">You: 3×, AI: 0</div>
-            <div className="payoff-cell payoff-defect">Both get 0</div>
+            <div className="payoff-cell payoff-mixed">
+              You: {payoffMatrix.T}×, AI: {payoffMatrix.S}×
+            </div>
+            <div className="payoff-cell payoff-defect">
+              Both get {payoffMatrix.P}×
+            </div>
           </div>
 
           {/* Strategy selector — all 9 strategies */}
@@ -673,6 +703,128 @@ export const GameSlide: React.FC<SlideProps> = () => {
               disabled={loading}
               style={{ marginBottom: "10px", textAlign: "center" }}
             />
+          </div>
+
+          {/* Noise slider — "the wind caught you" */}
+          <div
+            style={{
+              marginBottom: "20px",
+              background: "rgba(255,255,255,0.05)",
+              borderRadius: "10px",
+              padding: "12px",
+              border: "1px solid rgba(255,255,255,0.08)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginBottom: "4px",
+              }}
+            >
+              <Text
+                as="span"
+                size="xs"
+                style={{
+                  fontFamily: "FuturaHandwritten",
+                  color: "rgba(255,255,255,0.6)",
+                  fontSize: "0.8rem",
+                }}
+              >
+                💨 Noise — "the wind caught you"
+              </Text>
+              <Text
+                as="span"
+                size="xs"
+                style={{
+                  fontFamily: "FuturaHandwritten",
+                  color: noise > 0.1 ? "#ffb050" : "rgba(255,255,255,0.6)",
+                  fontSize: "0.8rem",
+                  fontWeight: "bold",
+                }}
+              >
+                {(noise * 100).toFixed(0)}%
+              </Text>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="0.5"
+              step="0.01"
+              value={noise}
+              onChange={(e) => setNoise(parseFloat(e.target.value))}
+              disabled={loading}
+              style={{ width: "100%", accentColor: "#667eea" }}
+            />
+            <Text
+              as="p"
+              size="xs"
+              style={{
+                fontFamily: "FuturaHandwritten",
+                color: "rgba(255,255,255,0.4)",
+                margin: "4px 0 0 0",
+                fontSize: "0.72rem",
+                textAlign: "left",
+              }}
+            >
+              {noise === 0
+                ? "No mistakes — your move is your move"
+                : noise < 0.05
+                  ? "Rare slips — sometimes your hand slips"
+                  : noise < 0.15
+                    ? "Frequent mistakes — trust is harder to build"
+                    : "Chaos — noise drowns out intention"}
+            </Text>
+          </div>
+
+          {/* Payoff matrix editor toggle */}
+          <div style={{ marginBottom: "20px" }}>
+            <Button
+              onClick={() => setShowPayoffEditor(!showPayoffEditor)}
+              variant="tertiary"
+              size="sm"
+              style={{
+                fontFamily: "FuturaHandwritten",
+                width: "100%",
+                background: showPayoffEditor
+                  ? "rgba(102, 126, 234, 0.15)"
+                  : "transparent",
+              }}
+            >
+              🎛️ {showPayoffEditor ? "Hide" : "Edit"} Payoff Matrix
+            </Button>
+            {showPayoffEditor && (
+              <div style={{ marginTop: "10px" }}>
+                <PayoffMatrixEditor
+                  payoffs={payoffMatrix}
+                  onChange={setPayoffMatrix}
+                  compact
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Strategy inspector */}
+          <div style={{ marginBottom: "20px" }}>
+            <Button
+              onClick={() =>
+                setInspectedStrategy(inspectedStrategy ? null : aiStrategyId)
+              }
+              variant="tertiary"
+              size="sm"
+              style={{
+                fontFamily: "FuturaHandwritten",
+                width: "100%",
+                background: inspectedStrategy
+                  ? "rgba(102, 126, 234, 0.15)"
+                  : "transparent",
+              }}
+            >
+              🔍 {inspectedStrategy ? "Hide" : "Inspect"} {strategyInfo.name}
+            </Button>
+            {inspectedStrategy && (
+              <StrategyInspector strategyId={inspectedStrategy} />
+            )}
           </div>
 
           {/* Move buttons */}

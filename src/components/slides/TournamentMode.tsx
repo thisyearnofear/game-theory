@@ -10,7 +10,12 @@ import {
   DEFAULT_POPULATION,
   DEFAULT_CONFIG,
 } from "../../util/tournament";
-import { getStrategyInfo, type StrategyId } from "../../util/strategies";
+import {
+  getStrategyInfo,
+  type StrategyId,
+  type PayoffMatrix,
+} from "../../util/strategies";
+import { PayoffMatrixEditor } from "./PayoffMatrixEditor";
 
 type Stage = "rest" | "playing" | "eliminating" | "reproducing";
 
@@ -687,6 +692,18 @@ export const TournamentMode: React.FC = () => {
             }}
             disabled={stage !== "rest"}
             style={{ width: "100%", accentColor: "#667eea" }}
+          />
+        </div>
+
+        {/* Payoff matrix editor */}
+        <div style={{ marginTop: "14px" }}>
+          <PayoffMatrixEditor
+            payoffs={config.payoffs}
+            onChange={(payoffs: PayoffMatrix) => {
+              setConfig({ ...config, payoffs });
+              setScores([]);
+            }}
+            compact
           />
         </div>
       </div>
