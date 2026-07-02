@@ -54,19 +54,21 @@ This is not privacy-for-privacy's-sake. The ZK proof is what makes fair, trustle
 
 7. **WASM** — 28KB optimized contract WASM.
 
-8. **Tutorial mode** — Educational slide system with local simulation (no wallet/contract needed). AI tutor feedback via Venice AI. Strategy selection (Random, AlwaysCooperate, AlwaysDefect, Tit-for-Tat).
+8. **Tutorial mode** — Educational slide system with local simulation (no wallet/contract needed). AI tutor feedback via Venice AI. **9 stateful iterated strategies** (Tit-for-Tat, Tit-for-Two-Tat, Grudge, Pavlov, Prober, Generous TFT, Always Cooperate, Always Defect, Random). Move history table, trust altitude visual, noise slider, payoff matrix editor, strategy inspector.
+
+9. **Tournament mode** — Evolutionary tournament simulation matching Nicky Case's architecture. All 9 strategies compete in round-robin, weak eliminated, strong reproduce. Population bar chart, auto-play, noise slider, payoff matrix editor with presets, population-over-generations chart, winner detection.
+
+10. **Trustfall thematic UI** — The entire experience is built around the trust fall metaphor. Commit phase = "the fall" (falling animation during proof generation). Result = "the catch or the impact" (catch animation for cooperation, impact for defection). Trust altitude grows with consecutive mutual cooperation.
 
 ### ⬜ Not Built (Honest Gaps)
 
 1. **Reputation proofs** — The original plan included ZK reputation proofs ("I've cooperated in N% of games"). Not implemented. The circuit, contract functions, and frontend UI for this were not built.
 
-2. **Iterated games** — Only single-round games are supported. The original plan mentioned multi-round gameplay with move history.
+2. **End-to-end browser test** — The cryptographic path (bb.js → on-chain verifier) is cross-verified, but a full two-wallet browser session has not been tested end-to-end.
 
-3. **Tournament system** — Not built.
+3. **Contract redeployment** — The WASM with new recovery functions and events is built but not yet deployed to testnet. Requires a Stellar key to deploy.
 
-4. **End-to-end browser test** — The cryptographic path (bb.js → on-chain verifier) is cross-verified, but a full two-wallet browser session has not been tested end-to-end.
-
-5. **Contract redeployment** — The WASM with new recovery functions and events is built but not yet deployed to testnet. Requires a Stellar key to deploy.
+4. **On-chain iterated games** — The tutorial supports iterated play with stateful strategies, but the ZK multiplayer contract is still single-round. On-chain multi-round gameplay with move history is future work.
 
 ---
 
@@ -139,44 +141,50 @@ The proof is generated with `{ keccak: true }` (non-ZK keccak UltraHonk flavor) 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    Frontend (React)                       │
-│                                                          │
-│  ┌──────────────┐  ┌──────────────┐  ┌───────────────┐  │
-│  │  Educational  │  │  ZK Game     │  │  Game         │  │
-│  │  Tutorial     │  │  Lobby &     │  │  Result       │  │
-│  │  (slides)     │  │  Matchmaking │  │  Display      │  │
-│  └──────────────┘  └──────────────┘  └───────────────┘  │
-│                           │                              │
-│  ┌────────────────────────┼──────────────────────────┐  │
-│  │    noir_js + bb.js (WASM) Proof Generation        │  │
-│  │  - Witness generation (noir_js)                    │  │
-│  │  - UltraHonk proof (bb.js, keccak non-ZK)         │  │
-│  │  - keccak256 commitment (@noble/hashes)           │  │
-│  └────────────────────────┼──────────────────────────┘  │
-└──────────────────────────┼──────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                      Frontend (React)                         │
+│                                                               │
+│  ┌──────────────┐  ┌──────────────┐  ┌────────────────────┐  │
+│  │  Tutorial     │  │  Tournament  │  │  ZK Multiplayer    │  │
+│  │  (vs AI)      │  │  Mode        │  │  (real XLM stakes) │  │
+│  │               │  │              │  │                    │  │
+│  │  9 strategies │  │  Evolution   │  │  GameLobby         │  │
+│  │  Move history │  │  simulation  │  │  CommitMove        │  │
+│  │  Trust alt.   │  │  9 strategies│  │  RevealMove        │  │
+│  │  Noise slider │  │  Auto-play   │  │  GameResult        │  │
+│  │  Payoff edit  │  │  Payoff edit │  │                    │  │
+│  │  Inspector    │  │              │  │                    │  │
+│  └──────────────┘  └──────────────┘  └────────────────────┘  │
+│                          │                                    │
+│  ┌───────────────────────┼────────────────────────────────┐  │
+│  │   noir_js + bb.js (WASM) Proof Generation              │  │
+│  │   - Witness generation (noir_js)                        │  │
+│  │   - UltraHonk proof (bb.js, keccak non-ZK)             │  │
+│  │   - keccak256 commitment (@noble/hashes)               │  │
+│  └───────────────────────┼────────────────────────────────┘  │
+└──────────────────────────┼────────────────────────────────────┘
                            │
                     Stellar Wallet Kit
                            │
-┌──────────────────────────┼──────────────────────────────┐
-│                   Stellar Testnet                        │
-│                           │                              │
-│  ┌────────────────────────┼──────────────────────────┐  │
-│  │            zk_dilemma Contract                      │  │
-│  │                                                      │  │
-│  │  ┌─────────────┐  ┌─────────────┐  ┌────────────┐  │  │
-│  │  │ Commit      │  │ Reveal &    │  │ Escrow &   │  │  │
-│  │  │ Verifier    │  │ Resolve     │  │ Payout     │  │  │
-│  │  │ (UltraHonk  │  │ (keccak256  │  │ (XLM SAC   │  │  │
-│  │  │  proof chk) │  │  hash chk)  │  │  transfers)│  │  │
-│  │  └─────────────┘  └─────────────┘  └────────────┘  │  │
-│  └──────────────────────────────────────────────────────┘  │
-│                                                          │
-│  ┌──────────────────────────────────────────────────────┐│
-│  │    ultrahonk_soroban_verifier (NethermindEth)        ││
-│  │  Verifies UltraHonk proofs using BN254 host funcs    ││
-│  └──────────────────────────────────────────────────────┘│
-└──────────────────────────────────────────────────────────┘
+┌──────────────────────────┼────────────────────────────────────┐
+│                   Stellar Testnet                              │
+│                           │                                    │
+│  ┌────────────────────────┼────────────────────────────────┐  │
+│  │            zk_dilemma Contract                                │  │
+│  │                                                                │  │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌────────────┐         │  │
+│  │  │ Commit      │  │ Reveal &    │  │ Escrow &   │         │  │
+│  │  │ Verifier    │  │ Resolve     │  │ Payout     │         │  │
+│  │  │ (UltraHonk  │  │ (keccak256  │  │ (XLM SAC   │         │  │
+│  │  │  proof chk) │  │  hash chk)  │  │  transfers)│         │  │
+│  │  └─────────────┘  └─────────────┘  └────────────┘         │  │
+│  └────────────────────────────────────────────────────────────┘  │
+│                                                                  │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │    ultrahonk_soroban_verifier (NethermindEth)               │ │
+│  │  Verifies UltraHonk proofs using BN254 host funcs           │ │
+│  └────────────────────────────────────────────────────────────┘ │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -259,6 +267,12 @@ The contract emits events for off-chain indexing:
 - [x] Mobile responsive UI
 - [x] Onboarding overlay for new users
 - [x] Lazy-loaded ZK WASM (code-split for fast initial page load)
+- [x] Iterated tutorial with 9 stateful strategies, move history, trust altitude
+- [x] Tournament mode with evolutionary simulation, population visualization
+- [x] Configurable payoff matrix with 5 preset scenarios
+- [x] Noise simulation ("the wind caught you") in both tutorial and tournament
+- [x] Strategy inspector with plain-English decision logic explanations
+- [x] Trustfall thematic UI (the fall, the catch, the impact)
 - [ ] 2-3 minute demo video (script prepared at `docs/demo-script.md`)
 - [ ] End-to-end browser test with two wallets
 - [ ] Contract redeployment with new recovery functions + events

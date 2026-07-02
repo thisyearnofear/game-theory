@@ -10,6 +10,10 @@ _Built with Scaffold Stellar for the Stellar Hackathon._
 - 🔗 Real XLM integration on Stellar testnet
 - 🎮 ZK-powered multiplayer Prisoner's Dilemma
 - 🔐 Keccak256 commitment-based reveal with on-chain verification
+- 🧠 9 stateful iterated strategies (TFT, Grudge, Pavlov, Prober, and more)
+- 🏆 Evolutionary tournament mode — watch trust evolve over generations
+- 🎛️ Configurable payoff matrix with 5 preset scenarios
+- 💨 Noise simulation — "the wind caught you"
 - 🛡️ Pre-commit hooks with secrets scanning + linting
 
 ## 🚀 Live Demo
@@ -30,7 +34,7 @@ The ZK contract is deployed and initialized with the Noir UltraHonk verification
 ## Quick Start
 
 ```bash
-git clone https://github.com/thisyearnofear/game-theory.git trustfall
+git clone https://github.com/thisyearnofear/trustfall.git
 cd trustfall
 npm install
 npm run dev
@@ -40,13 +44,46 @@ Open http://localhost:5173, connect your Stellar wallet, and play!
 
 ## How It Works
 
-### 🧠 Tutorial (vs AI)
+Trustfall has three game modes, accessible from the main game screen:
 
-Learn the Prisoner's Dilemma with a local simulation — no wallet or contract needed:
+### 🧠 Tutorial (vs AI) — Iterated Prisoner's Dilemma
 
-- **Instant Gameplay** — local PD matrix calculation, no on-chain transaction
-- **AI Strategies:** Random, Cooperator, Defector, Tit-for-Tat
-- **AI Tutor Feedback** — contextual guidance via Venice AI
+Learn the Prisoner's Dilemma with a local simulation — no wallet or contract needed. Play multiple rounds against stateful AI strategies that remember your past moves:
+
+- **9 Stateful Strategies:**
+  - 🤝 **Tit-for-Tat** — cooperates first, then copies your last move
+  - 🤝🤝 **Tit-for-Two-Tat** — forgives one betrayal, retaliates after two
+  - 😡 **Grudge** — cooperates until you betray once, then defects forever
+  - 🔄 **Pavlov** — win-stay, lose-shift: keeps doing what worked
+  - 🔍 **Prober** — tests you with C-D-C-C, then exploits or plays TFT
+  - 💖 **Generous TFT** — like TFT but forgives 10% of defections
+  - 😇 **Always Cooperate** — unconditional trust
+  - 😈 **Always Defect** — zero trust
+  - 🎲 **Random** — 50/50 coin flip every round
+- **Move History Table** — every round recorded with cumulative scores
+- **Trust Altitude** — grows with consecutive mutual cooperation, resets on betrayal
+- **Noise Slider** — "the wind caught you" — random move flips (0-50%). Watch TFT get stuck in retaliation loops, then switch to TF2T and watch it recover
+- **Payoff Matrix Editor** — tweak P/S/R/T values with 5 presets (Classic PD, Stag Hunt, Harmony, Snowdrift, High Temptation). See how changing the game changes which strategy wins
+- **Strategy Inspector** — click "Inspect [strategy name]" to see how it thinks: decision logic, first move, strengths, weaknesses, and a concrete round-by-round example
+- **AI Tutor Feedback** — contextual guidance via Venice AI after each round
+
+### 🏆 Tournament Mode — Evolution of Trust
+
+Watch trust evolve over generations. All 9 strategies compete in a round-robin tournament, the weak are eliminated, the strong reproduce — matching Nicky Case's "Evolution of Trust" architecture:
+
+- **Round-Robin Simulation** — every strategy plays every other strategy for N rounds
+- **Evolution** — bottom strategies eliminated, top strategies reproduce
+- **Population Bar Chart** — each strategy shown as a colored bar, width = population count
+- **Auto-Play** — runs play → evolve → play loop automatically
+- **Population-Over-Generations Chart** — stacked visualization of population composition across all generations
+- **Winner Detection** — victory banner when one strategy reaches 80% of population
+- **Configurable Parameters:**
+  - 💨 **Noise** (0-50%) — "the wind caught you" — watch TFT die and TF2T/Generous TFT take over
+  - 🔁 **Rounds per match** (3-30) — how many rounds each pair plays
+  - ⚖️ **Selection pressure** (1-8) — how many to eliminate/reproduce per generation
+  - 🎛️ **Payoff matrix** — 5 presets + custom P/S/R/T editing
+
+**Try this:** Set noise to 10% and run auto-play. Watch strict Tit-for-Tat get stuck in retaliation loops and die out, while Generous TFT and TF2T thrive because they can forgive noise-induced mistakes.
 
 ### 🔐 ZK Multiplayer
 
@@ -65,12 +102,14 @@ Play against other humans with **zero-knowledge commitment**:
 
 **Version Pinning:** The browser proof generation packages are pinned to match the local toolchain: `@noir-lang/noir_js@1.0.0-beta.9` and `@aztec/bb.js@0.87.0`. These must match `nargo` and `bb` versions used to compile the circuit. The proof is generated with `{ keccak: true }` (non-ZK keccak UltraHonk flavor) to match the on-chain verifier — do not use ZK-flavored proofs.
 
-### Payoff Matrix (× stake multiplier)
+### Payoff Matrix (× stake multiplier, configurable in Tutorial & Tournament)
 
-| Your Move     | They Cooperate                | They Defect               |
-| ------------- | ----------------------------- | ------------------------- |
-| **Cooperate** | Both: 2× (Reward)             | You: 0, Them: 3× (Sucker) |
-| **Defect**    | You: 3×, Them: 0 (Temptation) | Both: 0 (Punishment)      |
+| Your Move     | They Cooperate                 | They Defect                |
+| ------------- | ------------------------------ | -------------------------- |
+| **Cooperate** | Both: R× (Reward)              | You: S×, Them: T× (Sucker) |
+| **Defect**    | You: T×, Them: S× (Temptation) | Both: P× (Punishment)      |
+
+**Default (Classic PD):** T=3, R=2, P=0, S=-1. The payoff matrix is editable in both Tutorial and Tournament modes — try Stag Hunt (T=2, R=3, P=1, S=0) to see how less temptation changes the dynamics, or High Temptation (T=10) to watch Always Defect dominate.
 
 ## Project Structure
 
@@ -84,8 +123,13 @@ trustfall/
 ├── src/                            # Frontend (React + TypeScript)
 │   ├── components/
 │   │   ├── zk/                    # ZK multiplayer UI (GameLobby, CommitMove, RevealMove, GameResult, OnboardingOverlay)
-│   │   ├── slides/                # Educational slide system (local simulation tutorial)
-│   │   ├── ai/                    # AI integration
+│   │   ├── slides/                # Game modes + educational slides
+│   │   │   ├── GameSlide.tsx      # Main game screen (3 modes: Tutorial, Tournament, Multiplayer)
+│   │   │   ├── TournamentMode.tsx # Evolutionary tournament simulation UI
+│   │   │   ├── PayoffMatrixEditor.tsx # Configurable P/S/R/T with presets
+│   │   │   ├── StrategyInspector.tsx  # Plain-English strategy logic explanations
+│   │   │   └── IntroSlide.tsx     # Landing / intro slide
+│   │   ├── ai/                    # AI integration (Venice AI, personas)
 │   │   └── ErrorBoundary.tsx      # Error boundary
 │   ├── contracts/
 │   │   ├── zk_dilemma/            # Generated TS client bindings
@@ -97,6 +141,9 @@ trustfall/
 │   │   ├── ZKGamePage.tsx         # /play route - ZK game lobby + game view
 │   │   ├── Home.tsx               # Tutorial / landing
 │   │   └── Debugger.tsx           # Contract debugger
+│   ├── util/
+│   │   ├── strategies.ts          # 9 stateful iterated strategies + payoff matrix
+│   │   └── tournament.ts          # Tournament simulation engine (round-robin + evolution)
 │   └── services/
 │       └── noirProofService.ts    # Keccak256 commitment + proof generation (lazy-loaded)
 ├── .husky/pre-commit              # Pre-commit: secretlint + lint-staged
@@ -183,7 +230,7 @@ Trustfall adapts Nicky Case's ["The Evolution of Trust"](https://ncase.me/trust/
 ## Links
 
 - **Website:** [trustfall.xyz](https://trustfall.xyz)
-- **Source:** [github.com/thisyearnofear/game-theory](https://github.com/thisyearnofear/game-theory)
+- **Source:** [github.com/thisyearnofear/trustfall](https://github.com/thisyearnofear/trustfall)
 
 ## License
 

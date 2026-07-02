@@ -20,7 +20,9 @@ Comprehensive review of product design, UI/UX, system architecture, reliability/
 
 **No game discovery mechanism.** Players can only see games in the lobby by polling `get_game_count` and iterating. Contract events are now emitted (`GameCreated`, `GameJoined`, etc.) enabling future off-chain indexing, but no event subscription or filter for open games is built yet. For a hackathon demo, you need two browsers side-by-side. For real use, you'd need a relay/matchmaking layer.
 
-**No iterated games.** The original plan mentioned multi-round gameplay. Only single-round is supported. This limits the educational value — the Nicky Case inspiration is specifically about _repeated_ interaction building trust.
+**~~No iterated games.~~** ✅ **Fixed (tutorial).** The tutorial now supports iterated play with 9 stateful strategies that remember past rounds. Move history table, trust altitude visual, and noise simulation are all built. The ZK multiplayer contract is still single-round — on-chain iterated games are future work.
+
+**~~No tournament system.~~** ✅ **Fixed.** Full evolutionary tournament mode is built — all 9 strategies compete in round-robin, weak are eliminated, strong reproduce. Population bar chart, auto-play, noise slider, payoff matrix editor, and population-over-generations chart are all functional.
 
 **Reputation proofs not built.** The original plan's most novel ZK feature (proving cooperation rate without revealing individual moves) was not implemented. This was the feature that would have distinguished this from a standard commit-reveal scheme.
 
@@ -43,6 +45,14 @@ Comprehensive review of product design, UI/UX, system architecture, reliability/
 **Payoff matrix is always visible** during move selection, which helps users understand the game theory.
 
 **Move selection buttons are visually distinct** — green Cooperate vs. red Defect with emoji icons.
+
+**Trustfall thematic UI is distinctive.** The trust fall metaphor runs through the entire experience — "the fall" during commitment, "the catch or the impact" as the result. Trust altitude visual grows with consecutive mutual cooperation. CSS animations (fall, sway, catch, impact, shake, glow) create a cohesive visual language.
+
+**Iterated tutorial is rich.** 9 stateful strategies with distinct personalities, move history table, trust altitude, noise slider, payoff matrix editor, and strategy inspector — all in the tutorial mode. This matches the depth of Nicky Case's original.
+
+**Tournament mode is compelling.** Population bar chart, auto-play, evolution over generations, winner detection — watching which strategies survive is genuinely educational. The noise and payoff matrix sliders let you run experiments ("what if temptation is 10x?").
+
+**Strategy inspector is educational.** Click "Inspect [strategy name]" to see how it thinks — plain-English decision logic, first move, strengths, weaknesses, and a concrete round-by-round example. This bridges the gap between "I'm playing an AI" and "I understand this AI."
 
 ### What's not working
 
@@ -162,7 +172,7 @@ Comprehensive review of product design, UI/UX, system architecture, reliability/
 
 **The nonce presentation is scary.** "Save Your Nonce! You'll need this to reveal your move" with a big number in monospace is intimidating. Users don't know what a nonce is or why they need to save it. Better: "Your secret code (saved automatically in your browser) — write this down as backup."
 
-**No connection between the tutorial and the game.** The educational slides teach game theory concepts but don't mention ZK. The ZK game doesn't reference the tutorial. A judge watching the demo has to mentally connect two disconnected experiences.
+**~~No connection between the tutorial and the game.~~** ✅ **Partially fixed.** The tutorial now has three game modes (Tutorial, Tournament, Multiplayer) accessible from the same screen, creating a natural progression: learn → experiment → play for real. The strategy inspector helps users understand AI behavior before facing real opponents. A direct "play for real" link from tutorial to ZK multiplayer is still missing.
 
 ### Recommendations
 
@@ -197,12 +207,17 @@ Comprehensive review of product design, UI/UX, system architecture, reliability/
 
 ### Previously acknowledged, now fixed ✅
 
-| #   | Issue                     | Impact                 | Status                            |
-| --- | ------------------------- | ---------------------- | --------------------------------- |
-| 10  | No event emission         | No off-chain indexing  | ✅ Events added                   |
-| 11  | Large WASM bundle (~10MB) | Slow first load        | ✅ Lazy-loaded                    |
-| 12  | Game ID race condition    | Rare but unrecoverable | ✅ Auto-retry added               |
-| 13  | Single-player mode broken | Dead end in UI         | ✅ Replaced with local simulation |
+| #   | Issue                     | Impact                     | Status                                 |
+| --- | ------------------------- | -------------------------- | -------------------------------------- |
+| 10  | No event emission         | No off-chain indexing      | ✅ Events added                        |
+| 11  | Large WASM bundle (~10MB) | Slow first load            | ✅ Lazy-loaded                         |
+| 12  | Game ID race condition    | Rare but unrecoverable     | ✅ Auto-retry added                    |
+| 13  | Single-player mode broken | Dead end in UI             | ✅ Replaced with local simulation      |
+| 14  | No iterated games         | Limited educational value  | ✅ Iterated tutorial with 9 strategies |
+| 15  | No tournament system      | Missing Nicky Case feature | ✅ Evolutionary tournament mode        |
+| 16  | No noise simulation       | Missing Nicky Case feature | ✅ Noise slider in both modes          |
+| 17  | No payoff matrix editor   | Missing Nicky Case feature | ✅ 5 presets + custom editing          |
+| 18  | No strategy explanations  | Educational gap            | ✅ Strategy inspector component        |
 
 ### Acknowledge in README (won't fix)
 

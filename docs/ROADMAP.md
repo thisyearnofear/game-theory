@@ -1,6 +1,6 @@
 # Trustfall — Development Roadmap
 
-## 🎯 Current Status: ZK Multiplayer Complete + Hardened
+## 🎯 Current Status: ZK Multiplayer + Game Theory Sandbox Complete
 
 - ✅ ZK Dilemma Soroban contract (`contracts/zk_dilemma/`) — on-chain UltraHonk proof verification, keccak256 commitment, XLM escrow, forfeit logic, recovery functions (cancel_game, claim_refund), contract events, self-join prevention
 - ✅ Noir move-commitment circuit (`circuits/move_commitment/`) — keccak256-based, external `noir-lang/keccak256` library
@@ -18,6 +18,12 @@
 - ✅ Auto-retry for game_id race condition in create flow
 - ✅ Nonce persisted in localStorage (survives browser close)
 - ✅ Move auto-fill in reveal phase
+- ✅ Trustfall thematic UI — the fall, the catch, the impact (CSS animations, trust altitude visual)
+- ✅ Iterated tutorial — 9 stateful strategies (TFT, TF2T, Grudge, Pavlov, Prober, Generous TFT, All-C, All-D, Random), move history table, trust altitude, noise slider, payoff matrix editor, strategy inspector
+- ✅ Tournament mode — evolutionary simulation, round-robin, population bar chart, auto-play, noise slider, payoff presets, population-over-generations chart, winner detection
+- ✅ Configurable payoff matrix — 5 presets (Classic PD, Stag Hunt, Harmony, Snowdrift, High Temptation), live dilemma type detection, custom P/S/R/T editing
+- ✅ Noise simulation — "the wind caught you" — random move flips in both tutorial and tournament
+- ✅ Strategy inspector — plain-English decision logic, strengths/weaknesses, round-by-round examples for all 9 strategies
 
 ## 🚀 Phase 3: AI Integration & Deployment
 
@@ -47,31 +53,41 @@
 ### 3.3 Enhanced Tutorial Modes
 
 - ✅ Local simulation (no wallet/contract needed)
-- ✅ Strategy selection (Random, Cooperator, Defector, Tit-for-Tat)
+- ✅ 9 stateful iterated strategies (TFT, TF2T, Grudge, Pavlov, Prober, Generous TFT, All-C, All-D, Random)
+- ✅ Move history table with cumulative scores
+- ✅ Trust altitude visual (grows with cooperation, resets on betrayal)
+- ✅ Noise slider — "the wind caught you" — random move flips
+- ✅ Payoff matrix editor with 5 preset scenarios
+- ✅ Strategy inspector — plain-English decision logic for all 9 strategies
+- ✅ Tournament mode — evolutionary simulation with population visualization
 - ⬜ Campaign mode with progressive difficulty
-- ⬜ Challenge scenarios (noise, reputation, etc.)
 - ⬜ Achievement system with XLM rewards
 - ⬜ Leaderboards for tutorial performance
 
-## 🏆 Phase 4: Advanced Game Theory Concepts & Tournament System (Future)
+## 🏆 Phase 4: Advanced Game Theory Concepts & Tournament System
 
 **Goal**: Expand beyond single-round Prisoner's Dilemma to include iterated games and tournaments like the original Nicky Case project
 
-### 4.1 Iterated Games Contract
+### 4.1 Iterated Games (Tutorial) — ✅ Complete
 
-- **Multi-round gameplay** with memory of past interactions
-- **Strategy implementation** on-chain (Tit-for-Tat, Grudger, Pavlov, etc.)
-- **Trust evolution tracking** over multiple rounds
-- **Real XLM stakes across multiple rounds** for enhanced learning
-- **Historical move analysis** for strategy adaptation
+- ✅ **Multi-round gameplay** with memory of past interactions (stateful strategies)
+- ✅ **Strategy implementation** — 9 strategies with full state machines (Tit-for-Tat, Grudger, Pavlov, etc.)
+- ✅ **Trust evolution tracking** — trust altitude visual grows with mutual cooperation
+- ✅ **Historical move analysis** — move history table with per-round breakdown
+- ✅ **Noise simulation** — "the wind caught you" — random move flips with contextual labels
+- ⬜ On-chain iterated games (ZK multiplayer contract is still single-round)
 
-### 4.2 Tournament System Contract
+### 4.2 Tournament System — ✅ Complete (off-chain simulation)
 
-- **Automated tournaments** with multiple strategy types competing
-- **Performance tracking** for different algorithmic strategies
-- **Strategy registry** for different approaches (Cooperator, Defector, Tit-for-Tat, etc.)
-- **Population dynamics simulation** showing how strategies evolve
-- **Prize pool distribution** via smart contracts
+- ✅ **Automated tournaments** with all 9 strategy types competing in round-robin
+- ✅ **Performance tracking** — average score per strategy, ranked score table
+- ✅ **Strategy registry** — all 9 strategies with unique colors, emojis, and descriptions
+- ✅ **Population dynamics simulation** — eliminate weak, reproduce strong, watch evolution
+- ✅ **Auto-play** — runs play → evolve → play loop automatically
+- ✅ **Population-over-generations chart** — stacked visualization of population composition
+- ✅ **Winner detection** — victory banner when one strategy reaches 80% dominance
+- ✅ **Configurable parameters** — noise, rounds per match, selection pressure, payoff matrix
+- ⬜ On-chain tournament with prize pool distribution via smart contracts
 
 ### 4.3 Real-Time Multiplayer
 
@@ -142,10 +158,13 @@
 - ✅ **Game ID race condition** — auto-retry on create
 - ✅ **Contract events** — emitted for all state transitions
 - ✅ **Dead code removal** — single-player contract stub removed, tutorial uses local simulation
+- ✅ **Strategy architecture** — refactored from stateless functions to stateful IteratedStrategy classes
+- ✅ **Payoff matrix** — refactored from hardcoded values to configurable PayoffMatrix interface
 - **Performance monitoring** and optimization
 - **Accessibility compliance** (WCAG 2.1)
 - **Internationalization** support
 - **Advanced analytics** and user insights
+- **Bundle size** — tournament + tutorial code could be code-split from ZK multiplayer bundle
 
 ## 📊 Success Metrics
 
