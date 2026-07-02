@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Allow: /play
+Disallow: /debug
+
+Sitemap: https://trustfall.xyz/sitemap.xml

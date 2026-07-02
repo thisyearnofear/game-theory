@@ -1,0 +1,28 @@
+# Trustfall API Workers — Cloudflare Worker configuration
+#
+# Deploy:
+#   npx wrangler deploy api/matchmaking-worker.ts --config api/wrangler.toml
+#   npx wrangler deploy api/venice-proxy-worker.ts --config api/wrangler.toml
+#
+# Set secrets:
+#   npx wrangler secret put VENICE_API_KEY --config api/wrangler.toml
+#   npx wrangler secret put STELLAR_RPC_URL --config api/wrangler.toml
+#   npx wrangler secret put CONTRACT_ID --config api/wrangler.toml
+
+name = "trustfall-api"
+main = "api/index.ts"
+compatibility_date = "2026-07-01"
+
+# KV namespace for game caching
+[[kv_namespaces]]
+binding = "GAME_CACHE"
+id = "your-kv-namespace-id"
+
+# Environment variables (non-secret)
+[vars]
+# STELLAR_RPC_URL and VENICE_API_KEY are set via `wrangler secret put`
+
+# Routes (uncomment when deploying to a custom domain)
+# routes = [
+#   { pattern = "api.trustfall.xyz/*", zone_name = "trustfall.xyz" }
+# ]

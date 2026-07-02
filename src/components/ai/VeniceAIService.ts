@@ -22,10 +22,14 @@ export class VeniceAIService {
   private apiKey: string;
   private baseURL = "https://api.venice.ai/api/v1";
   private model = "venice-uncensored"; // Fast, uncensored model for tutoring
+  // API proxy URL — when set, requests go through the serverless proxy
+  // instead of calling Venice directly. This keeps the API key server-side.
+  // Set VITE_API_PROXY_URL in .env to enable (e.g. https://api.trustfall.xyz)
+  private proxyUrl: string;
 
   constructor() {
-    // ENHANCEMENT: Get API key from environment or user input
     this.apiKey = String(import.meta.env.VITE_VENICE_API_KEY || "");
+    this.proxyUrl = String(import.meta.env.VITE_API_PROXY_URL || "");
   }
 
   static getInstance(): VeniceAIService {
@@ -35,9 +39,9 @@ export class VeniceAIService {
     return VeniceAIService.instance;
   }
 
-  // PERFORMANT: Check if service is available
+  // PERFORMANT: Check if service is available (either proxy or direct key)
   isAvailable(): boolean {
-    return !!this.apiKey;
+    return !!this.proxyUrl || !!this.apiKey;
   }
 
   // MODULAR: Generate persona-specific tutoring advice
@@ -56,6 +60,31 @@ export class VeniceAIService {
     }
 
     try {
+      // Prefer the serverless proxy (API key stays server-side)
+      if (this.proxyUrl) {
+        const response = await fetch(`${this.proxyUrl}/api/ai/tutor`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            personaName,
+            personaStyle,
+            context,
+            requestType,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`AI proxy error: ${response.status}`);
+        }
+
+        const data = (await response.json()) as {
+          text: string;
+          source: string;
+        };
+        return data.text || this.getFallbackResponse(personaName, requestType);
+      }
+
+      // Fallback: direct Venice API call (key exposed in bundle — not recommended for production)
       const systemPrompt = this.buildSystemPrompt(
         personaName,
         personaStyle,

@@ -327,7 +327,8 @@ export const AITutorPanel: React.FC<AITutorPanelProps> = ({
             fontStyle: "italic",
           }}
         >
-          Using offline responses • Add VITE_VENICE_API_KEY for AI
+          Using offline responses • Set VITE_API_PROXY_URL or
+          VITE_VENICE_API_KEY for AI
         </Text>
       )}
     </div>

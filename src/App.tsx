@@ -2,8 +2,17 @@ import { Button, Icon, Layout } from "@stellar/design-system";
 import ConnectAccount from "./components/ConnectAccount.tsx";
 import { Routes, Route, Outlet, NavLink, useNavigate } from "react-router-dom";
 import Home from "./pages/Home";
-import Debugger from "./pages/Debugger.tsx";
-import { ZKGamePage } from "./pages/ZKGamePage.tsx";
+import { lazy, Suspense } from "react";
+
+// Route-based code splitting:
+// - Home (tutorial/tournament) loads immediately — no ZK WASM needed
+// - ZKGamePage (multiplayer) loads lazily — pulls in bb.js/noir_js only when
+//   the user navigates to /play, keeping the initial bundle ~200KB
+// - Debugger loads lazily — rarely used, keeps it out of the main bundle
+const ZKGamePage = lazy(() =>
+  import("./pages/ZKGamePage.tsx").then((m) => ({ default: m.ZKGamePage })),
+);
+const Debugger = lazy(() => import("./pages/Debugger.tsx"));
 
 const AppLayout: React.FC = () => {
   const navigate = useNavigate();
@@ -63,15 +72,40 @@ const AppLayout: React.FC = () => {
 
 function App() {
   return (
-    <Routes>
-      <Route element={<AppLayout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/play" element={<ZKGamePage />} />
-        <Route path="/play/:gameId" element={<ZKGamePage />} />
-        <Route path="/debug" element={<Debugger />} />
-        <Route path="/debug/:contractName" element={<Debugger />} />
-      </Route>
-    </Routes>
+    <Suspense
+      fallback={
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "100vh",
+            fontFamily: "FuturaHandwritten, sans-serif",
+            color: "rgba(255,255,255,0.6)",
+          }}
+        >
+          <div style={{ textAlign: "center" }}>
+            <div
+              style={{ fontSize: "2rem", marginBottom: "8px" }}
+              className="tf-sway"
+            >
+              🪂
+            </div>
+            <div>Loading…</div>
+          </div>
+        </div>
+      }
+    >
+      <Routes>
+        <Route element={<AppLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/play" element={<ZKGamePage />} />
+          <Route path="/play/:gameId" element={<ZKGamePage />} />
+          <Route path="/debug" element={<Debugger />} />
+          <Route path="/debug/:contractName" element={<Debugger />} />
+        </Route>
+      </Routes>
+    </Suspense>
   );
 }
 

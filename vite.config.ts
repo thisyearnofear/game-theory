@@ -18,6 +18,18 @@ export default defineConfig(() => {
     ],
     build: {
       target: "esnext",
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            // Keep ZK proof generation in its own chunk — only loaded on /play
+            "zk-prover": ["@noir-lang/noir_js", "@aztec/bb.js"],
+            // Stellar SDK is heavy, separate it
+            "stellar-sdk": ["@stellar/stellar-sdk"],
+            // React + router in the main chunk
+            "react-vendor": ["react", "react-dom", "react-router-dom"],
+          },
+        },
+      },
     },
     optimizeDeps: {
       exclude: ["@stellar/stellar-xdr-json"],

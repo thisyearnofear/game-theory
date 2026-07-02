@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      About Trustfall — Game Theory, ZK Proofs, and the Evolution of Trust
+    </title>
+    <meta
+      name="description"
+      content="Trustfall is an interactive game theory sandbox and ZK multiplayer Prisoner's Dilemma on Stellar. Learn why trust evolves through 9 AI strategies, evolutionary tournaments, noise simulation, and configurable payoff matrices."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://trustfall.xyz/about.html" />
+    <style>
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 24px;
+        line-height: 1.6;
+        color: #1a1a2e;
+      }
+      h1 {
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+      }
+      h2 {
+        font-size: 1.3rem;
+        margin-top: 2rem;
+      }
+      p {
+        color: #333;
+      }
+      a {
+        color: #667eea;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .strategies {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin: 16px 0;
+      }
+      .strategy {
+        padding: 8px 12px;
+        background: #f5f5fa;
+        border-radius: 8px;
+        font-size: 0.9rem;
+      }
+      .strategy strong {
+        display: block;
+      }
+      .back {
+        margin-top: 2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Trustfall — ZK Prisoner's Dilemma on Stellar</h1>
+    <p>
+      Trustfall is an interactive game theory sandbox and zero-knowledge
+      multiplayer Prisoner's Dilemma built on the Stellar blockchain. Inspired
+      by
+      <a href="https://ncase.me/trust/">Nicky Case's "The Evolution of Trust"</a
+      >, it transforms theoretical game theory into experiential learning with
+      real economic consequences and cryptographic fairness.
+    </p>
+
+    <h2>Three Game Modes</h2>
+    <p>
+      <strong>Tutorial (vs AI):</strong> Play iterated Prisoner's Dilemma
+      against 9 stateful AI strategies. Each strategy remembers your past moves
+      and adapts. Watch the trust altitude grow with mutual cooperation,
+      experiment with noise ("the wind caught you"), and change the payoff
+      matrix to see how different games produce different dynamics.
+    </p>
+    <p>
+      <strong>Tournament Mode:</strong> Watch trust evolve over generations. All
+      9 strategies compete in a round-robin tournament. The weak are eliminated,
+      the strong reproduce. Add noise and watch forgiving strategies
+      (Tit-for-Two-Tat, Generous TFT) outcompete strict Tit-for-Tat.
+    </p>
+    <p>
+      <strong>ZK Multiplayer:</strong> Play against other humans with real XLM
+      stakes. Moves are committed via zero-knowledge proofs — the contract
+      verifies your commitment is to a valid move without learning which move,
+      ensuring truly simultaneous strategy selection on a transparent
+      blockchain.
+    </p>
+
+    <h2>The 9 AI Strategies</h2>
+    <div class="strategies">
+      <div class="strategy">
+        <strong>Tit-for-Tat (TFT)</strong>Cooperates first, then copies your
+        last move. Nice, provokable, forgiving.
+      </div>
+      <div class="strategy">
+        <strong>Tit-for-Two-Tat (TF2T)</strong>Forgives one betrayal, retaliates
+        after two. More forgiving than TFT.
+      </div>
+      <div class="strategy">
+        <strong>Grudge</strong>Cooperates until you betray once, then defects
+        forever. No forgiveness.
+      </div>
+      <div class="strategy">
+        <strong>Pavlov</strong>Win-stay, lose-shift. Keeps doing what worked,
+        switches when it didn't.
+      </div>
+      <div class="strategy">
+        <strong>Prober</strong>Tests you with C-D-C-C, then exploits or plays
+        TFT based on your response.
+      </div>
+      <div class="strategy">
+        <strong>Generous TFT</strong>Like TFT but forgives 10% of defections.
+        Thrives in noisy environments.
+      </div>
+      <div class="strategy">
+        <strong>Always Cooperate</strong>Unconditional trust. Gets exploited by
+        defectors.
+      </div>
+      <div class="strategy">
+        <strong>Always Defect</strong>Zero trust. Can never be exploited but can
+        never cooperate.
+      </div>
+      <div class="strategy">
+        <strong>Random</strong>50/50 coin flip every round. No memory, no
+        strategy.
+      </div>
+    </div>
+
+    <h2>Why Zero-Knowledge Proofs Matter</h2>
+    <p>
+      The Prisoner's Dilemma requires simultaneous commitment — neither player
+      should know the opponent's move before committing their own. On a
+      transparent public ledger like Stellar, this is fundamentally broken: if
+      Player 1 submits "Cooperate" as plaintext, Player 2 can read it and
+      defect.
+    </p>
+    <p>
+      A hash-based commit-reveal scheme doesn't fully solve this: a player could
+      commit to garbage, observe the opponent's reveal, then "reveal" a winning
+      move. The ZK proof cryptographically guarantees the commitment is to a
+      legitimate move (0 or 1) with a known nonce and the correct game ID —
+      before the opponent commits. This makes the commitment binding at commit
+      time.
+    </p>
+    <p>
+      The proof is a 14,592-byte UltraHonk proof generated client-side in the
+      browser using Noir and bb.js (WASM), and verified on-chain by the
+      <code>ultrahonk_soroban_verifier</code> using BN254 host functions.
+    </p>
+
+    <h2>Configurable Payoff Matrix</h2>
+    <p>
+      The payoff matrix (P/S/R/T values) is fully configurable in both Tutorial
+      and Tournament modes. Five presets are included:
+    </p>
+    <ul>
+      <li><strong>Classic PD:</strong> T=3, R=2, P=0, S=-1 (the original)</li>
+      <li>
+        <strong>Stag Hunt:</strong> T=2, R=3, P=1, S=0 (less temptation to
+        defect)
+      </li>
+      <li>
+        <strong>Harmony:</strong> T=2, R=3, P=0, S=1 (cooperation dominates)
+      </li>
+      <li>
+        <strong>Snowdrift:</strong> P=-3 (mutual defection is catastrophic)
+      </li>
+      <li>
+        <strong>High Temptation:</strong> T=10 (defecting is very profitable)
+      </li>
+    </ul>
+
+    <h2>Noise Simulation — "The Wind Caught You"</h2>
+    <p>
+      In the real world, mistakes happen. The wind catches you. Trustfall
+      simulates this with a noise parameter (0-50%) that randomly flips moves.
+      This reveals a key insight: strategies that can't forgive mistakes (like
+      strict Tit-for-Tat and Grudge) die out in noisy environments, while
+      forgiving strategies (Tit-for-Two-Tat, Generous TFT) thrive.
+    </p>
+
+    <h2>Built On</h2>
+    <ul>
+      <li><strong>Noir</strong> — ZK circuit for move commitment</li>
+      <li>
+        <strong>Soroban</strong> — Stellar smart contracts with BN254 host
+        functions
+      </li>
+      <li>
+        <strong>UltraHonk</strong> — ZK proof system (NethermindEth verifier)
+      </li>
+      <li><strong>React + TypeScript + Vite</strong> — Frontend SPA</li>
+      <li><strong>Stellar Wallets Kit</strong> — Browser wallet integration</li>
+    </ul>
+
+    <p class="back">
+      <a href="/">← Back to Trustfall</a>
+    </p>
+  </body>
+</html>
