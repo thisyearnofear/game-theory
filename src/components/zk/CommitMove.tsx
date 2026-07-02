@@ -56,15 +56,23 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
   const [commitDebug, setCommitDebug] = useState<string>("");
   const [savedNonce, setSavedNonce] = useState<bigint | null>(null);
 
-  // Persist nonce for the reveal step
+  // Persist nonce and move for the reveal step
+  // Use localStorage (survives browser close) with sessionStorage as fallback
   useEffect(() => {
-    if (savedNonce) {
-      sessionStorage.setItem(
-        `zk_nonce_${mode === "create" ? "new" : `game_${gameId}`}`,
-        savedNonce.toString(),
-      );
+    if (savedNonce && selectedMove) {
+      const storageKey = `zk_nonce_${mode === "create" ? "new" : `game_${gameId}`}`;
+      const moveKey = `zk_move_${mode === "create" ? "new" : `game_${gameId}`}`;
+      const nonceStr = savedNonce.toString();
+      const moveStr = selectedMove;
+      try {
+        localStorage.setItem(storageKey, nonceStr);
+        localStorage.setItem(moveKey, moveStr);
+      } catch {
+        sessionStorage.setItem(storageKey, nonceStr);
+        sessionStorage.setItem(moveKey, moveStr);
+      }
     }
-  }, [savedNonce, mode, gameId]);
+  }, [savedNonce, selectedMove, mode, gameId]);
 
   const canSubmit = selectedMove !== null && !isLoading;
 
@@ -73,79 +81,97 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
 
     setTxError(null);
 
-    try {
-      const moveNum: 0 | 1 = selectedMove === "C" ? 0 : 1;
-      const nonce = generateNonce();
-      setSavedNonce(nonce);
+    const moveNum: 0 | 1 = selectedMove === "C" ? 0 : 1;
+    const nonce = generateNonce();
+    setSavedNonce(nonce);
 
-      setStatus("generating");
+    // For create mode: retry up to 2 times if game_id prediction fails
+    // (race condition: another game created between count check and tx)
+    const MAX_RETRIES = 2;
 
-      // For create mode: fetch current game count to compute correct game_id
-      // Game IDs start at 1, so next game = count + 1
-      //
-      // NOTE: There's a theoretical race condition here — if another game is
-      // created between the count check and the tx submission, the game_id
-      // won't match. This is a contract design limitation (commitment includes
-      // game_id). If the tx fails with a hash mismatch, the user should retry.
-      let targetGameId: number;
-      if (mode === "create") {
-        const count = await getGameCount();
-        targetGameId = count + 1;
-        setCommitDebug(
-          `Game count: ${count}, targeting game_id=${targetGameId}`,
-        );
-      } else {
-        targetGameId = gameId ?? 0;
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        setStatus("generating");
+
+        let targetGameId: number;
+        if (mode === "create") {
+          const count = await getGameCount();
+          targetGameId = count + 1;
+          setCommitDebug(
+            `Attempt ${attempt + 1}: targeting game_id=${targetGameId}`,
+          );
+        } else {
+          targetGameId = gameId ?? 0;
+        }
+
+        // Compute commitment hash (keccak256 of move + nonce + game_id)
+        setCommitDebug(`Computing commitment for ${selectedMove}...`);
+        const commitmentBytes = computeCommitment({
+          move: moveNum,
+          nonce,
+          gameId: targetGameId,
+        });
+
+        const commitmentHex = Array.from(commitmentBytes)
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
+
+        setCommitDebug(`Commitment: ${commitmentHex.slice(0, 16)}...`);
+
+        // Generate ZK proof
+        setCommitDebug("Generating ZK proof...");
+        const proofOutput = await generateProof({
+          move: moveNum,
+          nonce,
+          gameId: targetGameId,
+        });
+
+        const proofHex = Array.from(proofOutput.proof)
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
+
+        setCommitDebug(`Proof: ${proofHex.slice(0, 16)}...`);
+
+        // Submit to contract
+        setStatus("submitting");
+
+        if (mode === "create") {
+          const stakeStroops = BigInt(
+            Math.floor(parseFloat(stake) * 10_000_000),
+          ).toString();
+          const newGameId = await createGame(
+            commitmentHex,
+            proofHex,
+            stakeStroops,
+          );
+          setCommitDebug(`Game #${newGameId} created!`);
+          onComplete(newGameId);
+        } else if (mode === "join" && gameId) {
+          await joinGame(gameId, commitmentHex, proofHex);
+          setCommitDebug(`Joined game #${gameId}!`);
+          onComplete(gameId);
+        }
+        return; // Success — exit retry loop
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+
+        // If create mode and this looks like a proof/commitment mismatch
+        // (game_id race condition), retry with fresh count
+        if (
+          mode === "create" &&
+          attempt < MAX_RETRIES &&
+          /proof|commitment|verification|mismatch|hash/i.test(message)
+        ) {
+          setCommitDebug(
+            `Game ID mismatch (race condition), retrying... (${attempt + 1}/${MAX_RETRIES})`,
+          );
+          continue;
+        }
+
+        setTxError(message);
+        setStatus("choose");
+        return;
       }
-
-      // Compute commitment hash (keccak256 of move + nonce + game_id)
-      setCommitDebug(`Computing commitment for ${selectedMove}...`);
-      const commitmentBytes = computeCommitment({
-        move: moveNum,
-        nonce,
-        gameId: targetGameId,
-      });
-
-      const commitmentHex = Array.from(commitmentBytes)
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
-
-      setCommitDebug(`Commitment: ${commitmentHex.slice(0, 16)}...`);
-
-      // Generate ZK proof
-      setCommitDebug("Generating ZK proof...");
-      const proofOutput = await generateProof({
-        move: moveNum,
-        nonce,
-        playerAddress: address,
-        gameId: targetGameId,
-      });
-
-      const proofHex = Array.from(proofOutput.proof)
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
-
-      setCommitDebug(`Proof: ${proofHex.slice(0, 16)}...`);
-
-      // Submit to contract
-      setStatus("submitting");
-
-      if (mode === "create") {
-        const stakeStroops = BigInt(
-          Math.floor(parseFloat(stake) * 10_000_000),
-        ).toString();
-        const newGameId = await createGame(commitmentHex, proofHex, stakeStroops);
-        setCommitDebug(`Game #${newGameId} created!`);
-        onComplete(newGameId);
-      } else if (mode === "join" && gameId) {
-        await joinGame(gameId, commitmentHex, proofHex);
-        setCommitDebug(`Joined game #${gameId}!`);
-        onComplete(gameId);
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      setTxError(message);
-      setStatus("choose");
     }
   };
 
@@ -169,7 +195,10 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
   const isLoadingState = status === "generating" || status === "submitting";
 
   return (
-    <div style={{ maxWidth: "600px", margin: "0 auto" }}>
+    <div
+      className="zk-card-container"
+      style={{ maxWidth: "600px", margin: "0 auto" }}
+    >
       {/* Back button */}
       <button
         type="button"
@@ -234,6 +263,7 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
             Choose Your Move
           </Text>
           <div
+            className="zk-move-buttons"
             style={{
               display: "flex",
               gap: "12px",
@@ -249,13 +279,9 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
                 padding: "20px",
                 borderRadius: "12px",
                 border:
-                  selectedMove === "C"
-                    ? "3px solid #4CAF50"
-                    : "2px solid #ddd",
+                  selectedMove === "C" ? "3px solid #4CAF50" : "2px solid #ddd",
                 background:
-                  selectedMove === "C"
-                    ? "rgba(76, 175, 80, 0.1)"
-                    : "white",
+                  selectedMove === "C" ? "rgba(76, 175, 80, 0.1)" : "white",
                 cursor: isLoadingState ? "not-allowed" : "pointer",
                 transition: "all 0.2s",
                 fontFamily: "FuturaHandwritten",
@@ -287,13 +313,9 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
                 padding: "20px",
                 borderRadius: "12px",
                 border:
-                  selectedMove === "D"
-                    ? "3px solid #F44336"
-                    : "2px solid #ddd",
+                  selectedMove === "D" ? "3px solid #F44336" : "2px solid #ddd",
                 background:
-                  selectedMove === "D"
-                    ? "rgba(244, 67, 54, 0.1)"
-                    : "white",
+                  selectedMove === "D" ? "rgba(244, 67, 54, 0.1)" : "white",
                 cursor: isLoadingState ? "not-allowed" : "pointer",
                 transition: "all 0.2s",
                 fontFamily: "FuturaHandwritten",
@@ -388,7 +410,13 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
               fontFamily: "FuturaHandwritten",
             }}
           >
-            <p style={{ margin: "0 0 4px", fontWeight: "bold", fontSize: "13px" }}>
+            <p
+              style={{
+                margin: "0 0 4px",
+                fontWeight: "bold",
+                fontSize: "13px",
+              }}
+            >
               🔑 Save Your Nonce!
             </p>
             <p style={{ margin: "0 0 4px", fontSize: "12px", color: "#666" }}>

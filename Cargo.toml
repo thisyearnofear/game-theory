@@ -1,5 +1,5 @@
 [workspace]
-members = ["contracts/*"]
+members = ["contracts/zk_dilemma"]
 resolver = "2"
 
 [workspace.package]
@@ -10,7 +10,7 @@ repository = "https://github.com/theahaco/scaffold-stellar"
 version = "0.0.1"
 
 [workspace.dependencies.soroban-sdk]
-version = "23.0.2"
+version = "26.0.1"
 
 [workspace.dependencies.stellar-access]
 git = "https://github.com/OpenZeppelin/stellar-contracts"

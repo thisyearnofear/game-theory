@@ -1,12 +1,10 @@
 import React, { useMemo, useState } from "react";
 import { Button, Input, Text } from "@stellar/design-system";
-import { useWallet } from "../../hooks/useWallet";
 import { Character, CharacterEmotion } from "../Character";
 import { VeniceAIService } from "../ai/VeniceAIService";
 import { AI_PERSONAS } from "../ai/AIPersonas";
 import AudioManager from "../AudioManager";
 import { SlideProps } from "../SlideSystem";
-import { useSinglePlayerGame } from "../../hooks/useSinglePlayerGame";
 import {
   TitForTatStrategy,
   AlwaysCooperateStrategy,
@@ -25,13 +23,13 @@ const STRATEGY_MAP: Record<string, typeof RandomStrategy> = {
 
 const GAME_MODES = {
   singlePlayer: {
-    label: "🤖 Single Player",
-    description: "Play against AI in one instant transaction",
+    label: "🤖 Tutorial (vs AI)",
+    description: "Learn the game — simulated, no wallet needed",
     selected: true,
   },
   multiplayer: {
-    label: "👥 Multiplayer",
-    description: "Play against another human (coming soon)",
+    label: "👥 ZK Multiplayer",
+    description: "Play against a human with ZK proofs on Stellar",
     selected: false,
   },
 } as const;
@@ -174,11 +172,6 @@ export const GameSlide: React.FC<SlideProps> = () => {
     [gameHistory],
   );
 
-  const { address, signTransaction } = useWallet();
-  const { playGame: playSinglePlayerGame } = useSinglePlayerGame(
-    address,
-    signTransaction,
-  );
   const audioManager = AudioManager.getInstance();
 
   const generateAIFeedback = async (gameData: {
@@ -234,7 +227,7 @@ export const GameSlide: React.FC<SlideProps> = () => {
   };
 
   const playGameInternal = async () => {
-    if (!move || !address || !signTransaction) return;
+    if (!move) return;
 
     setLoading(true);
     setShowCharacters(true);
@@ -247,7 +240,7 @@ export const GameSlide: React.FC<SlideProps> = () => {
       const aiMove = selectedStrategy.getMove(playerMoveHistory);
 
       // Get stake with fallback
-      const stakeStr = stake && stake.trim() ? stake : "1";
+      const stakeStr = stake || "1";
       const stakeAmount = parseFloat(stakeStr);
 
       // Validate stake amount
@@ -270,16 +263,32 @@ export const GameSlide: React.FC<SlideProps> = () => {
         `Playing game: move=${playerMove}, stake=${stakeAmount} XLM (${stakeInStroops} stroops), strategy=${aiStrategy}`,
       );
 
-      // Call the single-player contract
-      const result = await playSinglePlayerGame(
-        playerMove,
-        aiStrategy,
-        stakeInStroops,
-      );
+      // Local simulation — calculate payouts using standard PD matrix
+      const stake = stakeAmount;
+      let playerPayout: number;
+      let aiPayout: number;
+      if (playerMove === "C" && aiMove === "C") {
+        playerPayout = stake * 2;
+        aiPayout = stake * 2;
+      } else if (playerMove === "C" && aiMove === "D") {
+        playerPayout = 0;
+        aiPayout = stake * 3;
+      } else if (playerMove === "D" && aiMove === "C") {
+        playerPayout = stake * 3;
+        aiPayout = 0;
+      } else {
+        playerPayout = 0;
+        aiPayout = 0;
+      }
 
-      // Payouts come from the contract result
-      const playerPayout = result.playerPayout;
-      const aiPayout = result.aiPayout;
+      const result = {
+        gameId: Date.now(),
+        playerMove,
+        aiMove,
+        playerPayout,
+        aiPayout,
+        txHash: `sim-${Date.now()}`,
+      };
 
       // ENHANCEMENT: Update game state for AI tutor
       const outcome =
@@ -371,75 +380,6 @@ Transaction: ${result?.txHash ? "✅ Confirmed" : "⏳ Pending"}
     setShowCharacters(false);
     audioManager.playSound("click");
   };
-
-  if (!address) {
-    return (
-      <div style={{ textAlign: "center", padding: "40px" }}>
-        <Character type="neutral" emotion="thinking" size="large" />
-        <Text
-          as="p"
-          size="md"
-          style={{
-            fontFamily: "FuturaHandwritten",
-            color: "rgba(255,255,255,0.9)",
-            fontSize: "1.2rem",
-            marginTop: "20px",
-          }}
-        >
-          Connect your wallet to experience trust with real stakes
-        </Text>
-
-        {/* CORE: Integrated AI Feedback */}
-        {aiMessage && (
-          <div
-            style={{
-              background: "rgba(255,255,255,0.95)",
-              borderRadius: "15px",
-              padding: "20px",
-              margin: "20px 0",
-              boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-              border: `2px solid ${aiPersona.color}`,
-              position: "relative",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "10px",
-                marginBottom: "10px",
-              }}
-            >
-              <span style={{ fontSize: "24px" }}>{aiPersona.emoji}</span>
-              <Text
-                as="h4"
-                size="md"
-                style={{
-                  fontFamily: "FuturaHandwritten",
-                  color: aiPersona.color,
-                  margin: 0,
-                }}
-              >
-                {aiPersona.name}
-              </Text>
-            </div>
-            <Text
-              as="p"
-              size="md"
-              style={{
-                fontFamily: "FuturaHandwritten",
-                color: "#333",
-                lineHeight: "1.4",
-                margin: 0,
-              }}
-            >
-              {aiMessage}
-            </Text>
-          </div>
-        )}
-      </div>
-    );
-  }
 
   return (
     <div style={{ maxWidth: "600px", margin: "0 auto", textAlign: "center" }}>
@@ -635,9 +575,7 @@ Transaction: ${result?.txHash ? "✅ Confirmed" : "⏳ Pending"}
 
         <select
           value={aiStrategy}
-          onChange={(e) =>
-            setAiStrategy(e.target.value)
-          }
+          onChange={(e) => setAiStrategy(e.target.value)}
           disabled={loading}
           style={{
             fontFamily: "FuturaHandwritten",
@@ -850,9 +788,7 @@ Transaction: ${result?.txHash ? "✅ Confirmed" : "⏳ Pending"}
             style={{
               fontFamily: "FuturaHandwritten",
               color: "#667eea",
-              marginBottom: "15px",
-              margin: 0,
-              marginBottom: "15px",
+              margin: "0 0 15px 0",
             }}
           >
             📊 Session Summary

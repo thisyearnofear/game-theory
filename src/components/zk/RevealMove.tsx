@@ -29,13 +29,22 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
   const [selectedMove, setSelectedMove] = useState<GameMove | null>(null);
   const [txError, setTxError] = useState<string | null>(null);
 
-  // Auto-fill nonce from sessionStorage (set during commit step)
+  // Auto-fill nonce and move from storage (set during commit step)
+  // Check localStorage first (survives browser close), then sessionStorage
   useEffect(() => {
-    const stored = sessionStorage.getItem(`zk_nonce_game_${gameId}`);
-    if (stored && !revealNonce) {
-      setRevealNonce(stored);
+    const nonceKey = `zk_nonce_game_${gameId}`;
+    const moveKey = `zk_move_game_${gameId}`;
+    const storedNonce =
+      localStorage.getItem(nonceKey) || sessionStorage.getItem(nonceKey);
+    const storedMove =
+      localStorage.getItem(moveKey) || sessionStorage.getItem(moveKey);
+    if (storedNonce && !revealNonce) {
+      setRevealNonce(storedNonce);
     }
-  }, [gameId, revealNonce]);
+    if (storedMove && !selectedMove) {
+      setSelectedMove(storedMove as GameMove);
+    }
+  }, [gameId, revealNonce, selectedMove]);
 
   // Determine the player's role
   const isPlayer1 = address === gameState.player1;
@@ -152,11 +161,7 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
           {opponentRevealed ? "resolution..." : "your opponent to reveal..."}
         </Text>
         {!opponentRevealed && timeRemaining > 0 && (
-          <Text
-            as="p"
-            size="sm"
-            style={{ color: "#666", marginTop: "8px" }}
-          >
+          <Text as="p" size="sm" style={{ color: "#666", marginTop: "8px" }}>
             ⏱️ You can claim forfeit after the deadline (
             {Math.floor(timeRemaining / 60)}m {timeRemaining % 60}s remaining)
           </Text>
@@ -233,7 +238,21 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
         </div>
       )}
 
-      {/* Move selection */}
+      {/* Move selection — confirm the move you committed earlier */}
+      <Text
+        as="p"
+        size="sm"
+        style={{
+          margin: "0 0 8px 0",
+          color: "#666",
+          textAlign: "center",
+          fontFamily: "FuturaHandwritten",
+        }}
+      >
+        {selectedMove
+          ? "Confirm your committed move (must match your commitment)"
+          : "Select the move you committed earlier"}
+      </Text>
       <div
         style={{
           display: "flex",

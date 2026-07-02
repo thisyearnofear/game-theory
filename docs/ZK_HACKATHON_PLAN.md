@@ -4,7 +4,7 @@
 
 **Project Name:** ZK Trust (evolution of the existing "Game Theory on Stellar")
 
-**One-liner:** A ZK-powered private multiplayer Prisoner's Dilemma on Stellar where players commit moves via zero-knowledge proofs, enabling truly simultaneous strategy selection on a transparent blockchain, plus private reputation proofs that let players prove their cooperation history without revealing individual moves.
+**One-liner:** A ZK-powered multiplayer Prisoner's Dilemma on Stellar where players commit moves via zero-knowledge proofs, enabling truly simultaneous strategy selection on a transparent blockchain.
 
 ---
 
@@ -12,15 +12,15 @@
 
 The Prisoner's Dilemma requires **simultaneous commitment** — neither player should know the opponent's move before committing their own. On a transparent public ledger like Stellar, this is fundamentally broken.
 
-If Player 1 submits "Cooperate" as a plaintext transaction, Player 2 can read it on-chain before submitting "Defect." The game's strategic integrity collapses. The current app sidesteps this by only supporting single-player (AI) games with deterministic AI moves, which makes the AI predictable and eliminates true adversarial play.
+If Player 1 submits "Cooperate" as a plaintext transaction, Player 2 can read it on-chain before submitting "Defect." The game's strategic integrity collapses.
 
 ### Why Existing Workarounds Fall Short
 
-| Approach | Problem |
-|---|---|
+| Approach                  | Problem                                                                                                                                       |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | Commit-reveal (hash only) | A player can commit to garbage, observe the opponent's reveal, then "reveal" a winning move. No proof the commitment is to a valid game move. |
-| Trusted third party | Defeats the purpose of decentralization. Single point of failure. |
-| Single-player AI only | No real adversarial play. AI moves are deterministic and predictable. Current state of this app. |
+| Trusted third party       | Defeats the purpose of decentralization. Single point of failure.                                                                             |
+| Single-player AI only     | No real adversarial play. AI moves are deterministic and predictable.                                                                         |
 
 ## The ZK Solution
 
@@ -32,11 +32,39 @@ The ZK proof proves the commitment is to a **valid game move specifically** (C o
 
 This is not privacy-for-privacy's-sake. The ZK proof is what makes fair, trustless multiplayer Prisoner's Dilemma possible on a public blockchain. Without it, the game is either broken (transparent moves) or trust-dependent (third-party arbiter).
 
-### Secondary ZK Feature: Private Reputation Proofs
+---
 
-After playing multiple games, a player generates a ZK proof: "I have cooperated in at least N% of my games" — verified over their encrypted game history without revealing individual moves, opponents, or outcomes. This enables trust-building reputation systems on-chain, directly connecting to the app's educational theme about how trust evolves through repeated interaction.
+## What Was Actually Built (Current State)
 
-**Real-world relevance**: This pattern — proving properties about private transaction history without revealing the transactions themselves — maps directly to compliance proofs, creditworthiness assertions, and institutional settlement scenarios where privacy is a hard requirement.
+### ✅ Completed
+
+1. **Noir circuit** (`circuits/move_commitment/`) — Proves `keccak256(move || nonce || game_id) == commitment` where `move ∈ {0, 1}`. Uses external `noir-lang/keccak256` library. Public inputs: `commitment_high`, `commitment_low` (two 128-bit Field elements for 32-byte alignment), `game_id`.
+
+2. **Soroban contract** (`contracts/zk_dilemma/`) — On-chain UltraHonk proof verification via `ultrahonk_soroban_verifier` (NethermindEth). Keccak256 commitment verification. XLM escrow with proper auth. Timeout-based forfeit logic. Recovery functions (`cancel_game`, `claim_refund`) for stuck games. Contract events for off-chain indexing. Self-join prevention. `soroban-sdk` 26.x for BN254 host functions.
+
+3. **Browser proof generation** — `@noir-lang/noir_js@1.0.0-beta.9` + `@aztec/bb.js@0.87.0` (pinned to match toolchain). Proof generated with `{ keccak: true }` (non-ZK keccak UltraHonk flavor) to match on-chain verifier. Circuit JSON served from `public/circuits/`. **Lazy-loaded** — bb.js/noir_js are dynamically imported on first proof generation, keeping the initial page load bundle at ~200KB (WASM only downloads when needed).
+
+4. **Frontend** — React + TypeScript. GameLobby, CommitMove, RevealMove, GameResult components. `useZKDilemma` hook with typed client. Wallet integration via Stellar Wallets Kit. **Auto-retry** for game_id race condition in create flow. **Mobile responsive** breakpoints. **Onboarding overlay** (3-step ZK tutorial) on first visit to `/play`. Cancel/refund UI for stuck games with countdown timers.
+
+5. **Tests** — 9/9 Rust tests passing, including `test_verify_proof_real_proof` (verifies a real 14,592-byte UltraHonk proof on-chain), `test_cancel_game_after_commit_deadline`, `test_claim_refund_both_timeout`, `test_self_join_prevented`. Cross-verified: bb.js-generated proof verified against the Rust on-chain verifier.
+
+6. **Deployed** — Contract deployed and initialized on testnet: `CBGH6QAUEZSYRG3GJZKCUX6ELK7GJZDQ7JN3NBXMZNGEHDZGPLMOI5NS` (note: redeployment needed for new recovery functions + events)
+
+7. **WASM** — 28KB optimized contract WASM.
+
+8. **Tutorial mode** — Educational slide system with local simulation (no wallet/contract needed). AI tutor feedback via Venice AI. Strategy selection (Random, AlwaysCooperate, AlwaysDefect, Tit-for-Tat).
+
+### ⬜ Not Built (Honest Gaps)
+
+1. **Reputation proofs** — The original plan included ZK reputation proofs ("I've cooperated in N% of games"). Not implemented. The circuit, contract functions, and frontend UI for this were not built.
+
+2. **Iterated games** — Only single-round games are supported. The original plan mentioned multi-round gameplay with move history.
+
+3. **Tournament system** — Not built.
+
+4. **End-to-end browser test** — The cryptographic path (bb.js → on-chain verifier) is cross-verified, but a full two-wallet browser session has not been tested end-to-end.
+
+5. **Contract redeployment** — The WASM with new recovery functions and events is built but not yet deployed to testnet. Requires a Stellar key to deploy.
 
 ---
 
@@ -45,91 +73,64 @@ After playing multiple games, a player generates a ZK proof: "I have cooperated 
 ### Commit Phase
 
 1. Player selects move (C or D) and generates a random nonce
-2. Off-chain, player generates a Noir ZK proof:
-   - **Public inputs**: `commitment = Poseidon2(move, nonce, player_address, game_id)`
+2. Browser computes `keccak256(move || nonce || game_id)` — the commitment
+3. Browser generates a Noir UltraHonk ZK proof:
+   - **Public inputs**: `commitment_high`, `commitment_low` (32-byte commitment split into two 128-bit Field elements), `game_id`
    - **Private inputs**: `move` (must be 0 or 1), `nonce`
-   - **Circuit constraints**: `move == 0 OR move == 1` (proves the commitment is to a valid game move)
-3. Player submits `commitment` + ZK proof to the Stellar contract
-4. Contract verifies the ZK proof using Protocol 25/26 native host functions (Poseidon2 + BN254)
-5. Contract records the commitment and rejects invalid proofs
+   - **Circuit constraints**: `move == 0 OR move == 1`, `keccak256(move || nonce || game_id) == commitment`
+4. Player submits `commitment` + ZK proof to the Stellar contract
+5. Contract verifies the ZK proof using the `ultrahonk_soroban_verifier` (BN254 host functions)
+6. Contract records the commitment and rejects invalid proofs
 
 ### Reveal Phase
 
 1. After both players have committed, each player reveals `move` and `nonce`
-2. Contract verifies `Poseidon2(move, nonce, player_address, game_id) == commitment`
+2. Contract verifies `keccak256(move || nonce || game_id) == commitment`
 3. If a player fails to reveal within the timeout window, they forfeit (stake goes to opponent)
-4. Contract calculates payoffs using the standard Prisoner's Dilemma matrix
 
 ### Settlement Phase
 
-1. Contract transfers XLM based on payoff calculation
-2. Game result is recorded on-chain (move values are now public, but the strategic fairness was preserved during the commitment phase)
-3. Player's encrypted reputation accumulator is updated for future ZK reputation proofs
-
-### Reputation Proof Flow (Bonus)
-
-1. Player accumulates encrypted game history (wins, losses, cooperation rate) in a Merkle tree stored on-chain
-2. To prove reputation: player generates a Noir proof over the Merkle tree — "My cooperation rate across N games is at least X%"
-3. Contract verifies the proof without learning individual game outcomes
-4. Other contracts or dApps can request reputation proofs for matchmaking, staking requirements, or trust scoring
+1. Contract calculates payoffs using the standard Prisoner's Dilemma matrix
+2. XLM is transferred from escrow to both players based on payoff
+3. Game result is recorded on-chain (move values are now public, but strategic fairness was preserved during commitment)
 
 ---
 
 ## Technical Stack
 
-### ZK Layer: Noir
+### ZK Layer: Noir + UltraHonk
 
-**Why Noir over Circom/RISC Zero:**
-- Rust-based syntax, consistent with existing Rust contract code
-- Simple circuit (prove knowledge of valid move + nonce that hashes to commitment)
-- Protocol 26 made Noir (UltraHonk) proof verification meaningfully cheaper on Stellar
-- Existing verifier: [yugocabrio/rs-soroban-ultrahonk](https://github.com/yugocabrio/rs-soroban-ultrahonk)
-- Readable circuit code matches the educational tone of the project
+- **Circuit**: `circuits/move_commitment/src/main.nr` — keccak256-based commitment
+- **Prover**: `@aztec/bb.js@0.87.0` in browser (WASM), `bb` CLI for testing
+- **Verifier**: `ultrahonk_soroban_verifier` from NethermindEth/rs-soroban-ultrahonk
+- **Proof size**: 14,592 bytes (456 field elements, non-ZK keccak flavor)
+- **Hash function**: keccak256 (not Poseidon2 — changed to match contract's `env.crypto().keccak256`)
 
-**Noir Circuit (conceptual):**
-```noir
-fn main(
-    // Private inputs
-    move: Field,     // 0 = Cooperate, 1 = Defect
-    nonce: Field,    // Random blinding value
-    // Public inputs
-    commitment: pub Field,
-    player_address: pub Field,
-    game_id: pub Field,
-) {
-    // Constraint: move must be valid (0 or 1)
-    let is_valid = move == 0 | move == 1;
-    assert(is_valid);
+### Smart Contract: Soroban (Rust)
 
-    // Constraint: commitment must match
-    let computed = poseidon2([move, nonce, player_address, game_id]);
-    assert(computed == commitment);
-}
-```
+- `soroban-sdk` 26.x with `alloc` feature for WASM build
+- BN254 host functions for pairing-based proof verification
+- `env.crypto().keccak256()` for commitment verification
+- Native XLM (Stellar Asset Contract) for escrow
 
-### Smart Contract Layer: Soroban (Rust)
+### Frontend: React + TypeScript
 
-**New contract: `zk_dilemma`**
+- `@noir-lang/noir_js@1.0.0-beta.9` for witness generation
+- `@aztec/bb.js@0.87.0` for UltraHonk proof generation
+- `@noble/hashes` for client-side keccak256
+- Circuit JSON loaded from `public/circuits/move_commitment.json`
+- Stellar Wallets Kit for wallet connection
 
-Leverages Protocol 25 ("X-Ray") host functions:
-- `Poseidon2` hashing for commitments
-- `BN254` elliptic curve operations for proof verification
+### Version Pinning
 
-Leverages Protocol 26 ("Yardstick") host functions:
-- Multi-scalar multiplication for batch proof verification
-- Scalar-field arithmetic for efficient proof math
+The browser proof generation packages are pinned to match the local toolchain:
 
-### Frontend: React + TypeScript (existing)
+- `nargo 1.0.0-beta.9` → `@noir-lang/noir_js@1.0.0-beta.9`
+- `bb v0.87.0` → `@aztec/bb.js@0.87.0`
 
-- Noir proofs generated client-side using `noir_js` (WASM)
-- Existing wallet integration (Stellar Wallets Kit) reused
-- Existing educational slide system repurposed as an onboarding tutorial before ZK multiplayer
+These must match. A version mismatch causes `acvm_js` to fail deserializing the circuit.
 
-### Proof Generation: Off-chain
-
-- Noir proofs generated in the browser via `noir_js_wasm`
-- Prover key bundled with the frontend
-- Verification key embedded in the Soroban verifier contract
+The proof is generated with `{ keccak: true }` (non-ZK keccak UltraHonk flavor) to match the on-chain verifier. Do NOT use `{ keccakZK: true }` or `{ verifierTarget: "evm" }` — those produce different proof variants that fail on-chain verification.
 
 ---
 
@@ -140,15 +141,16 @@ Leverages Protocol 26 ("Yardstick") host functions:
 │                    Frontend (React)                       │
 │                                                          │
 │  ┌──────────────┐  ┌──────────────┐  ┌───────────────┐  │
-│  │  Educational  │  │  ZK Game     │  │  Reputation   │  │
-│  │  Tutorial     │  │  Lobby &     │  │  Dashboard    │  │
-│  │  (slides)     │  │  Matchmaking │  │  (ZK proofs)  │  │
+│  │  Educational  │  │  ZK Game     │  │  Game         │  │
+│  │  Tutorial     │  │  Lobby &     │  │  Result       │  │
+│  │  (slides)     │  │  Matchmaking │  │  Display      │  │
 │  └──────────────┘  └──────────────┘  └───────────────┘  │
 │                           │                              │
 │  ┌────────────────────────┼──────────────────────────┐  │
-│  │         Noir JS (WASM) Proof Generation           │  │
-│  │  - Move commitment proof                            │  │
-│  │  - Reputation proof                                 │  │
+│  │    noir_js + bb.js (WASM) Proof Generation        │  │
+│  │  - Witness generation (noir_js)                    │  │
+│  │  - UltraHonk proof (bb.js, keccak non-ZK)         │  │
+│  │  - keccak256 commitment (@noble/hashes)           │  │
 │  └────────────────────────┼──────────────────────────┘  │
 └──────────────────────────┼──────────────────────────────┘
                            │
@@ -161,81 +163,19 @@ Leverages Protocol 26 ("Yardstick") host functions:
 │  │            zk_dilemma Contract                      │  │
 │  │                                                      │  │
 │  │  ┌─────────────┐  ┌─────────────┐  ┌────────────┐  │  │
-│  │  │ Commit      │  │ Reveal &    │  │ Reputation │  │  │
-│  │  │ Verifier    │  │ Resolve     │  │ Accrual    │  │  │
-│  │  │ (ZK proof   │  │ (payoff     │  │ (encrypted │  │  │
-│  │  │  check)     │  │  calc +     │  │  Merkle    │  │  │
-│  │  │             │  │  XLM transfer│ │  tree)     │  │  │
+│  │  │ Commit      │  │ Reveal &    │  │ Escrow &   │  │  │
+│  │  │ Verifier    │  │ Resolve     │  │ Payout     │  │  │
+│  │  │ (UltraHonk  │  │ (keccak256  │  │ (XLM SAC   │  │  │
+│  │  │  proof chk) │  │  hash chk)  │  │  transfers)│  │  │
 │  │  └─────────────┘  └─────────────┘  └────────────┘  │  │
-│  │                                                      │  │
-│  │  Uses Protocol 25/26 host functions:                │  │
-│  │  - poseidon2_hash() for commitments                 │  │
-│  │  - bn254_scalar_mul() for proof verification        │  │
-│  │  - bn254_msm() for multi-scalar multiplication      │  │
 │  └──────────────────────────────────────────────────────┘  │
 │                                                          │
 │  ┌──────────────────────────────────────────────────────┐│
-│  │         UltraHonk Verifier Contract                  ││
-│  │  (from yugocabrio/rs-soroban-ultrahonk)              ││
-│  │  Verifies Noir proofs using BN254 host functions     ││
+│  │    ultrahonk_soroban_verifier (NethermindEth)        ││
+│  │  Verifies UltraHonk proofs using BN254 host funcs    ││
 │  └──────────────────────────────────────────────────────┘│
 └──────────────────────────────────────────────────────────┘
 ```
-
----
-
-## App Restructure
-
-The app restructures around ZK multiplayer as the primary experience, with the existing educational slides serving as an onboarding tutorial.
-
-### New Page Structure
-
-```
-/                    → Landing: "Zero-Knowledge Trust" intro + Connect Wallet
-/tutorial            → Educational slides (existing, repurposed as onboarding)
-/play                → ZK Multiplayer game lobby + active games
-/reputation          → Player reputation dashboard with ZK proof generation
-/history             → On-chain game history (public reveals only)
-/debug               → Contract debugger (existing, kept for development)
-```
-
-### Component Restructure
-
-**Delete (superseded by ZK multiplayer):**
-- `src/components/PrisonersDilemma.tsx` — replaced by ZK game component
-- `src/hooks/useGameState.ts` — replaced by ZK game hook
-- `src/components/GuessTheNumber.tsx` — scaffold demo, not part of the product
-- `src/components/slides/TournamentSlide.tsx` — client-side simulation, replaced by on-chain ZK tournament (if time permits)
-- `src/components/slides/IteratedSlide.tsx` — client-side simulation, replaced by on-chain iterated ZK games (if time permits)
-
-**Keep & fix:**
-- `src/components/slides/IntroSlide.tsx` — update content for ZK framing
-- `src/components/slides/GameSlide.tsx` — refactor as the tutorial game (single-player, no stakes, teaching the basics)
-- `src/components/slides/ConclusionSlide.tsx` — update for ZK + privacy themes
-- `src/components/SlideSystem.tsx` — keep as tutorial framework
-- `src/components/Character.tsx` — keep, reuse in multiplayer UI
-- `src/components/AudioManager.tsx` — keep, fix Howl instantiation
-- `src/components/ai/*` — keep AI tutor for educational mode, potentially add ZK-aware tutoring
-- `src/providers/WalletProvider.tsx` — keep, fix polling
-- `src/hooks/useWallet.ts` — keep
-- `src/hooks/useWalletBalance.ts` — keep
-- `src/components/ConnectAccount.tsx`, `WalletButton.tsx`, `NetworkPill.tsx`, `FundAccountButton.tsx` — keep
-
-**New (ZK multiplayer):**
-- `contracts/zk_dilemma/` — new Soroban contract (Rust)
-- `src/contracts/zk_dilemma.ts` — generated TS client
-- `noir-circuits/move_commitment/` — Noir circuit for move commitment
-- `noir-circuits/reputation/` — Noir circuit for reputation proofs
-- `src/hooks/useZKGame.ts` — ZK game state management
-- `src/hooks/useNoirProof.ts` — Noir proof generation hook
-- `src/hooks/useReputation.ts` — reputation proof generation
-- `src/components/game/GameLobby.tsx` — matchm finding, create/join games
-- `src/components/game/CommitMove.tsx` — move selection + ZK proof generation
-- `src/components/game/RevealMove.tsx` — reveal phase UI
-- `src/components/game/GameResult.tsx` — outcome display with on-chain verification
-- `src/components/game/ActiveGames.tsx` — list of games awaiting opponents
-- `src/components/reputation/ReputationDashboard.tsx` — reputation stats + proof generation
-- `src/components/reputation/ReputationProof.tsx` — generate and verify reputation proofs
 
 ---
 
@@ -244,192 +184,89 @@ The app restructures around ZK multiplayer as the primary experience, with the e
 ### Storage
 
 ```rust
-// Game states
-enum GameStatus { AwaitingPlayer2, BothCommitted, Revealed, Resolved, Forfeited }
+enum GameStatus { AwaitingPlayer2, BothCommitted, Resolved, Forfeited, Cancelled }
 
 struct Game {
     player1: Address,
     player2: Option<Address>,
-    commitment1: Option<Hash>,    // Poseidon2(move, nonce, player, game_id)
-    commitment2: Option<Hash>,
-    proof1: Option<Vec<u8>>,       // Noir proof bytes
-    proof2: Option<Vec<u8>>,
-    move1: Option<Symbol>,         // Set during reveal
+    commitment1: Bytes,          // keccak256(move || nonce || game_id)
+    commitment2: Option<Bytes>,
+    move1: Option<Symbol>,       // Set during reveal
     move2: Option<Symbol>,
-    nonce1: Option<Field>,
-    nonce2: Option<Field>,
+    nonce1: Option<u64>,
+    nonce2: Option<u64>,
     stake: i128,
     status: GameStatus,
     created_at: u64,
-    commit_deadline: u64,          // Timeout for opponent to commit
-    reveal_deadline: u64,          // Timeout for both to reveal
-}
-
-// Reputation (encrypted Merkle tree root per player)
-struct ReputationState {
-    merkle_root: Hash,
-    total_games: u32,
-    commitment: Field,             // Pedersen commitment to cooperation rate
+    commit_deadline: u64,        // Timeout for opponent to commit
+    reveal_deadline: u64,        // Timeout for both to reveal
 }
 ```
+
+Note: Proofs are NOT persisted on-chain. They are verified at commit time and discarded. Only the commitment is stored.
 
 ### Functions
 
 ```rust
-// Create a new game with ZK commitment
+fn initialize(env, vk_bytes: Bytes, xlm_token: Address)  // Set VK + token
 fn create_game(env, player, commitment, proof, stake) -> u64
-
-// Join with ZK commitment
 fn join_game(env, player, game_id, commitment, proof) -> Result
-
-// Reveal move + nonce (contract verifies against commitment)
 fn reveal_move(env, player, game_id, move, nonce) -> Result
-
-// Resolve after both reveal (or forfeit after timeout)
-fn resolve_game(env, game_id) -> Result<(payout1, payout2)>
-
-// Claim forfeit if opponent didn't reveal
+fn resolve_game(env, game_id) -> Result
 fn claim_forfeit(env, game_id) -> Result
-
-// Update reputation Merkle tree (called during resolve)
-fn update_reputation(env, player, new_leaf, merkle_proof) -> Result
-
-// Verify a reputation ZK proof
-fn verify_reputation(env, player, proof, public_cooperation_rate) -> bool
+fn cancel_game(env, player1, game_id) -> Result          // Recovery: no opponent joined
+fn claim_refund(env, game_id) -> Result                  // Recovery: both timed out
+fn get_game(env, game_id) -> Option<Game>
+fn get_game_count(env) -> u32
+fn get_vk(env) -> Option<Bytes>
 ```
 
-### XLM Transfers (fixing the critical gap)
+### XLM Escrow
 
-The current contracts don't transfer XLM. The new `zk_dilemma` contract will:
+1. **`create_game`**: Transfer stake from player1 to contract escrow
+2. **`join_game`**: Transfer stake from player2 to contract escrow
+3. **`resolve_game`**: Transfer payouts to both players based on payoff matrix
+4. **`claim_forfeit`**: Transfer full escrow (2× stake) to the revealing player
+5. **`cancel_game`**: Return stake to player1 if no opponent joined before commit deadline
+6. **`claim_refund`**: Split escrow — return each player's stake if both failed to reveal
 
-1. **On `create_game`**: Transfer stake from player1 to contract escrow
-2. **On `join_game`**: Transfer stake from player2 to contract escrow
-3. **On `resolve_game`**: Transfer payouts to both players based on payoff matrix
-4. **On `claim_forfeit`**: Transfer full escrow to the revealing player
+### Events
 
-Uses `token::Client` from the Soroban SDK for native XLM (Stellar asset contract).
+The contract emits events for off-chain indexing:
 
----
-
-## Bug Fixes (Integrated into ZK Refactor)
-
-The following issues from the code review are addressed as part of the ZK restructure:
-
-### Critical Fixes
-
-1. **Implement actual XLM transfers** — The new `zk_dilemma` contract handles escrow and payout transfers using `token::Client`. No more TODO.
-
-2. **Fix Tit-for-Tat** — TFT requires move history. The new contract stores move history per game, and TFT logic mirrors the opponent's last move. For iterated games (future scope), per-player history enables true TFT.
-
-3. **Consolidate duplicate implementations** — Delete `PrisonersDilemma.tsx` and `useGameState.ts`. The `GameSlide.tsx` becomes the tutorial-only component. All real games go through the new `useZKGame` hook.
-
-4. **Unify payoff values** — Single source of truth in the `zk_dilemma` contract: CC=2x, CD=0/3x, DC=3x/0, DD=0. Frontend reads from contract result, not local calculation.
-
-5. **Wire up `strategies.ts`** — Either integrate the 9 strategies into the ZK game (for AI opponents in tutorial mode) or remove as dead code. Plan: integrate for tutorial mode, remove for ZK multiplayer (which is human-vs-human).
-
-6. **Fix `txHash` placeholders** — Use actual transaction hashes from `signAndSend` response.
-
-### Architecture Fixes
-
-7. **Fix wallet polling** — Reduce from 1s to 5s. Don't call `getAddress()` on every poll (only on initial connect and explicit reconnect). Use stored address from localStorage.
-
-8. **Fix Howl instantiation** — Move `new Howl()` calls into `useMemo` or `useRef` hooks. The `AudioManager` singleton pattern is correct; the direct Howl calls in `PrisonersDilemma.tsx` and `TournamentSlide.tsx` are the problem (and those files are being deleted).
-
-9. **Add error boundaries** — Wrap the app in React Error Boundaries with fallback UI. Especially important for ZK proof generation failures.
-
-10. **Remove dead code** — `LLMOpponent.ts` (never used), `GuessTheNumber.tsx` (scaffold demo), unused contracts (`fungible-allowlist`, `nft-enumerable`), `useSubscription.ts` (no events to subscribe to yet).
-
-### Code Quality Fixes
-
-11. **Extract inline styles** — Create CSS modules for each component. The `slides.css` file is a start; extend the pattern.
-
-12. **Add responsive design** — Media queries for mobile/tablet. Critical for a hackathon demo that judges might view on various devices.
-
-13. **Remove `as any` casts** — Type the `connectWallet` response properly.
-
-14. **Fix `eslint-disable` comments** — Address the exhaustive-deps warnings in `WalletProvider` and `Debugger` properly rather than suppressing.
-
----
-
-## Current Status: ✅ Phase 1 Complete, Phase 2 Complete (Core Done)
-
-### Phase 1: Foundation — Complete ✅
-
-1. ✅ **Dead code deleted** — `PrisonersDilemma.tsx`, `useGameState.ts`, `GuessTheNumber.tsx`, `LLMOpponent.ts`, unused contracts removed
-2. ✅ **Error boundaries added** — `ErrorBoundary.tsx` wraps the app
-3. ✅ **Noir circuit written** — Move commitment circuit at `circuits/move_commitment/` using `pedersen_hash`
-4. ✅ **`zk_dilemma` contract built** — Complete contract with:
-   - `create_game` (commit + proof verification via keccak256)
-   - `join_game` (commit + proof verification)
-   - `reveal_move` (keccak256 hash verification)
-   - `resolve_game` (payoff calculation + XLM transfers)
-   - `claim_forfeit` (timeout-based escrow return)
-5. ✅ **Rust tests written** — 8 tests covering game logic, commitment verification, payoff calculation, error cases
-6. ✅ **Noir circuit compiles** — Generates `move_commitment.json`
-
-### Phase 2: Core ZK Multiplayer — Complete ✅
-
-1. ✅ **`reveal_move` implemented** — Verifies keccak256(move || nonce || game_id) against stored commitment
-2. ✅ **`resolve_game` implemented** — Payoff calculation with payout matrix (CC=2×, CD=0/3×, DC=3×/0, DD=0) + XLM escrow transfers
-3. ✅ **`claim_forfeit` implemented** — Full escrow (2× stake) to the player who revealed before deadline
-4. ✅ **Frontend built:**
-   - `GameLobby` — Create/join games, list active and open games
-   - `CommitMove` — Move selection (Cooperate/Defect), stake input, keccak256 commitment generation, proof generation
-   - `RevealMove` — Reveal with nonce auto-fill from sessionStorage, deadline timer, forfeit info
-   - `GameResult` — Outcome display, resolve/forfeit actions, payout visualization
-5. ✅ **`useZKDilemma` hook wired** — Full lifecycle: fetch games, create, join, reveal, resolve, claim forfeit
-6. ✅ **WASM compiled** — `zk_dilemma.wasm` (11KB) built for `wasm32v1-none` target
-7. ✅ **TypeScript bindings generated** — Auto-generated typed `Client` at `src/contracts/zk_dilemma/`
-8. ✅ **TypeScript typechecks pass** — `npx tsc --noEmit` clean
-9. ✅ **Pre-commit hook added** — `secretlint` (secrets scanning) + `lint-staged` (ESLint + Prettier)
-
-### Phase 3: Reputation System (Days 7-9)
-
-**Goal:** ZK reputation proofs over game history — Not yet started
-
-### Phase 4: Polish & Submit (Days 10-12)
-
-**Goal:** Hackathon-ready submission — Partially done
-
-1. ✅ README updated with ZK explanation and project structure
-2. ⬜ Record 2-3 minute demo video
-3. ⬜ Final testnet testing of complete flow
-4. ⬜ Deploy final contracts to testnet
+- `GameCreated(game_id, player1, stake)`
+- `GameJoined(game_id, player2)`
+- `MoveRevealed(game_id, player, move)`
+- `GameResolved(game_id, payout1, payout2)`
+- `GameForfeited(game_id, winner)`
+- `GameCancelled(game_id)`
 
 ---
 
 ## Submission Checklist
 
-- [ ] Open-source repo with full source code
-- [ ] Clear README.md explaining what was built, how ZK is used, and what's unfinished
-- [ ] 2-3 minute demo video showing ZK multiplayer game + reputation proof
-- [ ] ZK is load-bearing: Noir proofs verify move validity on-chain, reputation proofs verify private history
-- [ ] Stellar integration: Soroban contract verifies proofs using Protocol 25/26 host functions
-- [ ] Contracts deployed on testnet with real addresses
-- [ ] Honest about mock data or unfinished features in README
-
----
-
-## Risk Assessment
-
-| Risk | Likelihood | Impact | Mitigation |
-|---|---|---|---|
-| Noir proof verification too expensive on-chain | Medium | High | Start with simple circuit (1 constraint). Benchmark gas cost early in Phase 1. Fall back to Circom/Groth16 if UltraHonk is too costly. |
-| `noir_js_wasm` browser integration issues | Medium | High | Test WASM proof generation in browser early. Fallback: generate proofs server-side via a lightweight API. |
-| UltraHonk verifier contract bugs | Low | Critical | Use the existing yugocabrio/rs-soroban-ultrahonk verifier. Write thorough contract tests. |
-| XLM transfer complexity in Soroban | Low | Medium | Use established `token::Client` pattern. Reference existing Soroban token examples. |
-| Scope creep on reputation system | Medium | Low | Reputation is bonus. If Phase 2 runs long, ship without it and note in README. |
-| Frontend WASM bundle size | Low | Low | Noir WASM is ~2MB. Acceptable for a dApp. Lazy-load if needed. |
+- [x] Open-source repo with full source code
+- [x] Clear README.md explaining what was built, how ZK is used, and what's unfinished
+- [x] ZK is load-bearing: Noir proofs verify move validity on-chain
+- [x] Stellar integration: Soroban contract verifies proofs using BN254 host functions
+- [x] Contracts deployed on testnet with real addresses
+- [x] Honest about mock data or unfinished features in README
+- [x] Recovery mechanisms (cancel_game, claim_refund) for stuck/locked funds
+- [x] Contract events for off-chain indexing
+- [x] Self-join vulnerability fixed
+- [x] Mobile responsive UI
+- [x] Onboarding overlay for new users
+- [x] Lazy-loaded ZK WASM (code-split for fast initial page load)
+- [ ] 2-3 minute demo video (script prepared at `docs/demo-script.md`)
+- [ ] End-to-end browser test with two wallets
+- [ ] Contract redeployment with new recovery functions + events
 
 ---
 
 ## Key Resources
 
 - [Noir Docs](https://noir-lang.org/docs/)
-- [Noir Stellar Verifier (UltraHonk)](https://github.com/yugocabrio/rs-soroban-ultrahonk)
-- [Noir on Stellar E2E Tutorial](https://jamesbachini.com/noir-on-stellar/)
-- [Stellar Protocol 25 Host Functions](https://developers.stellar.org/docs/learn/fundamentals/protocol-25)
-- [Stellar Protocol 26 Host Functions](https://developers.stellar.org/docs/learn/fundamentals/protocol-26)
+- [NethermindEth UltraHonk Soroban Verifier](https://github.com/NethermindEth/rs-soroban-ultrahonk)
 - [Soroban Smart Contracts](https://developers.stellar.org/docs/build/smart-contracts)
 - [Stellar Wallets Kit](https://github.com/Creit-Tech/Stellar-Wallets-Kit)
-- [Poseidon2 Hashing](https://eprint.iacr.org/2023/323)
+- [Stellar Protocol 26 Host Functions](https://developers.stellar.org/docs/learn/fundamentals/protocol-26)

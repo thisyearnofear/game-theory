@@ -15,18 +15,11 @@ crate-type = ["cdylib"]
 doctest = false
 
 [dependencies]
-soroban-sdk = { workspace = true }
-
-# ZK proof verification (disabled by default for development with stub)
-# Enable with: --features zk-verifier
-# See: https://github.com/NethermindEth/rs-soroban-ultrahonk
-# ultrahonk-soroban-verifier = { git = "https://github.com/NethermindEth/rs-soroban-ultrahonk", optional = true, package = "ultrahonk-soroban-verifier" }
+soroban-sdk = { workspace = true, features = ["alloc"] }
+ultrahonk_soroban_verifier = { git = "https://github.com/NethermindEth/rs-soroban-ultrahonk", default-features = false }
 
 [dev-dependencies]
 soroban-sdk = { workspace = true, features = ["testutils"] }
 
 [features]
 default = []
-# zk-verifier enables actual UltraHonk proof verification via the verifier crate
-# Without this feature, proof verification is simulated (checks non-empty + length)
-zk-verifier = []

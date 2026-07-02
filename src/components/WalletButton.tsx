@@ -11,7 +11,7 @@ export const WalletButton = () => {
 
   if (!address) {
     return (
-      <Button variant="primary" size="md" onClick={() => connect?.()}>
+      <Button variant="primary" size="md" onClick={() => void connect?.()}>
         {buttonLabel}
       </Button>
     );

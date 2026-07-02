@@ -41,4 +41,18 @@ export default tseslint.config(
       ],
     },
   },
+  // Allow unavoidable SDK type assertions in ZK contract integration files
+  {
+    files: [
+      "src/services/noirProofService.ts",
+      "src/hooks/useZKDilemma.ts",
+      "src/contracts/util.ts",
+    ],
+    rules: {
+      "@typescript-eslint/no-unsafe-call": "off",
+      "@typescript-eslint/no-unsafe-return": "off",
+      "@typescript-eslint/no-unsafe-assignment": "off",
+      "@typescript-eslint/no-unnecessary-type-assertion": "off",
+    },
+  },
 );

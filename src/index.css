@@ -1,2 +1,34 @@
 /* Import font for Stellar Design System */
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Inconsolata:wght@500&display=swap");
+
+/* ============================================================================
+ * Responsive breakpoints for ZK game components
+ * Mobile-first: base styles target desktop, media queries adjust for mobile
+ * ============================================================================ */
+
+@media (max-width: 640px) {
+  /* Collapse 2-column grids to single column */
+  .zk-game-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Reduce max-widths on mobile */
+  .zk-page-container {
+    max-width: 100% !important;
+    padding: 12px !important;
+  }
+
+  .zk-card-container {
+    max-width: 100% !important;
+  }
+
+  /* Stack move selection buttons vertically on very small screens */
+  .zk-move-buttons {
+    flex-direction: column !important;
+  }
+
+  /* Adjust font sizes */
+  .zk-game-header {
+    font-size: 18px !important;
+  }
+}

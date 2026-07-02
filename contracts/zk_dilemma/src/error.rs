@@ -32,4 +32,8 @@ pub enum Error {
     InsufficientBalance = 19,
     TransferFailed = 20,
     TokenClientError = 21,
+
+    // Recovery errors
+    DeadlineNotPassed = 22,
+    BothRevealed = 23,
 }

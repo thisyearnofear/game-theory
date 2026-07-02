@@ -2,11 +2,12 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Text } from "@stellar/design-system";
 import { useWallet } from "../hooks/useWallet";
-import { useZKDilemma, type GameMove } from "../hooks/useZKDilemma";
+import { useZKDilemma } from "../hooks/useZKDilemma";
 import { GameLobby } from "../components/zk/GameLobby";
 import { CommitMove } from "../components/zk/CommitMove";
 import { RevealMove } from "../components/zk/RevealMove";
 import { GameResult } from "../components/zk/GameResult";
+import { OnboardingOverlay } from "../components/zk/OnboardingOverlay";
 
 type ViewState =
   | { type: "lobby" }
@@ -35,7 +36,13 @@ const CardDiv: React.FC<{
 export const ZKGamePage: React.FC = () => {
   const navigate = useNavigate();
   const { address } = useWallet();
-  const { fetchGame, currentGame } = useZKDilemma();
+  const {
+    fetchGame,
+    currentGame,
+    cancelGame,
+    claimRefund,
+    isLoading: txLoading,
+  } = useZKDilemma();
 
   const [view, setView] = useState<ViewState>({ type: "lobby" });
 
@@ -48,14 +55,15 @@ export const ZKGamePage: React.FC = () => {
     const poll = setInterval(() => {
       void fetchGame(id);
     }, 5000);
-    return () => clearInterval(poll);    }, [view.type, view.gameId, fetchGame]);
+    return () => clearInterval(poll);
+  }, [view.type, view.gameId, fetchGame]);
 
   // Fetch game data when entering game view
   useEffect(() => {
     if (view.type === "game") {
       void fetchGame(view.gameId);
     }
-  }, [view.type, (view as {gameId?: number}).gameId, fetchGame]);
+  }, [view.type, (view as { gameId?: number }).gameId, fetchGame]);
 
   const handleSelectGame = useCallback((gameId: number) => {
     setView({ type: "game", gameId });
@@ -85,7 +93,9 @@ export const ZKGamePage: React.FC = () => {
     const bothRevealed =
       currentGame.move1 !== null && currentGame.move2 !== null;
     const isResolved =
-      currentGame.status === "Resolved" || currentGame.status === "Forfeited";
+      currentGame.status === "Resolved" ||
+      currentGame.status === "Forfeited" ||
+      currentGame.status === "Cancelled";
 
     // Show game result view if resolved or both revealed
     if (isResolved) {
@@ -101,7 +111,10 @@ export const ZKGamePage: React.FC = () => {
     }
 
     return (
-      <div style={{ padding: "24px", maxWidth: "800px", margin: "0 auto" }}>
+      <div
+        className="zk-page-container"
+        style={{ padding: "24px", maxWidth: "800px", margin: "0 auto" }}
+      >
         {/* Game header */}
         <div
           style={{
@@ -160,6 +173,7 @@ export const ZKGamePage: React.FC = () => {
           </Text>
 
           <div
+            className="zk-game-grid"
             style={{
               display: "grid",
               gridTemplateColumns: "1fr 1fr",
@@ -181,7 +195,8 @@ export const ZKGamePage: React.FC = () => {
                 style={{
                   margin: 0,
                   color: address === currentGame.player1 ? "#4CAF50" : "#333",
-                  fontWeight: address === currentGame.player1 ? "bold" : "normal",
+                  fontWeight:
+                    address === currentGame.player1 ? "bold" : "normal",
                 }}
               >
                 {currentGame.player1.slice(0, 8)}...
@@ -201,8 +216,7 @@ export const ZKGamePage: React.FC = () => {
                 size="sm"
                 style={{
                   margin: 0,
-                  color:
-                    address === currentGame.player2 ? "#F44336" : "#333",
+                  color: address === currentGame.player2 ? "#F44336" : "#333",
                   fontWeight:
                     address === currentGame.player2 ? "bold" : "normal",
                 }}
@@ -225,7 +239,8 @@ export const ZKGamePage: React.FC = () => {
                 size="sm"
                 style={{ margin: 0, fontWeight: "bold", color: "#667eea" }}
               >
-                {(BigInt(currentGame.stake) / BigInt(10_000_000)).toString()} XLM
+                {(BigInt(currentGame.stake) / BigInt(10_000_000)).toString()}{" "}
+                XLM
               </Text>
             </div>
             <div>
@@ -236,11 +251,7 @@ export const ZKGamePage: React.FC = () => {
               >
                 Moves
               </Text>
-              <Text
-                as="p"
-                size="sm"
-                style={{ margin: 0, color: "#333" }}
-              >
+              <Text as="p" size="sm" style={{ margin: 0, color: "#333" }}>
                 {currentGame.move1 ? "✅" : "⏳"} P1{" "}
                 {currentGame.move2 ? "✅" : "⏳"} P2
               </Text>
@@ -259,33 +270,119 @@ export const ZKGamePage: React.FC = () => {
           />
         )}
 
+        {/* Refund option when both players timeout on reveal */}
+        {currentGame.status === "BothCommitted" &&
+          !bothRevealed &&
+          (() => {
+            const now = Math.floor(Date.now() / 1000);
+            const deadline = Number(currentGame.reveal_deadline);
+            const canRefund = now > deadline && deadline > 0;
+            if (!canRefund) return null;
+            return (
+              <CardDiv
+                style={{
+                  textAlign: "center",
+                  padding: "16px",
+                  marginTop: "16px",
+                  background: "rgba(100, 116, 139, 0.05)",
+                  border: "1px solid rgba(100, 116, 139, 0.2)",
+                }}
+              >
+                <Text
+                  as="p"
+                  size="sm"
+                  style={{
+                    color: "#64748b",
+                    margin: "0 0 8px",
+                    fontFamily: "FuturaHandwritten",
+                  }}
+                >
+                  Reveal deadline passed and neither player revealed.
+                </Text>
+                <Button
+                  variant="tertiary"
+                  size="md"
+                  onClick={() => {
+                    void claimRefund(view.gameId).then(() => {
+                      handleBackToLobby();
+                    });
+                  }}
+                  disabled={txLoading}
+                  style={{ fontFamily: "FuturaHandwritten" }}
+                >
+                  {txLoading
+                    ? "⏳ Processing..."
+                    : "↩️ Claim Refund (Split Escrow)"}
+                </Button>
+              </CardDiv>
+            );
+          })()}
+
         {/* If still awaiting player 2 and this is player 1 */}
         {currentGame.status === "AwaitingPlayer2" &&
-          address === currentGame.player1 && (
-            <CardDiv
-              style={{
-                textAlign: "center",
-                padding: "24px",
-                background: "rgba(245, 158, 11, 0.05)",
-                border: "1px solid rgba(245, 158, 11, 0.2)",
-              }}
-            >
-              <Text
-                as="p"
-                size="md"
-                style={{ color: "#f59e0b", margin: 0, fontWeight: "bold", fontFamily: "FuturaHandwritten" }}
+          address === currentGame.player1 &&
+          (() => {
+            const now = Math.floor(Date.now() / 1000);
+            const deadline = Number(currentGame.commit_deadline);
+            const canCancel = now > deadline && deadline > 0;
+            const timeLeft = deadline > 0 ? Math.max(0, deadline - now) : 0;
+            return (
+              <CardDiv
+                style={{
+                  textAlign: "center",
+                  padding: "24px",
+                  background: "rgba(245, 158, 11, 0.05)",
+                  border: "1px solid rgba(245, 158, 11, 0.2)",
+                }}
               >
-                ⏳ Waiting for an opponent to join your game
-              </Text>
-              <Text
-                as="p"
-                size="sm"
-                style={{ color: "#666", marginTop: "8px", fontFamily: "FuturaHandwritten" }}
-              >
-                Share the game link or ask someone to find it in the lobby!
-              </Text>
-            </CardDiv>
-          )}
+                <Text
+                  as="p"
+                  size="md"
+                  style={{
+                    color: "#f59e0b",
+                    margin: 0,
+                    fontWeight: "bold",
+                    fontFamily: "FuturaHandwritten",
+                  }}
+                >
+                  ⏳ Waiting for an opponent to join your game
+                </Text>
+                <Text
+                  as="p"
+                  size="sm"
+                  style={{
+                    color: "#666",
+                    marginTop: "8px",
+                    fontFamily: "FuturaHandwritten",
+                  }}
+                >
+                  {canCancel
+                    ? "Commit deadline passed. You can cancel to reclaim your stake."
+                    : `Time remaining for opponent: ${Math.floor(timeLeft / 60)}m ${timeLeft % 60}s`}
+                </Text>
+                {canCancel && (
+                  <Button
+                    variant="tertiary"
+                    size="md"
+                    onClick={() => {
+                      void cancelGame(view.gameId).then(() => {
+                        handleBackToLobby();
+                      });
+                    }}
+                    disabled={txLoading}
+                    style={{
+                      marginTop: "12px",
+                      fontFamily: "FuturaHandwritten",
+                    }}
+                  >
+                    {txLoading
+                      ? "⏳ Cancelling..."
+                      : "↩️ Cancel & Reclaim Stake"}
+                  </Button>
+                )}
+              </CardDiv>
+            );
+          })()}
 
         {/* Resolve button if both revealed */}
         {currentGame.status === "BothCommitted" && bothRevealed && (
@@ -331,15 +428,19 @@ export const ZKGamePage: React.FC = () => {
               <Text
                 as="p"
                 size="md"
-                style={{ color: "#666", margin: 0, fontFamily: "FuturaHandwritten" }}
+                style={{
+                  color: "#666",
+                  margin: 0,
+                  fontFamily: "FuturaHandwritten",
+                }}
               >
                 🔍 This game is waiting for a second player.
-              </Text>
+              </Text>{" "}
               <Button
                 variant="primary"
                 size="md"
                 onClick={() =>
-                  handleJoinGame(
+                  void handleJoinGame(
                     view.gameId,
                     currentGame.player1,
                     currentGame.stake,
@@ -369,7 +470,11 @@ export const ZKGamePage: React.FC = () => {
             <Text
               as="p"
               size="md"
-              style={{ color: "#F44336", margin: 0, fontFamily: "FuturaHandwritten" }}
+              style={{
+                color: "#F44336",
+                margin: 0,
+                fontFamily: "FuturaHandwritten",
+              }}
             >
               ⚠️ Game not found
             </Text>
@@ -438,15 +543,16 @@ export const ZKGamePage: React.FC = () => {
   // Lobby
   return (
     <div
+      className="zk-page-container"
       style={{
         padding: "24px",
         minHeight: "calc(100vh - 80px)",
-        background:
-          !address
-            ? "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-            : undefined,
+        background: !address
+          ? "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+          : undefined,
       }}
     >
+      <OnboardingOverlay />
       {/* Connect prompt */}
       {!address && (
         <div
@@ -494,7 +600,7 @@ export const ZKGamePage: React.FC = () => {
         <div />
         <button
           type="button"
-          onClick={() => navigate("/")}
+          onClick={() => void navigate("/")}
           style={{
             background: "rgba(255,255,255,0.1)",
             border: "1px solid rgba(255,255,255,0.2)",

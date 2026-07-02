@@ -4,6 +4,7 @@ import { useWallet } from "./useWallet";
 import {
   Client as ZkDilemmaClient,
   type GameStatus,
+  type Game,
 } from "../contracts/zk_dilemma/src/index";
 import { rpcUrl, networkPassphrase } from "../contracts/util";
 
@@ -46,24 +47,27 @@ const CONTRACT_ID = import.meta.env.VITE_ZK_DILEMMA_CONTRACT_ID || "";
 
 /** Parse a `Game` from the SDK's tagged-union format into a flat UI object */
 function parseGame(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  raw: any,
+  raw: Game | Record<string, unknown> | null,
 ): GameState | null {
   if (!raw) return null;
+  const r = raw as Record<
+    string,
+    string | bigint | number | Buffer | null | undefined
+  >;
   return {
-    player1: String(raw.player1 ?? ""),
-    player2: raw.player2 != null ? String(raw.player2) : null,
-    commitment1: String(raw.commitment1 ?? ""),
-    commitment2: raw.commitment2 != null ? String(raw.commitment2) : null,
-    move1: raw.move1 ? (String(raw.move1) as GameMove) : null,
-    move2: raw.move2 ? (String(raw.move2) as GameMove) : null,
-    nonce1: raw.nonce1 != null ? String(raw.nonce1) : null,
-    nonce2: raw.nonce2 != null ? String(raw.nonce2) : null,
-    stake: String(raw.stake ?? "0"),
-    status: gameStatusToString(raw.status),
-    created_at: String(raw.created_at ?? "0"),
-    commit_deadline: String(raw.commit_deadline ?? "0"),
-    reveal_deadline: String(raw.reveal_deadline ?? "0"),
+    player1: String(r.player1 ?? ""),
+    player2: r.player2 != null ? String(r.player2) : null,
+    commitment1: String(r.commitment1 ?? ""),
+    commitment2: r.commitment2 != null ? String(r.commitment2) : null,
+    move1: r.move1 ? (String(r.move1) as GameMove) : null,
+    move2: r.move2 ? (String(r.move2) as GameMove) : null,
+    nonce1: r.nonce1 != null ? String(r.nonce1) : null,
+    nonce2: r.nonce2 != null ? String(r.nonce2) : null,
+    stake: String(r.stake ?? "0"),
+    status: gameStatusToString(r.status as GameStatus | undefined),
+    created_at: String(r.created_at ?? "0"),
+    commit_deadline: String(r.commit_deadline ?? "0"),
+    reveal_deadline: String(r.reveal_deadline ?? "0"),
   };
 }
 
@@ -91,8 +95,13 @@ function createClient(): ZkDilemmaClient {
   });
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type SignAndSendFn = (tx: any) => Promise<any>;
+interface Signable {
+  signAndSend: (opts: {
+    signTransaction: NonNullable<
+      ReturnType<typeof import("./useWallet").useWallet>["signTransaction"]
+    >;
+  }) => Promise<unknown>;
+}
 
 // ============================================================================
 // Hook
@@ -106,9 +115,8 @@ export function useZKDilemma() {
   const [error, setError] = useState<string | null>(null);
 
   /** Sign & send wrapper */
-  const sas = useCallback<SignAndSendFn>(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async (tx: any) => {
+  const sas = useCallback(
+    async (tx: Signable): Promise<unknown> => {
       if (!signTransaction) throw new Error("Wallet not connected");
       return await tx.signAndSend({ signTransaction });
     },
@@ -123,7 +131,10 @@ export function useZKDilemma() {
       try {
         const client = createClient();
         const tx = await client.get_game({ game_id: BigInt(gameId) });
-        const raw = await sas(tx);
+        const raw: Record<string, unknown> | null = (await sas(tx)) as Record<
+          string,
+          unknown
+        > | null;
         return parseGame(raw);
       } catch (err) {
         console.error(`[useZKDilemma] fetchGame(${gameId}) failed:`, err);
@@ -142,14 +153,14 @@ export function useZKDilemma() {
     try {
       const client = createClient();
       const countTx = await client.get_game_count();
-      const count = Number(await sas(countTx) ?? 0);
+      const count = Number(((await sas(countTx)) as number) ?? 0);
 
       const gameList: GameListItem[] = [];
       for (let i = 1; i <= count; i++) {
         try {
           const tx = await client.get_game({ game_id: BigInt(i) });
-          const raw = await sas(tx);
-          const parsed = parseGame(raw);
+          const raw: unknown = await sas(tx);
+          const parsed = parseGame(raw as Record<string, unknown> | null);
           if (parsed) {
             gameList.push({
               id: i,
@@ -179,7 +190,7 @@ export function useZKDilemma() {
   const getGameCount = useCallback(async (): Promise<number> => {
     const client = createClient();
     const tx = await client.get_game_count();
-    return Number(await sas(tx) ?? 0);
+    return Number(((await sas(tx)) as number) ?? 0);
   }, [sas]);
 
   /**
@@ -298,7 +309,7 @@ export function useZKDilemma() {
       try {
         const client = createClient();
         const tx = await client.resolve_game({ game_id: BigInt(gameId) });
-        const result = await sas(tx);
+        const result = (await sas(tx)) as readonly [bigint, bigint] | null;
         const [payout1, payout2] = result ?? [BigInt(0), BigInt(0)];
         await fetchGame(gameId).then(setCurrentGame);
         return { payout1, payout2 };
@@ -342,6 +353,60 @@ export function useZKDilemma() {
     [address, sas, fetchGame, fetchGames],
   );
 
+  /**
+   * Cancel a game that no one joined (reclaim stake after commit deadline).
+   */
+  const cancelGame = useCallback(
+    async (gameId: number): Promise<void> => {
+      if (!address) throw new Error("Wallet not connected");
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const client = createClient();
+        const tx = await client.cancel_game({
+          player1: address,
+          game_id: BigInt(gameId),
+        });
+        await sas(tx);
+        await fetchGame(gameId).then(setCurrentGame);
+        await fetchGames();
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        setError(`Failed to cancel game: ${message}`);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [address, sas, fetchGame, fetchGames],
+  );
+
+  /**
+   * Claim refund when both players failed to reveal (split escrow).
+   */
+  const claimRefund = useCallback(
+    async (gameId: number): Promise<void> => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const client = createClient();
+        const tx = await client.claim_refund({ game_id: BigInt(gameId) });
+        await sas(tx);
+        await fetchGame(gameId).then(setCurrentGame);
+        await fetchGames();
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        setError(`Failed to claim refund: ${message}`);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [sas, fetchGame, fetchGames],
+  );
+
   const clearError = useCallback(() => setError(null), []);
 
   return {
@@ -360,6 +425,8 @@ export function useZKDilemma() {
     revealMove,
     resolveGame,
     claimForfeit,
+    cancelGame,
+    claimRefund,
     setCurrentGame,
     clearError,
   };

@@ -1,50 +1,64 @@
 # Game Theory on Stellar - Development Roadmap
 
-## 🎯 Current Status: ZK Multiplayer Phase Complete
-- ✅ ZK Dilemma Soroban contract (`contracts/zk_dilemma/`) — keccak256 commitment verification, XLM escrow, forfeit logic
-- ✅ Noir move-commitment circuit (`circuits/move_commitment/`) — pedersen_hash-based
-- ✅ ZK multiplayer frontend — GameLobby, CommitMove, RevealMove, GameResult
-- ✅ `useZKDilemma` hook with typed auto-generated client
-- ✅ WASM compiled (11KB) + TypeScript bindings generated
+## 🎯 Current Status: ZK Multiplayer Complete + Hardened
+
+- ✅ ZK Dilemma Soroban contract (`contracts/zk_dilemma/`) — on-chain UltraHonk proof verification, keccak256 commitment, XLM escrow, forfeit logic, recovery functions (cancel_game, claim_refund), contract events, self-join prevention
+- ✅ Noir move-commitment circuit (`circuits/move_commitment/`) — keccak256-based, external `noir-lang/keccak256` library
+- ✅ UltraHonk verifier integrated (`ultrahonk_soroban_verifier` crate from NethermindEth)
+- ✅ soroban-sdk upgraded to 26.x for BN254 host functions
+- ✅ Real ZK proof verified on-chain in Rust tests (9/9 tests passing)
+- ✅ Browser proof generation via `@noir-lang/noir_js` + `@aztec/bb.js` (lazy-loaded, code-split)
+- ✅ Contract deployed to testnet: `CBGH6QAUEZSYRG3GJZKCUX6ELK7GJZDQ7JN3NBXMZNGEHDZGPLMOI5NS` (redeployment pending for new functions)
+- ✅ ZK multiplayer frontend — GameLobby, CommitMove, RevealMove, GameResult, OnboardingOverlay
+- ✅ `useZKDilemma` hook with typed auto-generated client (includes cancelGame, claimRefund)
+- ✅ WASM compiled (28KB) + TypeScript bindings
 - ✅ Pre-commit hooks with secrets scanning (secretlint) + linting (lint-staged)
-- ✅ Dead code cleanup (PrisonersDilemma, GuessTheNumber, LLMOpponent, unused hooks)
-- ✅ Error boundaries added
-- ✅ Interactive slide system (5 slides)
-- ✅ Audio integration with controls
-- ✅ Character animations and emotions
-- ✅ Single-player vs algorithmic AI (single-player-dilemma contract)
-- ✅ Single-round Prisoner's Dilemma contract with real XLM stakes
+- ✅ Interactive slide system (5 slides) with local simulation tutorial
+- ✅ Mobile responsive breakpoints across ZK components
+- ✅ Auto-retry for game_id race condition in create flow
+- ✅ Nonce persisted in localStorage (survives browser close)
+- ✅ Move auto-fill in reveal phase
 
 ## 🚀 Phase 3: AI Integration & Deployment
-**Goal**: Deploy ZK multiplayer contract, enhance single-player with intelligent opponents
+
+**Goal**: End-to-end test with two wallets, contract redeployment, AI-enhanced tutorial
 
 ### 3.0 ZK Contract Deployment
-- ⬜ Deploy `zk_dilemma` WASM to testnet
-- ⬜ Set `VITE_ZK_DILEMMA_CONTRACT_ID` in .env
+
+- ✅ Deploy `zk_dilemma` WASM to testnet (initial version)
+- ✅ Set `VITE_ZK_DILEMMA_CONTRACT_ID` in .env
+- ⬜ Redeploy contract with recovery functions + events
 - ⬜ End-to-end test with two wallets
 
 ### 3.1 LLM AI Opponents
+
 - **Smart AI strategies** that adapt and learn
 - **Personality-driven opponents** (aggressive, cautious, adaptive)
 - **Natural language explanations** of AI decisions
 - **Dynamic difficulty** based on player performance
 
 ### 3.2 AI Tutoring System
-- **Contextual guidance** during gameplay
-- **Strategy explanations** after each round
-- **Game theory education** integrated into experience
-- **Personalized learning paths** based on player behavior
 
-### 3.3 Enhanced Single-Player Modes
-- **Campaign mode** with progressive difficulty
-- **Challenge scenarios** (noise, reputation, etc.)
-- **Achievement system** with XLM rewards
-- **Leaderboards** for single-player performance
+- ✅ Contextual guidance during tutorial gameplay (Venice AI)
+- ✅ Strategy explanations after each round
+- ✅ Game theory education integrated into experience
+- ⬜ Personalized learning paths based on player behavior
+
+### 3.3 Enhanced Tutorial Modes
+
+- ✅ Local simulation (no wallet/contract needed)
+- ✅ Strategy selection (Random, Cooperator, Defector, Tit-for-Tat)
+- ⬜ Campaign mode with progressive difficulty
+- ⬜ Challenge scenarios (noise, reputation, etc.)
+- ⬜ Achievement system with XLM rewards
+- ⬜ Leaderboards for tutorial performance
 
 ## 🏆 Phase 4: Advanced Game Theory Concepts & Tournament System (Future)
+
 **Goal**: Expand beyond single-round Prisoner's Dilemma to include iterated games and tournaments like the original Nicky Case project
 
 ### 4.1 Iterated Games Contract
+
 - **Multi-round gameplay** with memory of past interactions
 - **Strategy implementation** on-chain (Tit-for-Tat, Grudger, Pavlov, etc.)
 - **Trust evolution tracking** over multiple rounds
@@ -52,6 +66,7 @@
 - **Historical move analysis** for strategy adaptation
 
 ### 4.2 Tournament System Contract
+
 - **Automated tournaments** with multiple strategy types competing
 - **Performance tracking** for different algorithmic strategies
 - **Strategy registry** for different approaches (Cooperator, Defector, Tit-for-Tat, etc.)
@@ -59,21 +74,25 @@
 - **Prize pool distribution** via smart contracts
 
 ### 4.3 Real-Time Multiplayer
+
 - **WebSocket integration** for live games
 - **Matchmaking system** based on skill/stakes
 - **Spectator mode** for learning
 - **Chat system** with moderation
 
 ### 4.4 Advanced Blockchain Features
+
 - **Reputation NFTs** that evolve with gameplay
 - **Strategy marketplace** for trading AI algorithms
 - **Governance tokens** for community decisions
 - **Cross-chain integration** for broader reach
 
 ## 🏗️ Contract Architecture Redesign (Technical)
+
 **Goal**: Transform from single-contract model to modular system supporting full educational experience
 
 ### 4.5 Modular Contract System
+
 - **Base Game Contract**: Enhanced version of current single-round functionality
 - **Iterated Games Contract**: Support for multiple rounds with move history
 - **Tournament Contract**: Strategy competition and performance tracking
@@ -81,6 +100,7 @@
 - **Results Aggregator Contract**: Analytics and educational feedback tracking
 
 ### 4.6 Key Technical Requirements
+
 - **Extended State Management**: Complex game histories and trust tracking
 - **Strategy Implementation**: On-chain logic for various game theory strategies
 - **Gas Optimization**: Efficient storage and computation patterns
@@ -88,34 +108,47 @@
 - **Migration Path**: Maintaining backward compatibility during transition
 
 ## 🌍 Phase 5: Community & Ecosystem
+
 **Goal**: Self-sustaining community of trust researchers and players
 
 ### 5.1 Educational Platform
+
 - **Course creation tools** for educators
 - **Research collaboration** features
 - **Academic partnerships** and citations
 - **Certification system** for game theory knowledge
 
 ### 5.2 Developer Ecosystem
+
 - **Strategy SDK** for custom AI development
 - **Plugin system** for community extensions
 - **API access** for researchers
 - **Open source contributions** and bounties
 
 ### 5.3 Real-World Applications
+
 - **Corporate training** modules
 - **Policy simulation** tools
 - **Social experiment** platform
 - **Research data** collection and analysis
 
 ## 🔧 Technical Debt & Optimizations
+
+- ✅ **Mobile responsiveness** — breakpoints added for ZK components
+- ✅ **Bundle size** — bb.js/noir.js lazy-loaded (code-split)
+- ✅ **Game recovery** — cancel_game + claim_refund for stuck funds
+- ✅ **Self-join prevention** — player1 cannot join as player2
+- ✅ **Nonce persistence** — localStorage with sessionStorage fallback
+- ✅ **Game ID race condition** — auto-retry on create
+- ✅ **Contract events** — emitted for all state transitions
+- ✅ **Dead code removal** — single-player contract stub removed, tutorial uses local simulation
 - **Performance monitoring** and optimization
-- **Mobile responsiveness** improvements
 - **Accessibility compliance** (WCAG 2.1)
 - **Internationalization** support
 - **Advanced analytics** and user insights
 
 ## 📊 Success Metrics
+
 - **User engagement**: Session duration, return rate
 - **Educational impact**: Knowledge retention, behavior change
 - **Economic activity**: XLM volume, transaction frequency
@@ -124,4 +157,4 @@
 
 ---
 
-*This roadmap follows our core principles: ENHANCEMENT FIRST, AGGRESSIVE CONSOLIDATION, PREVENT BLOAT*
+_This roadmap follows our core principles: ENHANCEMENT FIRST, AGGRESSIVE CONSOLIDATION, PREVENT BLOAT_

@@ -9,8 +9,13 @@ import RenderContractMetadata from "../debug/components/RenderContractMetadata.t
 
 const Debugger: React.FC = () => {
   const { data, isLoading } = useContracts();
-  const contractMap = data?.loadedContracts ?? {};
-  const failedContracts = data?.failed ?? {};
+  const contractMap =
+    ((data as Record<string, unknown>)?.loadedContracts as Record<
+      string,
+      unknown
+    >) ?? {};
+  const failedContracts =
+    ((data as Record<string, unknown>)?.failed as Record<string, string>) ?? {};
   const navigate = useNavigate();
 
   const [selectedContract, setSelectedContract] = useState<string>("");
@@ -37,7 +42,7 @@ const Debugger: React.FC = () => {
         setSelectedContract(contractName);
       } else if (!contractName) {
         // Redirect to the first contract if no contractName in URL
-        navigate(`/debug/${contractKeys[0]}`, { replace: true });
+        void navigate(`/debug/${contractKeys[0]}`, { replace: true });
       } else {
         setSelectedContract(contractKeys[0]);
       }
@@ -132,7 +137,7 @@ const Debugger: React.FC = () => {
         </Layout.Inset>
       )}
 
-      {failedContracts[selectedContract] && (
+      {selectedContract && failedContracts[selectedContract] && (
         <Layout.Inset>
           <h2>{selectedContract}</h2>
           <p style={{ color: "red" }}>
@@ -141,7 +146,7 @@ const Debugger: React.FC = () => {
         </Layout.Inset>
       )}
 
-      {contractMap[selectedContract] && (
+      {selectedContract && contractMap[selectedContract] && (
         <>
           <Layout.Inset>
             <div style={{ marginTop: "0 2rem" }}>
@@ -167,9 +172,14 @@ const Debugger: React.FC = () => {
                         }}
                         readOnly
                         value={
+                          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
                           (
-                            contractMap[selectedContract]
-                              ?.default as unknown as Client
+                            (
+                              contractMap[selectedContract] as Record<
+                                string,
+                                unknown
+                              >
+                            )?.default as unknown as Client
                           )?.options?.contractId || ""
                         }
                       />
@@ -177,7 +187,14 @@ const Debugger: React.FC = () => {
                       {isDetailExpanded && (
                         <>
                           <RenderContractMetadata
-                            metadata={contractMap[selectedContract]?.metadata}
+                            metadata={
+                              (
+                                contractMap[selectedContract] as Record<
+                                  string,
+                                  unknown
+                                >
+                              )?.metadata
+                            }
                           />
                         </>
                       )}
@@ -197,7 +214,10 @@ const Debugger: React.FC = () => {
                 <div style={{ flex: 1 }}>
                   <ContractForm
                     key={selectedContract}
-                    contractClient={contractMap[selectedContract]?.default}
+                    contractClient={
+                      (contractMap[selectedContract] as Record<string, unknown>)
+                        ?.default
+                    }
                     contractClientError={null}
                   />
                 </div>

@@ -26,7 +26,7 @@ const AppLayout: React.FC = () => {
                   <Button
                     variant={isActive ? "primary" : "tertiary"}
                     size="md"
-                    onClick={() => navigate("/play")}
+                    onClick={() => void navigate("/play")}
                     disabled={isActive}
                   >
                     🎮 ZK Play
@@ -43,7 +43,7 @@ const AppLayout: React.FC = () => {
                   <Button
                     variant="tertiary"
                     size="md"
-                    onClick={() => navigate("/debug")}
+                    onClick={() => void navigate("/debug")}
                     disabled={isActive}
                   >
                     <Icon.Code02 size="md" />

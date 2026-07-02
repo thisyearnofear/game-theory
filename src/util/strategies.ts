@@ -76,9 +76,9 @@ export const SuspiciousTitForTatStrategy: AIStrategy = {
   name: "Suspicious Tit-for-Tat",
   description: "Assumes worst, then copies your moves",
   emoji: "😒",
-  getMove: (history: GameMove[] = []) => {
-    if (history.length === 0) return "D";
-    return history[history.length - 1];
+  getMove: (_history: GameMove[] = []) => {
+    if (_history.length === 0) return "D";
+    return _history[_history.length - 1];
   },
 };
 
@@ -121,7 +121,8 @@ export const OccasionalDefectorStrategy: AIStrategy = {
   name: "Occasional Defector",
   description: "Usually cooperates, but randomly betrays",
   emoji: "😈",
-  getMove: (history: GameMove[] = []) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  getMove: (_history: GameMove[] = []) => {
     const defectionRate = 0.15;
     return Math.random() < defectionRate ? "D" : "C";
   },
@@ -145,7 +146,7 @@ export const ALL_STRATEGIES: AIStrategy[] = [
  */
 export const getStrategy = (name: string): AIStrategy => {
   const strategy = ALL_STRATEGIES.find(
-    (s) => s.name.toLowerCase() === name.toLowerCase()
+    (s) => s.name.toLowerCase() === name.toLowerCase(),
   );
   if (!strategy) {
     return RandomStrategy;
@@ -159,7 +160,7 @@ export const getStrategy = (name: string): AIStrategy => {
 export const calculatePayoff = (
   playerMove: GameMove,
   aiMove: GameMove,
-  stake: number
+  stake: number,
 ): { playerPayout: number; aiPayout: number } => {
   if (playerMove === "C" && aiMove === "C") {
     // Both cooperate: Reward
@@ -189,7 +190,7 @@ export const getMoveEmoji = (move: GameMove): string => {
 export const getMoveExplanation = (
   playerMove: GameMove,
   aiMove: GameMove,
-  aiStrategy: AIStrategy
+  aiStrategy: AIStrategy,
 ): string => {
   const playerAction = playerMove === "C" ? "cooperated" : "defected";
   const aiAction = aiMove === "C" ? "cooperated" : "defected";

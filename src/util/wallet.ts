@@ -5,10 +5,7 @@ import {
   FREIGHTER_ID,
   ISupportedWallet,
 } from "@creit.tech/stellar-wallets-kit";
-import {
-  Transaction,
-  FeeBumpTransaction,
-} from "@stellar/stellar-sdk";
+import { Transaction, FeeBumpTransaction } from "@stellar/stellar-sdk";
 
 export interface Balance {
   asset_type: string;
@@ -41,7 +38,9 @@ const initializeKit = () => {
     } catch (error) {
       console.error("Error initializing wallet kit:", error);
       state.kit = null;
-      throw new Error(`Failed to initialize wallet kit. Is your wallet extension installed? ${String(error)}`);
+      throw new Error(
+        `Failed to initialize wallet kit. Is your wallet extension installed? ${String(error)}`,
+      );
     }
   }
   return state.kit;
@@ -79,19 +78,19 @@ export const wallet = {
   },
 
   signTransaction: async (
-    transaction: Transaction | FeeBumpTransaction | string
+    transaction: Transaction | FeeBumpTransaction | string,
   ): Promise<{ signedTxXdr: string }> => {
     try {
       const kit = initializeKit();
       if (!state.address) throw new Error("No address connected");
-      
+
       // Handle both Transaction objects and XDR strings
-      const transactionXdr = typeof transaction === 'string' 
-        ? transaction 
-        : transaction.toXDR();
-      
+      const transactionXdr =
+        typeof transaction === "string" ? transaction : transaction.toXDR();
+
       const result = await kit.signTransaction(transactionXdr, {
-        networkPassphrase: state.networkPassphrase || "Test SDF Network ; September 2015",
+        networkPassphrase:
+          state.networkPassphrase || "Test SDF Network ; September 2015",
         address: state.address,
       });
       return result;
@@ -106,45 +105,47 @@ export const connectWallet = async () => {
   return new Promise((resolve, reject) => {
     try {
       const kit = initializeKit();
-      
-      // Show modal and let user select wallet
-      kit.openModal({
-        onWalletSelected: async (option: ISupportedWallet) => {
-          try {
-            // Set the selected wallet in the kit
-            await kit.setWallet(option.id);
-            
-            // Get address and network info
-            const [{ address }, network] = await Promise.all([
-              kit.getAddress(),
-              kit.getNetwork(),
-            ]);
-            
-            // Update internal state
-            state.address = address;
-            state.network = network.network;
-            state.networkPassphrase = network.networkPassphrase;
 
-            resolve({
-              address,
-              network: network.network,
-              networkPassphrase: network.networkPassphrase,
-            });
-          } catch (error) {
-            console.error("Error in wallet selection:", error);
-            reject(error);
-          }
+      // Show modal and let user select wallet
+      void kit.openModal({
+        onWalletSelected: (option: ISupportedWallet) => {
+          void (async () => {
+            try {
+              // Set the selected wallet in the kit
+              kit.setWallet(option.id);
+
+              // Get address and network info
+              const [{ address }, network] = await Promise.all([
+                kit.getAddress(),
+                kit.getNetwork(),
+              ]);
+
+              // Update internal state
+              state.address = address;
+              state.network = network.network;
+              state.networkPassphrase = network.networkPassphrase;
+
+              resolve({
+                address,
+                network: network.network,
+                networkPassphrase: network.networkPassphrase,
+              });
+            } catch (error) {
+              console.error("Error in wallet selection:", error);
+              reject(new Error(String(error)));
+            }
+          })();
         },
         onClosed: (error?: Error) => {
           if (error) {
             console.error("Modal closed with error:", error);
-            reject(error);
+            reject(new Error(String(error)));
           }
         },
       });
     } catch (error) {
       console.error("Error connecting wallet:", error);
-      reject(error);
+      reject(error instanceof Error ? error : new Error(String(error)));
     }
   });
 };

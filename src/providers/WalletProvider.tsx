@@ -27,8 +27,9 @@ const initialState = {
 
 const POLL_INTERVAL = 5000;
 
-export const WalletContext =
-  createContext<WalletContextType>({ isPending: true });
+export const WalletContext = createContext<WalletContextType>({
+  isPending: true,
+});
 
 export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, setState] =
@@ -104,10 +105,10 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
           networkResult.networkPassphrase !== state.networkPassphrase
         ) {
           storage.setItem("walletAddress", address);
-          updateState({ 
+          updateState({
             address,
             network: networkResult.network,
-            networkPassphrase: networkResult.networkPassphrase 
+            networkPassphrase: networkResult.networkPassphrase,
           });
         }
       } catch (e) {
@@ -157,7 +158,7 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally run once on mount
   }, []);
 
-  const connect = async () => {
+  const connect = () => {
     startTransition(async () => {
       try {
         const result = await connectWallet();
