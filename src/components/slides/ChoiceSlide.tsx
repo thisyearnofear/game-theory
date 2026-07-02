@@ -14,6 +14,9 @@ import {
   type GameMove,
 } from "../../util/strategies";
 import { unlockAchievement } from "../ui/AchievementBadge";
+import { StaggerButton } from "../ui/StaggerButton";
+import { ElectricButton } from "../ui/ElectricButton";
+import { ShimmerButton } from "../ui/ShimmerButton";
 
 type Outcome = "caught" | "betrayed" | "exploited" | "mutual-destruction";
 
@@ -200,42 +203,22 @@ export const ChoiceSlide: React.FC<SlideProps> = ({ onNext }) => {
           <div
             style={{ display: "flex", gap: "16px", justifyContent: "center" }}
           >
-            <button
+            <StaggerButton
               onClick={() => makeChoice("C")}
-              className="press-feedback"
-              style={{
-                background: "rgba(74,222,128,0.1)",
-                border: "1px solid rgba(74,222,128,0.3)",
-                borderRadius: "var(--radius-md)",
-                color: "var(--accent-cooperate)",
-                fontFamily: "var(--font-display)",
-                fontSize: "var(--text-xl)",
-                padding: "16px 32px",
-                cursor: "pointer",
-                transition: "all 0.3s var(--ease-out)",
-                backdropFilter: "blur(16px)",
-              }}
+              color="cooperate"
+              size="lg"
+              triggerOn="active"
             >
               🤝 Fall (Cooperate)
-            </button>
-            <button
+            </StaggerButton>
+            <StaggerButton
               onClick={() => makeChoice("D")}
-              className="press-feedback"
-              style={{
-                background: "rgba(248,113,113,0.1)",
-                border: "1px solid rgba(248,113,113,0.3)",
-                borderRadius: "var(--radius-md)",
-                color: "var(--accent-defect)",
-                fontFamily: "var(--font-display)",
-                fontSize: "var(--text-xl)",
-                padding: "16px 32px",
-                cursor: "pointer",
-                transition: "all 0.3s var(--ease-out)",
-                backdropFilter: "blur(16px)",
-              }}
+              color="defect"
+              size="lg"
+              triggerOn="active"
             >
               ⚔️ Step aside (Defect)
-            </button>
+            </StaggerButton>
           </div>
         </div>
       ) : (
@@ -309,39 +292,12 @@ export const ChoiceSlide: React.FC<SlideProps> = ({ onNext }) => {
           <div
             style={{ display: "flex", gap: "12px", justifyContent: "center" }}
           >
-            <button
-              onClick={reset}
-              className="press-feedback"
-              style={{
-                background: "var(--bg-glass-light)",
-                border: "1px solid var(--border-glass)",
-                borderRadius: "var(--radius-md)",
-                color: "var(--text-secondary)",
-                fontFamily: "var(--font-body)",
-                fontSize: "var(--text-sm)",
-                padding: "10px 20px",
-                cursor: "pointer",
-              }}
-            >
+            <ShimmerButton onClick={reset} size="sm">
               ↺ Try again
-            </button>
-            <button
-              onClick={onNext}
-              className="press-feedback"
-              style={{
-                background: "var(--accent-violet)",
-                border: "none",
-                borderRadius: "var(--radius-md)",
-                color: "white",
-                fontFamily: "var(--font-body)",
-                fontSize: "var(--text-sm)",
-                fontWeight: 600,
-                padding: "10px 24px",
-                cursor: "pointer",
-              }}
-            >
+            </ShimmerButton>
+            <ElectricButton onClick={onNext} color="violet" size="sm">
               What if you played again? →
-            </button>
+            </ElectricButton>
           </div>
         </div>
       )}

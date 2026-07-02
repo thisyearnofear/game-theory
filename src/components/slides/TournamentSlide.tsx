@@ -11,6 +11,8 @@ import { SlideProps } from "../SlideSystem";
 import TournamentViz from "../visual/TournamentViz";
 import { ShareableResult } from "../ui/ShareableResult";
 import { unlockAchievement } from "../ui/AchievementBadge";
+import { ElectricButton } from "../ui/ElectricButton";
+import { ShimmerButton } from "../ui/ShimmerButton";
 import {
   getStrategyInfo,
   playRepeatedGame,
@@ -205,25 +207,11 @@ export const TournamentSlide: React.FC<SlideProps> = ({ onNext }) => {
       {!isComplete && (
         <div data-animate>
           {stage === "rest" && (
-            <button
-              onClick={runGeneration}
-              className="press-feedback"
-              style={{
-                background: "var(--accent-violet)",
-                border: "none",
-                borderRadius: "var(--radius-md)",
-                color: "white",
-                fontFamily: "var(--font-body)",
-                fontSize: "var(--text-sm)",
-                fontWeight: 600,
-                padding: "12px 32px",
-                cursor: "pointer",
-              }}
-            >
+            <ElectricButton onClick={runGeneration} color="violet" size="md">
               {generation === 0
                 ? "Start tournament →"
                 : "Run next generation →"}
-            </button>
+            </ElectricButton>
           )}
           {stage === "playing" && (
             <p
@@ -303,39 +291,12 @@ export const TournamentSlide: React.FC<SlideProps> = ({ onNext }) => {
           <div
             style={{ display: "flex", gap: "12px", justifyContent: "center" }}
           >
-            <button
-              onClick={reset}
-              className="press-feedback"
-              style={{
-                background: "var(--bg-glass-light)",
-                border: "1px solid var(--border-glass)",
-                borderRadius: "var(--radius-md)",
-                color: "var(--text-secondary)",
-                fontFamily: "var(--font-body)",
-                fontSize: "var(--text-sm)",
-                padding: "10px 20px",
-                cursor: "pointer",
-              }}
-            >
+            <ShimmerButton onClick={reset} size="sm">
               ↺ Reset
-            </button>
-            <button
-              onClick={onNext}
-              className="press-feedback"
-              style={{
-                background: "var(--accent-violet)",
-                border: "none",
-                borderRadius: "var(--radius-md)",
-                color: "white",
-                fontFamily: "var(--font-body)",
-                fontSize: "var(--text-sm)",
-                fontWeight: 600,
-                padding: "10px 24px",
-                cursor: "pointer",
-              }}
-            >
+            </ShimmerButton>
+            <ElectricButton onClick={onNext} color="violet" size="sm">
               What about noise? →
-            </button>
+            </ElectricButton>
           </div>
         </div>
       )}

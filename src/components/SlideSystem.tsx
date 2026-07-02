@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Button } from "@stellar/design-system";
 import AudioManager from "./AudioManager";
 import { useSlideAnimation } from "../hooks/useSlideAnimation";
 import JourneyProgress from "./visual/JourneyProgress";
+import { ShimmerButton } from "./ui/ShimmerButton";
+import { ElectricButton } from "./ui/ElectricButton";
 import "../styles/slides.css";
 
 // SINGLE SOURCE OF TRUTH for slide configuration
@@ -188,18 +189,17 @@ export const SlideSystem: React.FC<SlideSystemProps> = ({
           zIndex: 10,
         }}
       >
-        <Button
-          variant="secondary"
+        <ShimmerButton
           onClick={handlePrev}
+          size="sm"
           disabled={currentSlide === 0}
-          size="md"
         >
           ← Previous
-        </Button>
+        </ShimmerButton>
 
-        <Button variant="primary" onClick={handleNext} size="md">
+        <ElectricButton onClick={handleNext} color="violet" size="sm">
           {currentSlide === slides.length - 1 ? "Complete" : "Next →"}
-        </Button>
+        </ElectricButton>
       </div>
     </div>
   );

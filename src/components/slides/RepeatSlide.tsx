@@ -9,6 +9,9 @@
 import React, { useState, useRef } from "react";
 import { SlideProps } from "../SlideSystem";
 import { unlockAchievement } from "../ui/AchievementBadge";
+import { ElectricButton } from "../ui/ElectricButton";
+import { StaggerButton } from "../ui/StaggerButton";
+import { ShimmerButton } from "../ui/ShimmerButton";
 import {
   createStrategy,
   calculatePayoff,
@@ -265,38 +268,22 @@ export const RepeatSlide: React.FC<SlideProps> = ({ onNext }) => {
           <div
             style={{ display: "flex", gap: "16px", justifyContent: "center" }}
           >
-            <button
+            <StaggerButton
               onClick={() => playRound("C")}
-              className="press-feedback"
-              style={{
-                background: "rgba(74,222,128,0.1)",
-                border: "1px solid rgba(74,222,128,0.3)",
-                borderRadius: "var(--radius-md)",
-                color: "var(--accent-cooperate)",
-                fontFamily: "var(--font-display)",
-                fontSize: "var(--text-lg)",
-                padding: "12px 28px",
-                cursor: "pointer",
-              }}
+              color="cooperate"
+              size="md"
+              triggerOn="active"
             >
               🤝 Cooperate
-            </button>
-            <button
+            </StaggerButton>
+            <StaggerButton
               onClick={() => playRound("D")}
-              className="press-feedback"
-              style={{
-                background: "rgba(248,113,113,0.1)",
-                border: "1px solid rgba(248,113,113,0.3)",
-                borderRadius: "var(--radius-md)",
-                color: "var(--accent-defect)",
-                fontFamily: "var(--font-display)",
-                fontSize: "var(--text-lg)",
-                padding: "12px 28px",
-                cursor: "pointer",
-              }}
+              color="defect"
+              size="md"
+              triggerOn="active"
             >
               ⚔️ Defect
-            </button>
+            </StaggerButton>
           </div>
         </div>
       )}
@@ -313,23 +300,9 @@ export const RepeatSlide: React.FC<SlideProps> = ({ onNext }) => {
           >
             {lastOutcome}
           </p>
-          <button
-            onClick={nextRound}
-            className="press-feedback"
-            style={{
-              background: "var(--accent-violet)",
-              border: "none",
-              borderRadius: "var(--radius-md)",
-              color: "white",
-              fontFamily: "var(--font-body)",
-              fontSize: "var(--text-sm)",
-              fontWeight: 600,
-              padding: "10px 24px",
-              cursor: "pointer",
-            }}
-          >
+          <ElectricButton onClick={nextRound} color="violet" size="sm">
             Next round →
-          </button>
+          </ElectricButton>
         </div>
       )}
 
@@ -369,39 +342,12 @@ export const RepeatSlide: React.FC<SlideProps> = ({ onNext }) => {
           <div
             style={{ display: "flex", gap: "12px", justifyContent: "center" }}
           >
-            <button
-              onClick={reset}
-              className="press-feedback"
-              style={{
-                background: "var(--bg-glass-light)",
-                border: "1px solid var(--border-glass)",
-                borderRadius: "var(--radius-md)",
-                color: "var(--text-secondary)",
-                fontFamily: "var(--font-body)",
-                fontSize: "var(--text-sm)",
-                padding: "10px 20px",
-                cursor: "pointer",
-              }}
-            >
+            <ShimmerButton onClick={reset} size="sm">
               ↺ Play again
-            </button>
-            <button
-              onClick={onNext}
-              className="press-feedback"
-              style={{
-                background: "var(--accent-violet)",
-                border: "none",
-                borderRadius: "var(--radius-md)",
-                color: "white",
-                fontFamily: "var(--font-body)",
-                fontSize: "var(--text-sm)",
-                fontWeight: 600,
-                padding: "10px 24px",
-                cursor: "pointer",
-              }}
-            >
+            </ShimmerButton>
+            <ElectricButton onClick={onNext} color="violet" size="sm">
               Meet the strategies →
-            </button>
+            </ElectricButton>
           </div>
         </div>
       )}

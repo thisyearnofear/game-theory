@@ -6,12 +6,11 @@
  * The question: do you fall?
  */
 
-import React, { useState } from "react";
+import React from "react";
 import { SlideProps } from "../SlideSystem";
+import { ElectricButton } from "../ui/ElectricButton";
 
 export const EdgeSlide: React.FC<SlideProps> = ({ onNext }) => {
-  const [hovered, setHovered] = useState(false);
-
   return (
     <div
       style={{
@@ -162,28 +161,9 @@ export const EdgeSlide: React.FC<SlideProps> = ({ onNext }) => {
       </p>
 
       <div data-animate>
-        <button
-          onClick={onNext}
-          onMouseEnter={() => setHovered(true)}
-          onMouseLeave={() => setHovered(false)}
-          style={{
-            background: hovered
-              ? "var(--accent-violet)"
-              : "var(--bg-glass-light)",
-            border: "1px solid var(--border-glass)",
-            borderRadius: "var(--radius-md)",
-            color: "var(--text-primary)",
-            fontFamily: "var(--font-display)",
-            fontSize: "var(--text-xl)",
-            padding: "14px 40px",
-            cursor: "pointer",
-            transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
-            backdropFilter: "blur(16px)",
-            boxShadow: hovered ? "0 0 40px rgba(102,126,234,0.3)" : "none",
-          }}
-        >
+        <ElectricButton onClick={onNext} color="violet" size="lg">
           Take the fall →
-        </button>
+        </ElectricButton>
       </div>
 
       <p

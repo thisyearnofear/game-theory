@@ -11,6 +11,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { SlideProps } from "../SlideSystem";
 import { useWallet } from "../../hooks/useWallet";
+import { ElectricButton } from "../ui/ElectricButton";
 
 export const RealThingSlide: React.FC<SlideProps> = () => {
   const navigate = useNavigate();
@@ -237,32 +238,13 @@ export const RealThingSlide: React.FC<SlideProps> = () => {
 
       {/* CTA */}
       <div data-animate>
-        <button
+        <ElectricButton
           onClick={() => void navigate("/play")}
-          className="press-feedback"
-          style={{
-            background: "var(--accent-violet)",
-            border: "none",
-            borderRadius: "var(--radius-lg)",
-            color: "white",
-            fontFamily: "var(--font-display)",
-            fontSize: "var(--text-xl)",
-            padding: "16px 48px",
-            cursor: "pointer",
-            boxShadow: "0 0 40px rgba(102,126,234,0.3)",
-            transition: "all 0.4s var(--ease-out)",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = "translateY(-2px) scale(1.02)";
-            e.currentTarget.style.boxShadow = "0 0 60px rgba(102,126,234,0.5)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = "translateY(0) scale(1)";
-            e.currentTarget.style.boxShadow = "0 0 40px rgba(102,126,234,0.3)";
-          }}
+          color="violet"
+          size="lg"
         >
           Play for real →
-        </button>
+        </ElectricButton>
       </div>
 
       <p

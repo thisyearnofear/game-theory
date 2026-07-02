@@ -11,6 +11,7 @@
 import React, { useState, useCallback } from "react";
 import { SlideProps } from "../SlideSystem";
 import { unlockAchievement } from "../ui/AchievementBadge";
+import { ElectricButton } from "../ui/ElectricButton";
 import {
   createStrategy,
   playRepeatedGame,
@@ -184,26 +185,15 @@ export const NoiseSlide: React.FC<SlideProps> = ({ onNext }) => {
           </span>
         </div>
 
-        <button
+        <ElectricButton
           onClick={runSimulation}
           disabled={running}
-          className="press-feedback"
-          style={{
-            marginTop: "16px",
-            background: "var(--accent-violet)",
-            border: "none",
-            borderRadius: "var(--radius-md)",
-            color: "white",
-            fontFamily: "var(--font-body)",
-            fontSize: "var(--text-sm)",
-            fontWeight: 600,
-            padding: "10px 24px",
-            cursor: running ? "wait" : "pointer",
-            opacity: running ? 0.6 : 1,
-          }}
+          color="warm"
+          size="md"
+          style={{ marginTop: "16px" }}
         >
           {running ? "Running 50 rounds..." : "▶ Simulate 50 rounds"}
-        </button>
+        </ElectricButton>
       </div>
 
       {/* Results */}
@@ -327,23 +317,9 @@ export const NoiseSlide: React.FC<SlideProps> = ({ onNext }) => {
       )}
 
       <div data-animate>
-        <button
-          onClick={onNext}
-          className="press-feedback"
-          style={{
-            background: "var(--accent-violet)",
-            border: "none",
-            borderRadius: "var(--radius-md)",
-            color: "white",
-            fontFamily: "var(--font-body)",
-            fontSize: "var(--text-sm)",
-            fontWeight: 600,
-            padding: "12px 32px",
-            cursor: "pointer",
-          }}
-        >
+        <ElectricButton onClick={onNext} color="violet" size="md">
           Ready for real stakes? →
-        </button>
+        </ElectricButton>
       </div>
     </div>
   );
