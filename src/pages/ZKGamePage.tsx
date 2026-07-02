@@ -8,6 +8,7 @@ import { CommitMove } from "../components/zk/CommitMove";
 import { RevealMove } from "../components/zk/RevealMove";
 import { GameResult } from "../components/zk/GameResult";
 import { OnboardingOverlay } from "../components/zk/OnboardingOverlay";
+import ConnectAccount from "../components/ConnectAccount";
 
 type ViewState =
   | { type: "lobby" }
@@ -560,34 +561,58 @@ export const ZKGamePage: React.FC = () => {
       {/* Connect prompt */}
       {!address && (
         <div
+          className="glass-panel"
           style={{
             textAlign: "center",
-            padding: "40px",
+            padding: "48px 32px",
             marginBottom: "24px",
+            maxWidth: "480px",
+            margin: "0 auto 24px",
+            borderColor: "rgba(102,126,234,0.2)",
           }}
         >
-          <div style={{ fontSize: "60px", marginBottom: "16px" }}>🔐</div>
-          <Text
-            as="p"
-            size="lg"
+          <div
             style={{
-              fontFamily: "var(--font-body)",
-              color: "rgba(20, 26, 46, 0.55)",
-              marginBottom: "8px",
+              fontSize: "64px",
+              marginBottom: "20px",
+              filter: "drop-shadow(0 0 24px rgba(102,126,234,0.3))",
+            }}
+          >
+            🔐
+          </div>
+          <h2
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: "var(--text-2xl)",
+              color: "var(--text-primary)",
+              margin: "0 0 12px",
             }}
           >
             Connect Your Wallet
-          </Text>
-          <Text
-            as="p"
-            size="md"
+          </h2>
+          <p
             style={{
               fontFamily: "var(--font-body)",
-              color: "rgba(20, 26, 46, 0.35)",
+              fontSize: "var(--text-sm)",
+              color: "var(--text-secondary)",
+              lineHeight: 1.6,
+              margin: "0 0 8px",
             }}
           >
-            Connect a Stellar wallet to play Trustfall with real stakes
-          </Text>
+            You need a Stellar wallet to commit moves and stake XLM.
+          </p>
+          <p
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: "var(--text-xs)",
+              color: "var(--text-muted)",
+              margin: "0 0 24px",
+            }}
+          >
+            Testnet only — no real money at risk. Get free testnet XLM from
+            friendbot.
+          </p>
+          <ConnectAccount />
         </div>
       )}
 
@@ -605,14 +630,15 @@ export const ZKGamePage: React.FC = () => {
           type="button"
           onClick={() => void navigate("/")}
           style={{
-            background: "rgba(255,255,255,0.1)",
-            border: "1px solid rgba(255,255,255,0.2)",
-            color: "rgba(20, 26, 46, 0.35)",
+            background: "var(--bg-glass-light)",
+            border: "1px solid var(--border-glass)",
+            color: "var(--text-secondary)",
             cursor: "pointer",
             fontFamily: "var(--font-body)",
-            fontSize: "14px",
+            fontSize: "var(--text-sm)",
             padding: "8px 16px",
-            borderRadius: "8px",
+            borderRadius: "var(--radius-md)",
+            transition: "all 0.3s var(--ease-out)",
           }}
         >
           ← Back to Tutorial

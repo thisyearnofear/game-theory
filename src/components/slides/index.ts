@@ -1,10 +1,11 @@
 // SINGLE SOURCE OF TRUTH: Slide exports
-export { IntroSlide } from './IntroSlide';
-export { GameSlide } from './GameSlide';
-export { ConclusionSlide } from './ConclusionSlide';
-
-// Future enhancements:
-// export { EvolutionSlide } from './EvolutionSlide';
-// export { DistrustSlide } from './DistrustSlide';
-// export { NoiseSlide } from './NoiseSlide';
-// export { SandboxSlide } from './SandboxSlide';
+export { IntroSlide } from "./IntroSlide";
+export { EdgeSlide } from "./EdgeSlide";
+export { ChoiceSlide } from "./ChoiceSlide";
+export { RepeatSlide } from "./RepeatSlide";
+export { OpponentsSlide } from "./OpponentsSlide";
+export { TournamentSlide } from "./TournamentSlide";
+export { NoiseSlide } from "./NoiseSlide";
+export { RealThingSlide } from "./RealThingSlide";
+export { GameSlide } from "./GameSlide";
+export { ConclusionSlide } from "./ConclusionSlide";

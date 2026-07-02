@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, Text } from "@stellar/design-system";
+import { Button } from "@stellar/design-system";
 
 const STORAGE_KEY = "zk_onboarding_seen";
 
@@ -58,7 +58,8 @@ export const OnboardingOverlay: React.FC = () => {
         left: 0,
         right: 0,
         bottom: 0,
-        background: "rgba(0,0,0,0.6)",
+        background: "rgba(0,0,0,0.7)",
+        backdropFilter: "blur(8px)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -70,41 +71,49 @@ export const OnboardingOverlay: React.FC = () => {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: "white",
-          borderRadius: "16px",
-          padding: "32px",
+          background: "var(--bg-glass)",
+          backdropFilter: "blur(24px) saturate(180%)",
+          border: "1px solid var(--border-glass)",
+          borderRadius: "var(--radius-xl)",
+          padding: "40px",
           maxWidth: "440px",
           width: "100%",
           textAlign: "center",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
+          boxShadow: "var(--shadow-lg), var(--shadow-glow-violet)",
         }}
       >
-        <div style={{ fontSize: "48px", marginBottom: "12px" }}>
+        <div
+          style={{
+            fontSize: "56px",
+            marginBottom: "16px",
+            filter: "drop-shadow(0 0 24px rgba(102,126,234,0.3))",
+          }}
+        >
           {current.icon}
         </div>
-        <Text
-          as="h3"
-          size="lg"
+
+        <h3
           style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "var(--text-2xl)",
             margin: "0 0 12px",
-            fontFamily: "var(--font-body)",
             color: "var(--text-primary)",
           }}
         >
           {current.title}
-        </Text>
-        <Text
-          as="p"
-          size="sm"
+        </h3>
+
+        <p
           style={{
-            color: "var(--text-secondary)",
-            lineHeight: 1.5,
-            margin: "0 0 24px",
             fontFamily: "var(--font-body)",
+            fontSize: "var(--text-sm)",
+            color: "var(--text-secondary)",
+            lineHeight: 1.6,
+            margin: "0 0 28px",
           }}
         >
           {current.body}
-        </Text>
+        </p>
 
         {/* Step indicator */}
         <div
@@ -112,18 +121,23 @@ export const OnboardingOverlay: React.FC = () => {
             display: "flex",
             justifyContent: "center",
             gap: "8px",
-            marginBottom: "20px",
+            marginBottom: "24px",
           }}
         >
           {steps.map((s, i) => (
             <div
               key={s.title}
               style={{
-                width: i === step ? "24px" : "8px",
+                width: i === step ? "28px" : "8px",
                 height: "8px",
                 borderRadius: "4px",
-                background: i === step ? "#667eea" : "#ddd",
-                transition: "all 0.2s",
+                background:
+                  i === step
+                    ? "var(--accent-violet)"
+                    : i < step
+                      ? "rgba(102,126,234,0.4)"
+                      : "rgba(255,255,255,0.12)",
+                transition: "all 0.3s var(--ease-out)",
               }}
             />
           ))}
@@ -140,12 +154,7 @@ export const OnboardingOverlay: React.FC = () => {
             </Button>
           )}
           {isLast ? (
-            <Button
-              variant="primary"
-              size="md"
-              onClick={dismiss}
-              style={{ fontFamily: "var(--font-body)" }}
-            >
+            <Button variant="primary" size="md" onClick={dismiss}>
               Let's Play →
             </Button>
           ) : (
@@ -153,7 +162,6 @@ export const OnboardingOverlay: React.FC = () => {
               variant="primary"
               size="md"
               onClick={() => setStep(step + 1)}
-              style={{ fontFamily: "var(--font-body)" }}
             >
               Next →
             </Button>
@@ -168,8 +176,8 @@ export const OnboardingOverlay: React.FC = () => {
             border: "none",
             color: "var(--text-muted)",
             cursor: "pointer",
-            fontSize: "13px",
-            marginTop: "16px",
+            fontSize: "var(--text-xs)",
+            marginTop: "20px",
             fontFamily: "var(--font-body)",
           }}
         >

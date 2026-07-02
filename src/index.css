@@ -543,6 +543,35 @@ p {
   animation: tf-glow-cold 2s ease-in-out infinite;
 }
 
+/* Journey progress pulse for current step */
+@keyframes journey-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(240, 160, 32, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(240, 160, 32, 0);
+  }
+}
+
+/* TrustFall figure sway (used in EdgeSlide and TrustFallFigure) */
+@keyframes trustfall-sway {
+  0%,
+  100% {
+    transform: rotate(-2deg);
+  }
+  50% {
+    transform: rotate(2deg);
+  }
+}
+
+/* Loading spinner rotation (used in LoadingSpinner component) */
+@keyframes tf-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* ============================================================================
  * Responsive
  * ============================================================================ */

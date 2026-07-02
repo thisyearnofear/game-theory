@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@stellar/design-system";
 import AudioManager from "./AudioManager";
 import { useSlideAnimation } from "../hooks/useSlideAnimation";
+import JourneyProgress from "./visual/JourneyProgress";
 import "../styles/slides.css";
 
 // SINGLE SOURCE OF TRUTH for slide configuration
@@ -25,6 +26,9 @@ interface SlideSystemProps {
   onComplete?: () => void;
 }
 
+// Icons for the journey progress — mapped by slide index
+const JOURNEY_ICONS = ["🪂", "🏔️", "🤝", "🔄", "⚔️", "🏆", "💨", "🔒"];
+
 export const SlideSystem: React.FC<SlideSystemProps> = ({
   slides,
   onComplete,
@@ -33,56 +37,83 @@ export const SlideSystem: React.FC<SlideSystemProps> = ({
   const [slideData] = useState<Record<string, unknown>>({});
   const [audioManager] = useState(() => AudioManager.getInstance());
 
-  // PERFORMANT: Initialize audio on first load
+  // Initialize audio on first load
   useEffect(() => {
     audioManager.preloadSounds();
 
-    // Start background music if available
     const firstSlideMusic = slides[0]?.music;
     if (firstSlideMusic) {
       audioManager.playBackgroundMusic(firstSlideMusic);
     }
   }, [audioManager, slides]);
 
-  // ENHANCEMENT: Handle slide changes with audio
+  // Handle slide changes with audio
   useEffect(() => {
     const currentSlideConfig = slides[currentSlide];
     if (currentSlideConfig?.music) {
       audioManager.playBackgroundMusic(currentSlideConfig.music);
     }
 
-    // Play slide transition sound
     if (currentSlide > 0) {
       audioManager.playSound("click");
     }
   }, [currentSlide, slides, audioManager]);
 
-  const handleNext = () => {
-    if (currentSlide < slides.length - 1) {
-      setCurrentSlide(currentSlide + 1);
-    } else {
+  const handleNext = useCallback(() => {
+    setCurrentSlide((prev) => {
+      if (prev < slides.length - 1) return prev + 1;
       onComplete?.();
-    }
-  };
+      return prev;
+    });
+  }, [slides.length, onComplete]);
 
-  const handlePrev = () => {
-    if (currentSlide > 0) {
-      setCurrentSlide(currentSlide - 1);
-    }
-  };
+  const handlePrev = useCallback(() => {
+    setCurrentSlide((prev) => Math.max(0, prev - 1));
+  }, []);
 
-  const handleSlideJump = (index: number) => {
-    setCurrentSlide(index);
-    audioManager.playSound("click");
-  };
+  const handleSlideJump = useCallback(
+    (index: number) => {
+      setCurrentSlide(index);
+      audioManager.playSound("click");
+    },
+    [audioManager],
+  );
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      // Don't interfere with typing in inputs
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      )
+        return;
+      if (e.key === "ArrowRight" || e.key === " ") {
+        e.preventDefault();
+        handleNext();
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        handlePrev();
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [handleNext, handlePrev]);
 
   const currentSlideConfig = slides[currentSlide];
   const SlideComponent = currentSlideConfig.component;
   const slideRef = useSlideAnimation<HTMLDivElement>();
 
+  // Build journey steps for the progress indicator
+  const journeySteps = slides.map((slide, index) => ({
+    id: slide.id,
+    label: slide.title || slide.id,
+    icon: JOURNEY_ICONS[index] || "•",
+  }));
+
   return (
     <div className="slide-container" ref={slideRef}>
-      {/* ENHANCEMENT: Audio controls */}
+      {/* Audio controls */}
       <div className="audio-controls">
         <button
           type="button"
@@ -102,19 +133,27 @@ export const SlideSystem: React.FC<SlideSystemProps> = ({
         </button>
       </div>
 
-      {/* CLEAN: Progress indicator */}
-      <div className="slide-progress">
-        {slides.map((slide, index) => (
-          <button
-            type="button"
-            key={`slide-${slide.id}-${index}`}
-            className={`progress-dot ${currentSlide === index ? "active" : ""}`}
-            onClick={() => handleSlideJump(index)}
+      {/* Journey progress — replaces the old dots */}
+      {slides.length > 1 && (
+        <div
+          style={{
+            position: "fixed",
+            top: "70px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 10,
+            maxWidth: "90vw",
+          }}
+        >
+          <JourneyProgress
+            steps={journeySteps}
+            currentStep={currentSlide}
+            onStepClick={handleSlideJump}
           />
-        ))}
-      </div>
+        </div>
+      )}
 
-      {/* MODULAR: Slide content */}
+      {/* Slide content */}
       <div
         style={{
           display: "flex",
@@ -122,41 +161,12 @@ export const SlideSystem: React.FC<SlideSystemProps> = ({
           alignItems: "center",
           justifyContent: "center",
           minHeight: "calc(100vh - 120px)",
-          padding: "40px 20px",
+          padding: "40px 20px 100px",
           textAlign: "center",
           maxWidth: "900px",
           margin: "0 auto",
         }}
       >
-        {currentSlideConfig.title && (
-          <h1
-            data-animate
-            className="slide-title"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "var(--text-4xl)",
-              marginBottom: "var(--space-md)",
-            }}
-          >
-            {currentSlideConfig.title}
-          </h1>
-        )}
-
-        {currentSlideConfig.subtitle && (
-          <h2
-            data-animate
-            className="slide-subtitle"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "var(--text-2xl)",
-              color: "var(--text-secondary)",
-              marginBottom: "var(--space-lg)",
-            }}
-          >
-            {currentSlideConfig.subtitle}
-          </h2>
-        )}
-
         <div data-animate>
           <SlideComponent
             onNext={handleNext}
@@ -166,15 +176,15 @@ export const SlideSystem: React.FC<SlideSystemProps> = ({
         </div>
       </div>
 
-      {/* CLEAN: Navigation */}
+      {/* Navigation */}
       <div
         style={{
           position: "fixed",
-          bottom: "30px",
+          bottom: "24px",
           left: "50%",
           transform: "translateX(-50%)",
           display: "flex",
-          gap: "15px",
+          gap: "12px",
           zIndex: 10,
         }}
       >
