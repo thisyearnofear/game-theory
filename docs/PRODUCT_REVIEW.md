@@ -1,4 +1,4 @@
-# Product Review — ZK Prisoner's Dilemma on Stellar
+# Product Review — Trustfall
 
 Comprehensive review of product design, UI/UX, system architecture, reliability/performance, and intuitiveness/cogency. Based on full codebase analysis (contract, circuit, frontend).
 

@@ -11,8 +11,8 @@ const AppLayout: React.FC = () => {
   return (
     <main>
       <Layout.Header
-        projectId="Game Theory on Stellar"
-        projectTitle="Game Theory on Stellar"
+        projectId="Trustfall"
+        projectTitle="Trustfall"
         contentRight={
           <>
             <nav style={{ display: "flex", gap: "6px", alignItems: "center" }}>

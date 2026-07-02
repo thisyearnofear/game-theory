@@ -1,4 +1,4 @@
-# Game Theory on Stellar - Development Roadmap
+# Trustfall — Development Roadmap
 
 ## 🎯 Current Status: ZK Multiplayer Complete + Hardened
 

@@ -1,8 +1,10 @@
-# ZK Trust: Zero-Knowledge Prisoner's Dilemma on Stellar
+# Trustfall — Zero-Knowledge Prisoner's Dilemma on Stellar
 
 ## Hackathon: Stellar Hacks - Real-World ZK
 
-**Project Name:** ZK Trust (evolution of the existing "Game Theory on Stellar")
+**Project Name:** Trustfall
+
+**Website:** [trustfall.xyz](https://trustfall.xyz)
 
 **One-liner:** A ZK-powered multiplayer Prisoner's Dilemma on Stellar where players commit moves via zero-knowledge proofs, enabling truly simultaneous strategy selection on a transparent blockchain.
 

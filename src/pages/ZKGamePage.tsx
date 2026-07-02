@@ -582,8 +582,7 @@ export const ZKGamePage: React.FC = () => {
               color: "rgba(255,255,255,0.7)",
             }}
           >
-            Connect a Stellar wallet to play ZK Prisoner's Dilemma with real
-            stakes
+            Connect a Stellar wallet to play Trustfall with real stakes
           </Text>
         </div>
       )}

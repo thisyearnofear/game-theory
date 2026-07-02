@@ -1,6 +1,8 @@
-# Game Theory on Stellar — ZK Trust
+# Trustfall — ZK Prisoner's Dilemma on Stellar
 
-A dApp bringing game theory to life on the Stellar network, inspired by Nicky Case's ["The Evolution of Trust"](https://github.com/ncase/trust). Experience the Prisoner's Dilemma with real XLM stakes and **zero-knowledge proofs** for fair multiplayer play, making cooperation and defection decisions truly impactful.
+**[trustfall.xyz](https://trustfall.xyz)**
+
+A zero-knowledge Prisoner's Dilemma on Stellar. Commit moves with ZK proofs — trust is proven, not promised. Inspired by Nicky Case's ["The Evolution of Trust"](https://github.com/ncase/trust), now with real XLM stakes and cryptographic fairness.
 
 _Built with Scaffold Stellar for the Stellar Hackathon._
 
@@ -28,8 +30,8 @@ The ZK contract is deployed and initialized with the Noir UltraHonk verification
 ## Quick Start
 
 ```bash
-git clone <repository-url>
-cd game-theory
+git clone https://github.com/thisyearnofear/game-theory.git trustfall
+cd trustfall
 npm install
 npm run dev
 ```
@@ -55,7 +57,7 @@ Play against other humans with **zero-knowledge commitment**:
 3. **Resolve Phase** — Payouts are calculated and XLM is transferred from escrow. If a player doesn't reveal in time, the opponent can claim forfeit.
 4. **Recovery** — If no opponent joins before the commit deadline, player1 can `cancel_game` to reclaim their stake. If both players timeout on reveal, anyone can `claim_refund` to split the escrow.
 
-**Why ZK?** Without the proof, a player could commit to an arbitrary hash and grief the opponent by never revealing a valid move. The ZK proof makes the commitment **binding** at commit time: the contract knows the hash is over a valid move + known nonce + correct game_id, so the player _can_ reveal later. Proofs are not persisted on-chain (only the commitment is stored), keeping gas costs manageable.
+**Why ZK?** Without the proof, a player could commit to an arbitrary hash and grief the opponent by never revealing a valid move. The ZK proof makes the commitment **binding** at commit time: the contract knows the hash is over a valid move + known nonce + correct game*id, so the player \_can* reveal later. Proofs are not persisted on-chain (only the commitment is stored), keeping gas costs manageable.
 
 **Smart Contract:** `contracts/zk_dilemma/` — Soroban contract with proper auth, XLM escrow, on-chain UltraHonk proof verification, keccak256 hash verification, timeout-based forfeit logic, recovery functions (cancel/refund), and contract events for off-chain indexing.
 
@@ -73,7 +75,7 @@ Play against other humans with **zero-knowledge commitment**:
 ## Project Structure
 
 ```
-game-theory/
+trustfall/
 ├── circuits/                       # Noir ZK circuits
 │   └── move_commitment/           # Move commitment circuit
 ├── contracts/
@@ -176,7 +178,12 @@ The project has a pre-commit hook (via Husky) that runs:
 
 ## Inspiration
 
-Adapts Nicky Case's ["The Evolution of Trust"](https://ncase.me/trust/) to blockchain, transforming theoretical game theory into experiential learning with real economic consequences and zero-knowledge privacy.
+Trustfall adapts Nicky Case's ["The Evolution of Trust"](https://ncase.me/trust/) to blockchain, transforming theoretical game theory into experiential learning with real economic consequences and zero-knowledge privacy.
+
+## Links
+
+- **Website:** [trustfall.xyz](https://trustfall.xyz)
+- **Source:** [github.com/thisyearnofear/game-theory](https://github.com/thisyearnofear/game-theory)
 
 ## License
 

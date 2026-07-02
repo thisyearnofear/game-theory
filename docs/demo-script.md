@@ -1,4 +1,4 @@
-# Demo Video Script — ZK Prisoner's Dilemma on Stellar (2-3 min)
+# Demo Video Script — Trustfall (2-3 min)
 
 ## Pre-Demo Setup
 
