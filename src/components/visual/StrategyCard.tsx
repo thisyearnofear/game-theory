@@ -7,7 +7,8 @@
  * attribute for GSAP staggered reveals.
  */
 
-import { CSSProperties } from "react";
+import { CSSProperties, useCallback } from "react";
+import { useTiltInteraction } from "../../hooks/useSlideAnimation";
 
 interface StrategyCardProps {
   id: string;
@@ -31,6 +32,20 @@ const StrategyCard: React.FC<StrategyCardProps> = ({
   compact = false,
 }) => {
   const isInteractive = typeof onClick === "function";
+
+  const tiltRef = useTiltInteraction<HTMLDivElement>(8);
+
+  const handleSpotlightMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      const el = e.currentTarget;
+      const rect = el.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      el.style.setProperty("--mouse-x", `${x}%`);
+      el.style.setProperty("--mouse-y", `${y}%`);
+    },
+    [],
+  );
 
   const cardStyle: CSSProperties = {
     position: "relative",
@@ -84,26 +99,41 @@ const StrategyCard: React.FC<StrategyCardProps> = ({
     e.currentTarget.style.transform = "translateY(0)";
   };
 
+  const spotlightStyle: CSSProperties = {
+    position: "absolute",
+    inset: 0,
+    pointerEvents: "none",
+    background:
+      "radial-gradient(circle at var(--mouse-x) var(--mouse-y), rgba(102,126,234,0.15), transparent 40%)",
+    zIndex: 1,
+  };
+
   return (
-    <div
-      data-animate="strategy-card"
-      data-strategy-id={id}
-      style={cardStyle}
-      onClick={onClick}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      role={isInteractive ? "button" : undefined}
-      tabIndex={isInteractive ? 0 : undefined}
-      onKeyDown={(e) => {
-        if (isInteractive && (e.key === "Enter" || e.key === " ")) {
-          e.preventDefault();
-          onClick?.();
-        }
-      }}
-    >
-      <span style={emojiStyle}>{emoji}</span>
-      <h3 style={nameStyle}>{name}</h3>
-      {!compact && <p style={descriptionStyle}>{description}</p>}
+    <div style={{ perspective: "800px" }}>
+      <div
+        ref={tiltRef}
+        className="strategy-card"
+        data-animate="strategy-card"
+        data-strategy-id={id}
+        style={cardStyle}
+        onClick={onClick}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onMouseMove={handleSpotlightMove}
+        role={isInteractive ? "button" : undefined}
+        tabIndex={isInteractive ? 0 : undefined}
+        onKeyDown={(e) => {
+          if (isInteractive && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            onClick?.();
+          }
+        }}
+      >
+        <span style={emojiStyle}>{emoji}</span>
+        <h3 style={nameStyle}>{name}</h3>
+        {!compact && <p style={descriptionStyle}>{description}</p>}
+        <div style={spotlightStyle} aria-hidden="true" />
+      </div>
     </div>
   );
 };

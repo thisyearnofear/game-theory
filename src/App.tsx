@@ -3,6 +3,7 @@ import ConnectAccount from "./components/ConnectAccount.tsx";
 import { Routes, Route, Outlet, NavLink, useNavigate } from "react-router-dom";
 import Home from "./pages/Home";
 import { TopographicBackground } from "./components/visual/TopographicBackground";
+import { CustomCursor } from "./components/ui/CustomCursor";
 import { lazy, Suspense } from "react";
 
 // Route-based code splitting:
@@ -74,6 +75,7 @@ const AppLayout: React.FC = () => {
 function App() {
   return (
     <>
+      <CustomCursor />
       <TopographicBackground />
       <Suspense
         fallback={

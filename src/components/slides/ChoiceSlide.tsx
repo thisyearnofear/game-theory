@@ -4,9 +4,15 @@
  * Introduces cooperate/defect with a single round against a simple AI.
  * Shows the payoff matrix. No strategy selection, no noise, no advanced features.
  * The user makes one choice and sees the outcome.
+ *
+ * The payoff matrix is proximity-aware and interactive:
+ * - Cells glow brighter as the cursor approaches (requestAnimationFrame-driven).
+ * - Hovering a cell shows a tooltip describing that outcome.
+ * - Hovering the Cooperate/Defect buttons highlights the corresponding matrix row.
+ * - Cells fade in with the existing [data-animate] stagger system.
  */
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { SlideProps } from "../SlideSystem";
 import {
   calculatePayoff,
@@ -46,6 +52,288 @@ const OUTCOME_INFO: Record<
   },
 };
 
+// --- Payoff matrix data -------------------------------------------------
+
+interface MatrixCellData {
+  id: string;
+  row: "C" | "D";
+  payoff: string;
+  sub: string;
+  color: string;
+  description: string;
+}
+
+const MATRIX_CELLS: MatrixCellData[] = [
+  {
+    id: "cc",
+    row: "C",
+    payoff: "+2 / +2",
+    sub: "mutual trust",
+    color: "var(--accent-cooperate)",
+    description: "🤝 You both fall and catch each other. +2 each.",
+  },
+  {
+    id: "cd",
+    row: "C",
+    payoff: "-1 / +3",
+    sub: "you fell, they stepped aside",
+    color: "var(--accent-defect)",
+    description: "💥 You fall, they step aside. You: 0, Them: +3",
+  },
+  {
+    id: "dc",
+    row: "D",
+    payoff: "+3 / -1",
+    sub: "they fell, you stepped aside",
+    color: "var(--accent-warm)",
+    description: "🏆 You step aside, they fall. You: +3, Them: 0",
+  },
+  {
+    id: "dd",
+    row: "D",
+    payoff: "0 / 0",
+    sub: "nobody caught anyone",
+    color: "var(--accent-defect)",
+    description: "💀 You both step aside. Nobody catches anyone. +1 each.",
+  },
+];
+
+// Distance (in px) within which a cell starts glowing from cursor proximity.
+const PROXIMITY_RADIUS = 150;
+
+interface PayoffMatrixProps {
+  hoveredChoice: "C" | "D" | null;
+}
+
+const PayoffMatrix: React.FC<PayoffMatrixProps> = ({ hoveredChoice }) => {
+  const matrixRef = useRef<HTMLDivElement>(null);
+  const cellRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const rafRef = useRef<number | null>(null);
+  const mousePos = useRef<{ x: number; y: number } | null>(null);
+  const [hoveredCell, setHoveredCell] = useState<string | null>(null);
+
+  // Recompute each cell's proximity glow based on the latest cursor position.
+  const updateGlows = useCallback(() => {
+    rafRef.current = null;
+    const mouse = mousePos.current;
+    if (!mouse) return;
+
+    cellRefs.current.forEach((cell) => {
+      if (!cell) return;
+      const rect = cell.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dist = Math.hypot(mouse.x - cx, mouse.y - cy);
+      const intensity =
+        dist < PROXIMITY_RADIUS ? 1 - dist / PROXIMITY_RADIUS : 0;
+      // Smoothly scale blur radius and opacity with proximity.
+      cell.style.boxShadow =
+        intensity > 0
+          ? `0 0 ${24 * intensity}px rgba(102, 126, 234, ${0.55 * intensity})`
+          : "none";
+    });
+  }, []);
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      mousePos.current = { x: e.clientX, y: e.clientY };
+      if (rafRef.current == null) {
+        rafRef.current = requestAnimationFrame(updateGlows);
+      }
+    },
+    [updateGlows],
+  );
+
+  const handleMouseLeave = useCallback(() => {
+    mousePos.current = null;
+    if (rafRef.current == null) {
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = null;
+        cellRefs.current.forEach((cell) => {
+          if (cell) cell.style.boxShadow = "none";
+        });
+      });
+    }
+  }, []);
+
+  // Cancel any pending animation frame on unmount.
+  useEffect(() => {
+    return () => {
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
+
+  const setCellRef = (idx: number) => (el: HTMLDivElement | null) => {
+    cellRefs.current[idx] = el;
+  };
+
+  const rowHighlightColor =
+    hoveredChoice === "C"
+      ? "var(--accent-cooperate)"
+      : hoveredChoice === "D"
+        ? "var(--accent-defect)"
+        : null;
+
+  const hoveredDescription =
+    MATRIX_CELLS.find((c) => c.id === hoveredCell)?.description ?? null;
+
+  return (
+    <div
+      data-animate
+      className="glass-panel"
+      style={{ padding: "24px", marginBottom: "32px" }}
+    >
+      <p
+        style={{
+          fontFamily: "var(--font-body)",
+          fontSize: "var(--text-sm)",
+          color: "var(--text-muted)",
+          marginBottom: "16px",
+          textTransform: "uppercase",
+          letterSpacing: "0.1em",
+        }}
+      >
+        Payoff Matrix
+      </p>
+
+      <div
+        ref={matrixRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr 1fr",
+          gap: "8px",
+          maxWidth: "360px",
+          margin: "0 auto",
+          fontSize: "var(--text-sm)",
+        }}
+      >
+        <div />
+        <div style={{ color: "var(--accent-cooperate)", fontWeight: 600 }}>
+          They catch
+        </div>
+        <div style={{ color: "var(--accent-defect)", fontWeight: 600 }}>
+          They step aside
+        </div>
+
+        <div
+          style={{
+            color: "var(--accent-cooperate)",
+            fontWeight: 600,
+            transition: "text-shadow 0.25s",
+            textShadow:
+              hoveredChoice === "C"
+                ? "0 0 12px var(--accent-cooperate)"
+                : "none",
+          }}
+        >
+          You fall
+        </div>
+        {MATRIX_CELLS.slice(0, 2).map((cell, i) => (
+          <div
+            key={cell.id}
+            ref={setCellRef(i)}
+            data-animate
+            onMouseEnter={() => setHoveredCell(cell.id)}
+            onMouseLeave={() => setHoveredCell(null)}
+            className="glass-panel"
+            style={{
+              padding: "12px",
+              color: cell.color,
+              transition:
+                "outline-color 0.25s, outline-offset 0.25s, background 0.25s",
+              outline:
+                rowHighlightColor && hoveredChoice === cell.row
+                  ? `2px solid ${rowHighlightColor}`
+                  : "2px solid transparent",
+              outlineOffset: "2px",
+              background:
+                hoveredChoice === cell.row
+                  ? hoveredChoice === "C"
+                    ? "rgba(74,222,128,0.08)"
+                    : "rgba(248,113,113,0.08)"
+                  : undefined,
+            }}
+          >
+            {cell.payoff}
+            <br />
+            <span
+              style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}
+            >
+              {cell.sub}
+            </span>
+          </div>
+        ))}
+
+        <div
+          style={{
+            color: "var(--accent-defect)",
+            fontWeight: 600,
+            transition: "text-shadow 0.25s",
+            textShadow:
+              hoveredChoice === "D" ? "0 0 12px var(--accent-defect)" : "none",
+          }}
+        >
+          You step aside
+        </div>
+        {MATRIX_CELLS.slice(2, 4).map((cell, i) => (
+          <div
+            key={cell.id}
+            ref={setCellRef(i + 2)}
+            data-animate
+            onMouseEnter={() => setHoveredCell(cell.id)}
+            onMouseLeave={() => setHoveredCell(null)}
+            className="glass-panel"
+            style={{
+              padding: "12px",
+              color: cell.color,
+              transition:
+                "outline-color 0.25s, outline-offset 0.25s, background 0.25s",
+              outline:
+                rowHighlightColor && hoveredChoice === cell.row
+                  ? `2px solid ${rowHighlightColor}`
+                  : "2px solid transparent",
+              outlineOffset: "2px",
+              background:
+                hoveredChoice === cell.row
+                  ? hoveredChoice === "C"
+                    ? "rgba(74,222,128,0.08)"
+                    : "rgba(248,113,113,0.08)"
+                  : undefined,
+            }}
+          >
+            {cell.payoff}
+            <br />
+            <span
+              style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}
+            >
+              {cell.sub}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* Hover tooltip / outcome description */}
+      <div
+        style={{
+          minHeight: "24px",
+          marginTop: "16px",
+          fontFamily: "var(--font-body)",
+          fontSize: "var(--text-sm)",
+          color: "var(--text-secondary)",
+          transition: "opacity 0.2s",
+          opacity: hoveredDescription ? 1 : 0,
+        }}
+      >
+        {hoveredDescription ?? "\u00A0"}
+      </div>
+    </div>
+  );
+};
+
+// --- Main slide ---------------------------------------------------------
+
 export const ChoiceSlide: React.FC<SlideProps> = ({ onNext }) => {
   const [playerMove, setPlayerMove] = useState<GameMove | null>(null);
   const [aiMove] = useState<GameMove>("C"); // Always cooperates first round
@@ -53,6 +341,7 @@ export const ChoiceSlide: React.FC<SlideProps> = ({ onNext }) => {
   const [payout, setPayout] = useState<{ player: number; ai: number } | null>(
     null,
   );
+  const [hoveredChoice, setHoveredChoice] = useState<"C" | "D" | null>(null);
 
   const makeChoice = (move: GameMove) => {
     if (playerMove) return; // Already played
@@ -104,98 +393,8 @@ export const ChoiceSlide: React.FC<SlideProps> = ({ onNext }) => {
         Your opponent is waiting below. You have two options.
       </p>
 
-      {/* Payoff matrix */}
-      <div
-        data-animate
-        className="glass-panel"
-        style={{ padding: "24px", marginBottom: "32px" }}
-      >
-        <p
-          style={{
-            fontFamily: "var(--font-body)",
-            fontSize: "var(--text-sm)",
-            color: "var(--text-muted)",
-            marginBottom: "16px",
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-          }}
-        >
-          Payoff Matrix
-        </p>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr",
-            gap: "8px",
-            maxWidth: "360px",
-            margin: "0 auto",
-            fontSize: "var(--text-sm)",
-          }}
-        >
-          <div />
-          <div style={{ color: "var(--accent-cooperate)", fontWeight: 600 }}>
-            They catch
-          </div>
-          <div style={{ color: "var(--accent-defect)", fontWeight: 600 }}>
-            They step aside
-          </div>
-
-          <div style={{ color: "var(--accent-cooperate)", fontWeight: 600 }}>
-            You fall
-          </div>
-          <div
-            className="glass-panel"
-            style={{ padding: "12px", color: "var(--accent-cooperate)" }}
-          >
-            +2 / +2
-            <br />
-            <span
-              style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}
-            >
-              mutual trust
-            </span>
-          </div>
-          <div
-            className="glass-panel"
-            style={{ padding: "12px", color: "var(--accent-defect)" }}
-          >
-            -1 / +3
-            <br />
-            <span
-              style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}
-            >
-              you fell, they stepped aside
-            </span>
-          </div>
-
-          <div style={{ color: "var(--accent-defect)", fontWeight: 600 }}>
-            You step aside
-          </div>
-          <div
-            className="glass-panel"
-            style={{ padding: "12px", color: "var(--accent-warm)" }}
-          >
-            +3 / -1
-            <br />
-            <span
-              style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}
-            >
-              they fell, you stepped aside
-            </span>
-          </div>
-          <div
-            className="glass-panel"
-            style={{ padding: "12px", color: "var(--accent-defect)" }}
-          >
-            0 / 0<br />
-            <span
-              style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}
-            >
-              nobody caught anyone
-            </span>
-          </div>
-        </div>
-      </div>
+      {/* Payoff matrix (proximity-aware & interactive) */}
+      <PayoffMatrix hoveredChoice={hoveredChoice} />
 
       {/* Choice buttons or result */}
       {!playerMove ? (
@@ -203,22 +402,32 @@ export const ChoiceSlide: React.FC<SlideProps> = ({ onNext }) => {
           <div
             style={{ display: "flex", gap: "16px", justifyContent: "center" }}
           >
-            <StaggerButton
-              onClick={() => makeChoice("C")}
-              color="cooperate"
-              size="lg"
-              triggerOn="active"
+            <div
+              onMouseEnter={() => setHoveredChoice("C")}
+              onMouseLeave={() => setHoveredChoice(null)}
             >
-              🤝 Fall (Cooperate)
-            </StaggerButton>
-            <StaggerButton
-              onClick={() => makeChoice("D")}
-              color="defect"
-              size="lg"
-              triggerOn="active"
+              <StaggerButton
+                onClick={() => makeChoice("C")}
+                color="cooperate"
+                size="lg"
+                triggerOn="active"
+              >
+                🤝 Fall (Cooperate)
+              </StaggerButton>
+            </div>
+            <div
+              onMouseEnter={() => setHoveredChoice("D")}
+              onMouseLeave={() => setHoveredChoice(null)}
             >
-              ⚔️ Step aside (Defect)
-            </StaggerButton>
+              <StaggerButton
+                onClick={() => makeChoice("D")}
+                color="defect"
+                size="lg"
+                triggerOn="active"
+              >
+                ⚔️ Step aside (Defect)
+              </StaggerButton>
+            </div>
           </div>
         </div>
       ) : (

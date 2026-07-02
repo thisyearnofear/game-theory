@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import gsap from "gsap";
 import AudioManager from "./AudioManager";
 import { useSlideAnimation } from "../hooks/useSlideAnimation";
 import JourneyProgress from "./visual/JourneyProgress";
@@ -37,6 +38,9 @@ export const SlideSystem: React.FC<SlideSystemProps> = ({
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slideData] = useState<Record<string, unknown>>({});
   const [audioManager] = useState(() => AudioManager.getInstance());
+  const directionRef = useRef<"forward" | "backward">("forward");
+  const slideContentRef = useRef<HTMLDivElement>(null);
+  const prevSlideRef = useRef(0);
 
   // Initialize audio on first load
   useEffect(() => {
@@ -61,6 +65,7 @@ export const SlideSystem: React.FC<SlideSystemProps> = ({
   }, [currentSlide, slides, audioManager]);
 
   const handleNext = useCallback(() => {
+    directionRef.current = "forward";
     setCurrentSlide((prev) => {
       if (prev < slides.length - 1) return prev + 1;
       onComplete?.();
@@ -69,11 +74,14 @@ export const SlideSystem: React.FC<SlideSystemProps> = ({
   }, [slides.length, onComplete]);
 
   const handlePrev = useCallback(() => {
+    directionRef.current = "backward";
     setCurrentSlide((prev) => Math.max(0, prev - 1));
   }, []);
 
   const handleSlideJump = useCallback(
     (index: number) => {
+      directionRef.current =
+        index > prevSlideRef.current ? "forward" : "backward";
       setCurrentSlide(index);
       audioManager.playSound("click");
     },
@@ -100,6 +108,54 @@ export const SlideSystem: React.FC<SlideSystemProps> = ({
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [handleNext, handlePrev]);
+
+  // Slide transition animation — directional slide + parallax
+  useEffect(() => {
+    const el = slideContentRef.current;
+    if (!el) return;
+
+    // Skip on first render
+    if (prevSlideRef.current === currentSlide && currentSlide === 0) {
+      prevSlideRef.current = currentSlide;
+      return;
+    }
+
+    const dir = directionRef.current;
+    const xOffset = dir === "forward" ? 60 : -60;
+
+    const ctx = gsap.context(() => {
+      // Slide out old content (instant, since React already swapped)
+      // Animate new content sliding in from the direction
+      gsap.fromTo(
+        el,
+        {
+          x: xOffset,
+          opacity: 0,
+        },
+        {
+          x: 0,
+          opacity: 1,
+          duration: 0.5,
+          ease: "power3.out",
+        },
+      );
+
+      // Parallax on data-animate children — they stagger in
+      const animatables = gsap.utils.toArray("[data-animate]", el);
+      if (animatables.length > 0) {
+        gsap.from(animatables, {
+          opacity: 0,
+          x: xOffset * 0.5,
+          duration: 0.6,
+          ease: "power3.out",
+          stagger: 0.06,
+        });
+      }
+    }, el);
+
+    prevSlideRef.current = currentSlide;
+    return () => ctx.revert();
+  }, [currentSlide]);
 
   const currentSlideConfig = slides[currentSlide];
   const SlideComponent = currentSlideConfig.component;
@@ -156,6 +212,7 @@ export const SlideSystem: React.FC<SlideSystemProps> = ({
 
       {/* Slide content */}
       <div
+        ref={slideContentRef}
         style={{
           display: "flex",
           flexDirection: "column",
@@ -168,13 +225,12 @@ export const SlideSystem: React.FC<SlideSystemProps> = ({
           margin: "0 auto",
         }}
       >
-        <div data-animate>
-          <SlideComponent
-            onNext={handleNext}
-            onPrev={handlePrev}
-            slideData={slideData}
-          />
-        </div>
+        <SlideComponent
+          key={currentSlide}
+          onNext={handleNext}
+          onPrev={handlePrev}
+          slideData={slideData}
+        />
       </div>
 
       {/* Navigation */}

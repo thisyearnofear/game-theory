@@ -169,6 +169,7 @@ export const StaggerButton: React.FC<StaggerButtonProps> = ({
     <div
       ref={magneticRef}
       style={{ display: "inline-block", position: "relative" }}
+      data-cursor={color}
     >
       <button
         ref={buttonRef}
