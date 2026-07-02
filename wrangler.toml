@@ -16,7 +16,7 @@ compatibility_date = "2026-07-01"
 # KV namespace for game caching
 [[kv_namespaces]]
 binding = "GAME_CACHE"
-id = "your-kv-namespace-id"
+id = "5386e0a3e0f4494ca096d6c2cac64c0b"
 
 # Environment variables (non-secret)
 [vars]

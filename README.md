@@ -18,9 +18,9 @@ _Built with Scaffold Stellar for the Stellar Hackathon._
 
 ## 🚀 Live Demo
 
-**ZK Multiplayer Contract (Testnet):** `CBGH6QAUEZSYRG3GJZKCUX6ELK7GJZDQ7JN3NBXMZNGEHDZGPLMOI5NS`
+**ZK Multiplayer Contract (Testnet):** `CCJ6NWQDC7BAV2A6CU2D3D47F4MLGHRJMPANFLTQQMTZCHB4RVEDELQ7`
 
-> **Note:** The contract WASM has been updated with recovery functions (`cancel_game`, `claim_refund`) and events. Redeployment is pending — the currently deployed version does not yet include these additions.
+> **Deployed 2026-07-02** — includes recovery functions (`cancel_game`, `claim_refund`) and events.
 
 The ZK contract is deployed and initialized with the Noir UltraHonk verification key. Real ZK proofs are generated client-side in the browser using `@noir-lang/noir_js` + `@aztec/bb.js` (lazy-loaded, only downloaded when needed) and verified on-chain by the `ultrahonk_soroban_verifier`.
 

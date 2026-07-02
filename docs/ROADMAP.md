@@ -8,7 +8,7 @@
 - ✅ soroban-sdk upgraded to 26.x for BN254 host functions
 - ✅ Real ZK proof verified on-chain in Rust tests (9/9 tests passing)
 - ✅ Browser proof generation via `@noir-lang/noir_js` + `@aztec/bb.js` (lazy-loaded, code-split)
-- ✅ Contract deployed to testnet: `CBGH6QAUEZSYRG3GJZKCUX6ELK7GJZDQ7JN3NBXMZNGEHDZGPLMOI5NS` (redeployment pending for new functions)
+- ✅ Contract deployed to testnet: `CCJ6NWQDC7BAV2A6CU2D3D47F4MLGHRJMPANFLTQQMTZCHB4RVEDELQ7` (includes recovery functions + events)
 - ✅ ZK multiplayer frontend — GameLobby, CommitMove, RevealMove, GameResult, OnboardingOverlay
 - ✅ `useZKDilemma` hook with typed auto-generated client (includes cancelGame, claimRefund)
 - ✅ WASM compiled (28KB) + TypeScript bindings

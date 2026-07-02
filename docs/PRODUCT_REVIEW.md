@@ -221,9 +221,9 @@ Comprehensive review of product design, UI/UX, system architecture, reliability/
 
 ### Acknowledge in README (won't fix)
 
-| #   | Issue                                       | Impact                           |
-| --- | ------------------------------------------- | -------------------------------- |
-| 14  | Reputation proofs not built                 | Future work                      |
-| 15  | No proof generation timeout                 | Silent hang risk                 |
-| 16  | Inefficient polling (no batching/websocket) | Scalability                      |
-| 17  | Contract redeployment needed                | New functions not yet on testnet |
+| #   | Issue                                       | Impact                                                    |
+| --- | ------------------------------------------- | --------------------------------------------------------- |
+| 14  | Reputation proofs not built                 | Future work                                               |
+| 15  | No proof generation timeout                 | Silent hang risk                                          |
+| 16  | Inefficient polling (no batching/websocket) | Scalability                                               |
+| 17  | ~~Contract redeployment needed~~            | ✅ Redeployed 2026-07-02 with recovery functions + events |

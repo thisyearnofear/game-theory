@@ -1,0 +1,44 @@
+# Cloudflare Pages configuration for Trustfall
+#
+# Deploy:
+#   npx wrangler pages deploy dist --project-name=trustfall
+#
+# Or connect your GitHub repo in the Cloudflare dashboard for auto-deploy.
+#
+# Environment variables (set in Cloudflare Pages dashboard):
+#   VITE_ZK_DILEMMA_CONTRACT_ID  — deployed contract ID
+#   VITE_VENICE_API_KEY          — Venice AI key (optional, can use proxy instead)
+#   VITE_API_PROXY_URL           — URL of the deployed Cloudflare Worker (e.g. https://api.trustfall.xyz)
+#   PUBLIC_STELLAR_NETWORK       — TESTNET
+#   PUBLIC_STELLAR_NETWORK_PASSPHRASE — Test SDF Network ; September 2015
+#   PUBLIC_STELLAR_RPC_URL       — https://soroban-testnet.stellar.org
+#   PUBLIC_STELLAR_HORIZON_URL   — https://horizon-testnet.stellar.org
+
+[build]
+command = "npm run build"
+output_directory = "dist"
+
+[build.environment]
+NODE_VERSION = "22"
+
+# SPA fallback — all routes serve index.html (client-side routing)
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
+
+# Static SEO files served directly (not through SPA fallback)
+[[redirects]]
+from = "/about.html"
+to = "/about.html"
+status = 200
+
+[[redirects]]
+from = "/robots.txt"
+to = "/robots.txt"
+status = 200
+
+[[redirects]]
+from = "/sitemap.xml"
+to = "/sitemap.xml"
+status = 200

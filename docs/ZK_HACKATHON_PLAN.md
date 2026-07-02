@@ -50,7 +50,7 @@ This is not privacy-for-privacy's-sake. The ZK proof is what makes fair, trustle
 
 5. **Tests** — 9/9 Rust tests passing, including `test_verify_proof_real_proof` (verifies a real 14,592-byte UltraHonk proof on-chain), `test_cancel_game_after_commit_deadline`, `test_claim_refund_both_timeout`, `test_self_join_prevented`. Cross-verified: bb.js-generated proof verified against the Rust on-chain verifier.
 
-6. **Deployed** — Contract deployed and initialized on testnet: `CBGH6QAUEZSYRG3GJZKCUX6ELK7GJZDQ7JN3NBXMZNGEHDZGPLMOI5NS` (note: redeployment needed for new recovery functions + events)
+6. **Deployed** — Contract deployed and initialized on testnet: `CCJ6NWQDC7BAV2A6CU2D3D47F4MLGHRJMPANFLTQQMTZCHB4RVEDELQ7` (includes recovery functions + events, deployed 2026-07-02)
 
 7. **WASM** — 28KB optimized contract WASM.
 
@@ -66,7 +66,7 @@ This is not privacy-for-privacy's-sake. The ZK proof is what makes fair, trustle
 
 2. **End-to-end browser test** — The cryptographic path (bb.js → on-chain verifier) is cross-verified, but a full two-wallet browser session has not been tested end-to-end.
 
-3. **Contract redeployment** — The WASM with new recovery functions and events is built but not yet deployed to testnet. Requires a Stellar key to deploy.
+3. ~~**Contract redeployment**~~ — ✅ Done (2026-07-02). The WASM with recovery functions and events is now deployed to testnet at `CCJ6NWQDC7BAV2A6CU2D3D47F4MLGHRJMPANFLTQQMTZCHB4RVEDELQ7`.
 
 4. **On-chain iterated games** — The tutorial supports iterated play with stateful strategies, but the ZK multiplayer contract is still single-round. On-chain multi-round gameplay with move history is future work.
 
@@ -275,7 +275,7 @@ The contract emits events for off-chain indexing:
 - [x] Trustfall thematic UI (the fall, the catch, the impact)
 - [ ] 2-3 minute demo video (script prepared at `docs/demo-script.md`)
 - [ ] End-to-end browser test with two wallets
-- [ ] Contract redeployment with new recovery functions + events
+- [x] Contract redeployment with new recovery functions + events (2026-07-02)
 
 ---
 
