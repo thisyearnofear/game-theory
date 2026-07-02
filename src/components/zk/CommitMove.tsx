@@ -7,6 +7,11 @@ import {
   generateNonce,
   generateProof,
 } from "../../services/noirProofService";
+import { ShimmerButton } from "../ui/ShimmerButton";
+
+/** Stake preset options for quick selection */
+const STAKE_PRESETS = ["1", "5", "10"] as const;
+const RECOMMENDED_STAKE = "5";
 
 interface CommitMoveProps {
   mode: "create" | "join";
@@ -48,7 +53,8 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
     useZKDilemma();
 
   const [selectedMove, setSelectedMove] = useState<GameMove | null>(null);
-  const [stake, setStake] = useState(initialStake || "1");
+  const [stake, setStake] = useState(initialStake || RECOMMENDED_STAKE);
+  const [showCustomStake, setShowCustomStake] = useState(false);
   const [status, setStatus] = useState<"choose" | "generating" | "submitting">(
     "choose",
   );
@@ -379,17 +385,99 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
             >
               Stake (XLM) — the height of your fall
             </Text>
-            <Input
-              id="stake-input"
-              fieldSize="md"
-              value={stake}
-              onChange={(e) => setStake(e.target.value)}
-              type="number"
-              min="0.1"
-              step="0.1"
-              disabled={isLoadingState}
-              style={{ textAlign: "center", fontFamily: "var(--font-body)" }}
-            />
+
+            {/* Stake presets */}
+            <div
+              style={{
+                display: "flex",
+                gap: "8px",
+                flexWrap: "wrap",
+                alignItems: "center",
+                marginBottom: "10px",
+              }}
+            >
+              {STAKE_PRESETS.map((preset) => {
+                const isSelected = !showCustomStake && stake === preset;
+                const isRecommended = preset === RECOMMENDED_STAKE;
+                return (
+                  <ShimmerButton
+                    key={preset}
+                    size="sm"
+                    onClick={() => {
+                      setShowCustomStake(false);
+                      setStake(preset);
+                    }}
+                    style={
+                      isSelected
+                        ? {
+                            background: "var(--accent-violet)",
+                            color: "#fff",
+                            borderColor: "var(--accent-violet)",
+                            fontWeight: 600,
+                          }
+                        : undefined
+                    }
+                  >
+                    {preset} XLM{isRecommended ? " 💡" : ""}
+                  </ShimmerButton>
+                );
+              })}
+              <ShimmerButton
+                size="sm"
+                onClick={() => setShowCustomStake(true)}
+                style={
+                  showCustomStake
+                    ? {
+                        background: "var(--accent-violet)",
+                        color: "#fff",
+                        borderColor: "var(--accent-violet)",
+                        fontWeight: 600,
+                      }
+                    : undefined
+                }
+              >
+                Custom
+              </ShimmerButton>
+            </div>
+
+            {/* Recommended indicator + tooltip */}
+            {!showCustomStake && stake === RECOMMENDED_STAKE && (
+              <div
+                title="Low enough for casual play, high enough to matter"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  marginBottom: "10px",
+                  padding: "4px 10px",
+                  borderRadius: "99px",
+                  background: "var(--bg-glass-light)",
+                  border: "1px solid var(--border-glass)",
+                  fontFamily: "var(--font-body)",
+                  fontSize: "12px",
+                  color: "var(--text-secondary)",
+                  cursor: "help",
+                }}
+              >
+                <span>💡</span>
+                <span>Recommended: {RECOMMENDED_STAKE} XLM</span>
+              </div>
+            )}
+
+            {/* Manual stake input — shown when Custom is selected */}
+            {showCustomStake && (
+              <Input
+                id="stake-input"
+                fieldSize="md"
+                value={stake}
+                onChange={(e) => setStake(e.target.value)}
+                type="number"
+                min="0.1"
+                step="0.1"
+                disabled={isLoadingState}
+                style={{ textAlign: "center", fontFamily: "var(--font-body)" }}
+              />
+            )}
             {/* Height visual — stake as fall height */}
             <div
               style={{

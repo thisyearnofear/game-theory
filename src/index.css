@@ -543,6 +543,74 @@ p {
   animation: tf-glow-cold 2s ease-in-out infinite;
 }
 
+/* Waiting indicator — pulsing dot and text */
+@keyframes tf-waiting-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes tf-waiting-dot {
+  0%,
+  100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+.tf-waiting-pulse {
+  animation: tf-waiting-pulse 1.6s ease-in-out infinite;
+}
+
+.tf-waiting-dot {
+  animation: tf-waiting-dot 1.4s ease-in-out infinite;
+}
+
+/* Opponent-joined celebratory flash */
+@keyframes tf-joined-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0);
+  }
+  20% {
+    box-shadow: 0 0 48px 8px rgba(74, 222, 128, 0.55);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0);
+  }
+}
+
+.tf-joined-glow {
+  animation: tf-joined-glow 1.8s ease-out forwards;
+}
+
+@keyframes tf-joined-text {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  15%,
+  75% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+.tf-joined-text {
+  animation: tf-joined-text 3s ease-in-out forwards;
+}
+
 /* Journey progress pulse for current step */
 @keyframes journey-pulse {
   0%,

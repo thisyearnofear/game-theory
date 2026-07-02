@@ -1,7 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button, Text } from "@stellar/design-system";
 import { useWallet } from "../../hooks/useWallet";
 import { useZKDilemma, type GameMove } from "../../hooks/useZKDilemma";
+import { useGameStats, type GameRecord } from "../../hooks/useGameStats";
+import { ElectricButton } from "../ui/ElectricButton";
+import { ShimmerButton } from "../ui/ShimmerButton";
+import { unlockAchievement } from "../ui/AchievementBadge";
 
 interface GameResultProps {
   gameId: number;
@@ -15,6 +19,8 @@ interface GameResultProps {
     reveal_deadline: string;
   };
   onBack: () => void;
+  /** Return to the create-game view for a fresh match. */
+  onPlayAgain?: () => void;
 }
 
 /** Card-like div with consistent styling */
@@ -44,14 +50,17 @@ export const GameResult: React.FC<GameResultProps> = ({
   gameId,
   gameState,
   onBack,
+  onPlayAgain,
 }) => {
   const { address } = useWallet();
   const { resolveGame, claimForfeit, isLoading, error } = useZKDilemma();
+  const { recordGame } = useGameStats();
   const [result, setResult] = useState<{
     payout1: bigint;
     payout2: bigint;
   } | null>(null);
   const [txError, setTxError] = useState<string | null>(null);
+  const recordedRef = useRef<string | null>(null);
 
   const isPlayer1 = address === gameState.player1;
   const isPlayer2 = address === gameState.player2;
@@ -200,6 +209,78 @@ export const GameResult: React.FC<GameResultProps> = ({
   };
 
   const headline = getOutcomeHeadline();
+
+  // Record the resolved game into persistent stats (once per game id).
+  useEffect(() => {
+    if (!isPlayer) return;
+    if (!isResolved && !isForfeited) return;
+    if (!bothRevealed && !isForfeited) return;
+    if (!gameState.player2) return;
+
+    const recordKey = String(gameId);
+    if (recordedRef.current === recordKey) return;
+    recordedRef.current = recordKey;
+
+    const yourMove: GameMove | null = isPlayer1
+      ? gameState.move1
+      : gameState.move2;
+    const opponentMove: GameMove | null = isPlayer1
+      ? gameState.move2
+      : gameState.move1;
+    if (!yourMove || !opponentMove) return;
+
+    const opponent = isPlayer1 ? gameState.player2 || "" : gameState.player1;
+
+    // Determine outcome from the player's perspective.
+    let outcome: GameRecord["outcome"] = "tie";
+    if (yourMove === "C" && opponentMove === "D") outcome = "lose";
+    else if (yourMove === "D" && opponentMove === "C") outcome = "win";
+    else outcome = "tie"; // both C or both D → tie in trustfall framing
+
+    // Compute net payout in XLM. Prefer the on-chain resolve result when
+    // available; otherwise estimate from stake + outcome.
+    const stakeXlm = Number(BigInt(gameState.stake)) / 10_000_000;
+    let payoutXlm = 0;
+    if (result) {
+      const yourPayout = isPlayer1 ? result.payout1 : result.payout2;
+      payoutXlm = Number(yourPayout) / 10_000_000 - stakeXlm;
+    } else {
+      // Estimate: win → +stake, lose → -stake, tie → 0
+      payoutXlm =
+        outcome === "win" ? stakeXlm : outcome === "lose" ? -stakeXlm : 0;
+    }
+
+    recordGame({
+      gameId: String(gameId),
+      opponent,
+      yourMove,
+      opponentMove,
+      outcome,
+      stake: stakeXlm,
+      payout: payoutXlm,
+      timestamp: Date.now(),
+    });
+
+    // Unlock ZK achievements
+    unlockAchievement("zk_player");
+    if (outcome === "win") {
+      unlockAchievement("zk_winner");
+    }
+  }, [
+    isPlayer,
+    isResolved,
+    isForfeited,
+    bothRevealed,
+    gameId,
+    gameState.player1,
+    gameState.player2,
+    gameState.move1,
+    gameState.move2,
+    gameState.stake,
+    isPlayer1,
+    result,
+    recordGame,
+  ]);
 
   return (
     <div style={{ maxWidth: "600px", margin: "0 auto" }}>
@@ -525,6 +606,7 @@ export const GameResult: React.FC<GameResultProps> = ({
             display: "flex",
             gap: "10px",
             justifyContent: "center",
+            flexWrap: "wrap",
           }}
         >
           {canResolve && (
@@ -533,7 +615,7 @@ export const GameResult: React.FC<GameResultProps> = ({
               size="md"
               onClick={() => void handleResolve()}
               disabled={isLoading}
-              style={{ fontFamily: "var(--font-body)", flex: 1 }}
+              style={{ fontFamily: "var(--font-body)", flex: 1, minWidth: 200 }}
             >
               {isLoading ? "⏳ Landing..." : "🪙 Resolve the Landing"}
             </Button>
@@ -548,6 +630,7 @@ export const GameResult: React.FC<GameResultProps> = ({
               style={{
                 fontFamily: "var(--font-body)",
                 flex: 1,
+                minWidth: 200,
                 color: "#F44336",
               }}
             >
@@ -555,14 +638,42 @@ export const GameResult: React.FC<GameResultProps> = ({
             </Button>
           )}
 
-          <Button
-            variant="tertiary"
-            size="md"
-            onClick={onBack}
-            style={{ fontFamily: "var(--font-body)" }}
-          >
-            ← Back
-          </Button>
+          {/* Post-resolution actions */}
+          {(isResolved || isForfeited) && onPlayAgain && (
+            <div
+              style={{
+                display: "flex",
+                gap: "12px",
+                justifyContent: "center",
+                width: "100%",
+                flexWrap: "wrap",
+                marginTop: "8px",
+              }}
+            >
+              <ElectricButton
+                color="violet"
+                size="md"
+                onClick={onPlayAgain}
+                style={{ minWidth: 200 }}
+              >
+                🪂 Play Again
+              </ElectricButton>
+              <ShimmerButton size="md" onClick={onBack}>
+                ← Back to Lobby
+              </ShimmerButton>
+            </div>
+          )}
+
+          {!isResolved && !isForfeited && (
+            <Button
+              variant="tertiary"
+              size="md"
+              onClick={onBack}
+              style={{ fontFamily: "var(--font-body)" }}
+            >
+              ← Back
+            </Button>
+          )}
         </div>
       </CardDiv>
     </div>

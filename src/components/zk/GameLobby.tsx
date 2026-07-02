@@ -1,7 +1,36 @@
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import { Button, Text } from "@stellar/design-system";
 import { useWallet } from "../../hooks/useWallet";
 import { useZKDilemma, type GameListItem } from "../../hooks/useZKDilemma";
+import { useGameStats, type GameRecord } from "../../hooks/useGameStats";
+import { StatsDisplay } from "./StatsDisplay";
+
+type StakeFilter = "all" | "le1" | "1to5" | "gt5";
+
+const STAKE_FILTERS: { key: StakeFilter; label: string }[] = [
+  { key: "all", label: "All stakes" },
+  { key: "le1", label: "≤1 XLM" },
+  { key: "1to5", label: "1-5 XLM" },
+  { key: "gt5", label: "5+ XLM" },
+];
+
+/** Returns the stake in XLM as a number from stroops string. */
+const stakeToXlm = (stake: string): number => {
+  try {
+    return Number(BigInt(stake)) / 10_000_000;
+  } catch {
+    return 0;
+  }
+};
+
+const matchesFilter = (stake: string, filter: StakeFilter): boolean => {
+  if (filter === "all") return true;
+  const xlm = stakeToXlm(stake);
+  if (filter === "le1") return xlm <= 1;
+  if (filter === "1to5") return xlm > 1 && xlm <= 5;
+  if (filter === "gt5") return xlm > 5;
+  return true;
+};
 
 interface GameLobbyProps {
   onSelectGame: (gameId: number) => void;
@@ -38,6 +67,8 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
 }) => {
   const { address } = useWallet();
   const { games, isLoading, error, fetchGames, clearError } = useZKDilemma();
+  const { getStats } = useGameStats();
+  const [stakeFilter, setStakeFilter] = useState<StakeFilter>("all");
 
   const refresh = useCallback(() => {
     clearError();
@@ -48,7 +79,10 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
     refresh();
   }, [refresh]);
 
-  const openGames = games.filter((g) => g.status === "AwaitingPlayer2");
+  const openGames = games.filter(
+    (g) =>
+      g.status === "AwaitingPlayer2" && matchesFilter(g.stake, stakeFilter),
+  );
   const myActiveGames = games.filter(
     (g) =>
       (g.player1 === address || g.status === "BothCommitted") &&
@@ -144,6 +178,9 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
           ⚠️ {error}
         </div>
       )}
+
+      {/* Persistent stats panel */}
+      <StatsDisplay stats={getStats()} />
 
       {/* My Active Games */}
       {myActiveGames.length > 0 && (
@@ -246,6 +283,45 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
           🚪 Open Trustfalls to Join
         </Text>
 
+        {/* Stake range filter pills */}
+        <div
+          style={{
+            display: "flex",
+            gap: "8px",
+            flexWrap: "wrap",
+            marginBottom: "12px",
+          }}
+        >
+          {STAKE_FILTERS.map((f) => {
+            const active = stakeFilter === f.key;
+            return (
+              <button
+                key={f.key}
+                type="button"
+                onClick={() => setStakeFilter(f.key)}
+                style={{
+                  padding: "6px 14px",
+                  borderRadius: "99px",
+                  border: "1px solid var(--border-glass)",
+                  background: active
+                    ? "var(--accent-violet)"
+                    : "var(--bg-glass-light)",
+                  color: active ? "#fff" : "var(--text-secondary)",
+                  fontFamily: "var(--font-body)",
+                  fontSize: "13px",
+                  fontWeight: active ? 600 : 400,
+                  cursor: "pointer",
+                  transition:
+                    "background 0.3s var(--ease-out), color 0.3s var(--ease-out), border-color 0.3s var(--ease-out)",
+                  backdropFilter: "blur(12px)",
+                }}
+              >
+                {f.label}
+              </button>
+            );
+          })}
+        </div>
+
         {isLoading ? (
           <div style={{ textAlign: "center", padding: "40px" }}>
             <Text
@@ -275,7 +351,9 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
                 fontFamily: "var(--font-body)",
               }}
             >
-              No open games right now
+              {stakeFilter === "all"
+                ? "No open games right now"
+                : "No open games in this stake range"}
             </p>
             <p
               style={{
@@ -285,7 +363,9 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
                 fontFamily: "var(--font-body)",
               }}
             >
-              Create a new game to challenge someone!
+              {stakeFilter === "all"
+                ? "Create a new game to challenge someone!"
+                : "Try a different filter or create a new game."}
             </p>
           </CardDiv>
         ) : (
@@ -384,6 +464,9 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
         )}
       </div>
 
+      {/* Recent game history */}
+      <RecentHistory history={getStats().history} />
+
       {/* How it works */}
       <CardDiv
         style={{
@@ -455,5 +538,136 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
     >
       {c.label}
     </span>
+  );
+};
+
+/** Recent game history panel (last few resolved games). */
+const RecentHistory: React.FC<{ history: GameRecord[] }> = ({ history }) => {
+  if (history.length === 0) return null;
+
+  const recent = history.slice(0, 8);
+
+  const formatOpponent = (addr: string): string => {
+    if (!addr) return "—";
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  };
+
+  const formatTime = (ts: number): string => {
+    const diff = Date.now() - ts;
+    const mins = Math.floor(diff / 60_000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins}m ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+  };
+
+  const outcomeConfig: Record<
+    GameRecord["outcome"],
+    { label: string; color: string; emoji: string }
+  > = {
+    win: { label: "Win", color: "#4ade80", emoji: "🏆" },
+    lose: { label: "Loss", color: "#f87171", emoji: "😔" },
+    tie: { label: "Tie", color: "var(--text-secondary)", emoji: "🤝" },
+  };
+
+  return (
+    <div style={{ marginBottom: "24px" }}>
+      <Text
+        as="h3"
+        size="md"
+        style={{
+          fontFamily: "var(--font-body)",
+          color: "rgba(20, 26, 46, 0.55)",
+          marginBottom: "12px",
+        }}
+      >
+        📜 Recent Games
+      </Text>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "8px",
+        }}
+      >
+        {recent.map((rec) => {
+          const oc = outcomeConfig[rec.outcome];
+          const payoutSign = rec.payout > 0 ? "+" : "";
+          return (
+            <div
+              key={`${rec.gameId}-${rec.timestamp}`}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "12px 16px",
+                borderRadius: "var(--radius-sm)",
+                background: "var(--bg-glass-light)",
+                border: "1px solid var(--border-glass)",
+                fontFamily: "var(--font-body)",
+                backdropFilter: "blur(12px)",
+              }}
+            >
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "10px" }}
+              >
+                <span style={{ fontSize: "18px" }}>{oc.emoji}</span>
+                <div>
+                  <p
+                    style={{
+                      margin: 0,
+                      color: "var(--text-primary)",
+                      fontSize: "14px",
+                      fontWeight: 600,
+                    }}
+                  >
+                    vs {formatOpponent(rec.opponent)}
+                  </p>
+                  <p
+                    style={{
+                      margin: "2px 0 0",
+                      color: "var(--text-muted)",
+                      fontSize: "12px",
+                    }}
+                  >
+                    {rec.yourMove === "C" ? "Cooperated" : "Defected"} ·{" "}
+                    {formatTime(rec.timestamp)}
+                  </p>
+                </div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <p
+                  style={{
+                    margin: 0,
+                    color: oc.color,
+                    fontSize: "13px",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {oc.label}
+                </p>
+                <p
+                  style={{
+                    margin: "2px 0 0",
+                    color:
+                      rec.payout > 0
+                        ? "#4ade80"
+                        : rec.payout < 0
+                          ? "#f87171"
+                          : "var(--text-muted)",
+                    fontSize: "12px",
+                  }}
+                >
+                  {payoutSign}
+                  {rec.payout.toFixed(2)} XLM
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 };

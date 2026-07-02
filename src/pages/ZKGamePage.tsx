@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Text } from "@stellar/design-system";
 import { useWallet } from "../hooks/useWallet";
@@ -9,6 +9,10 @@ import { RevealMove } from "../components/zk/RevealMove";
 import { GameResult } from "../components/zk/GameResult";
 import { OnboardingOverlay } from "../components/zk/OnboardingOverlay";
 import ConnectAccount from "../components/ConnectAccount";
+import { ShimmerButton } from "../components/ui/ShimmerButton";
+import { useAchievementToast } from "../components/ui/AchievementToast";
+import { getUnlockedAchievements } from "../components/ui/AchievementBadge";
+import AudioManager from "../components/AudioManager";
 
 type ViewState =
   | { type: "lobby" }
@@ -20,8 +24,10 @@ type ViewState =
 const CardDiv: React.FC<{
   children: React.ReactNode;
   style?: React.CSSProperties;
-}> = ({ children, style }) => (
+  className?: string;
+}> = ({ children, style, className }) => (
   <div
+    className={className}
     style={{
       background: "white",
       borderRadius: "12px",
@@ -46,6 +52,64 @@ export const ZKGamePage: React.FC = () => {
   } = useZKDilemma();
 
   const [view, setView] = useState<ViewState>({ type: "lobby" });
+  const [opponentJoined, setOpponentJoined] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const prevStatusRef = useRef<string | undefined>(undefined);
+  const prevAchievementsRef = useRef<string[]>(getUnlockedAchievements());
+  const { toastElement, showAchievement } = useAchievementToast();
+
+  // Watch for newly unlocked achievements and show toast
+  useEffect(() => {
+    const checkInterval = setInterval(() => {
+      const current = getUnlockedAchievements();
+      const newOnes = current.filter(
+        (id) => !prevAchievementsRef.current.includes(id),
+      );
+      if (newOnes.length > 0) {
+        prevAchievementsRef.current = current;
+        // Import ACHIEVEMENTS dynamically to show toast
+        void import("../components/ui/AchievementBadge").then(
+          ({ ACHIEVEMENTS }) => {
+            for (const id of newOnes) {
+              const ach = ACHIEVEMENTS[id];
+              if (ach) showAchievement(ach);
+            }
+          },
+        );
+      }
+    }, 1000);
+    return () => clearInterval(checkInterval);
+  }, [showAchievement]);
+
+  // Detect opponent joining: status transitions from AwaitingPlayer2 -> BothCommitted
+  useEffect(() => {
+    if (!currentGame) return;
+    const prev = prevStatusRef.current;
+    const curr = currentGame.status;
+    prevStatusRef.current = curr;
+    if (prev === "AwaitingPlayer2" && curr === "BothCommitted") {
+      setOpponentJoined(true);
+      try {
+        AudioManager.getInstance().playSound("click");
+      } catch {
+        /* audio not available */
+      }
+      const timer = setTimeout(() => setOpponentJoined(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [currentGame]);
+
+  const handleCopyGameLink = useCallback((gameId: number) => {
+    const link = `https://trustfall.xyz/play/${gameId}`;
+    try {
+      void navigator.clipboard.writeText(link).then(() => {
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 2000);
+      });
+    } catch {
+      /* clipboard not available */
+    }
+  }, []);
 
   // Poll game state when viewing a game
   useEffect(() => {
@@ -89,6 +153,10 @@ export const ZKGamePage: React.FC = () => {
     setView({ type: "lobby" });
   }, []);
 
+  const handlePlayAgain = useCallback(() => {
+    setView({ type: "create" });
+  }, []);
+
   // If viewing a specific game
   if (view.type === "game" && currentGame) {
     const bothRevealed =
@@ -106,7 +174,9 @@ export const ZKGamePage: React.FC = () => {
             gameId={view.gameId}
             gameState={currentGame}
             onBack={handleBackToLobby}
+            onPlayAgain={handlePlayAgain}
           />
+          {toastElement}
         </div>
       );
     }
@@ -155,7 +225,10 @@ export const ZKGamePage: React.FC = () => {
         </div>
 
         {/* Game status card */}
-        <CardDiv style={{ padding: "24px", marginBottom: "20px" }}>
+        <CardDiv
+          style={{ padding: "24px", marginBottom: "20px" }}
+          className={opponentJoined ? "tf-joined-glow" : undefined}
+        >
           <Text
             as="h4"
             size="md"
@@ -172,6 +245,27 @@ export const ZKGamePage: React.FC = () => {
                 ? "🔐 Moves Committed — Reveal Now!"
                 : `📊 Game ${currentGame.status}`}
           </Text>
+
+          {/* Opponent joined celebratory banner */}
+          {opponentJoined && (
+            <div
+              className="tf-joined-text"
+              style={{
+                textAlign: "center",
+                marginBottom: "16px",
+                padding: "10px",
+                borderRadius: "var(--radius-md)",
+                background: "rgba(74, 222, 128, 0.12)",
+                border: "1px solid rgba(74, 222, 128, 0.3)",
+                fontFamily: "var(--font-body)",
+                fontSize: "16px",
+                fontWeight: 600,
+                color: "var(--accent-cooperate)",
+              }}
+            >
+              🎉 Opponent joined!
+            </div>
+          )}
 
           <div
             className="zk-game-grid"
@@ -340,18 +434,92 @@ export const ZKGamePage: React.FC = () => {
                   border: "1px solid rgba(245, 158, 11, 0.2)",
                 }}
               >
-                <Text
-                  as="p"
-                  size="md"
+                {/* Pulsing waiting indicator */}
+                <div
                   style={{
-                    color: "#f59e0b",
-                    margin: 0,
-                    fontWeight: "bold",
-                    fontFamily: "var(--font-body)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "10px",
+                    marginBottom: "14px",
                   }}
                 >
-                  ⏳ Waiting for an opponent to join your game
-                </Text>
+                  <span
+                    className="tf-waiting-dot"
+                    style={{
+                      display: "inline-block",
+                      width: "10px",
+                      height: "10px",
+                      borderRadius: "50%",
+                      background: "#f59e0b",
+                      boxShadow: "0 0 12px rgba(245, 158, 11, 0.6)",
+                    }}
+                  />
+                  <Text
+                    as="p"
+                    size="md"
+                    className="tf-waiting-pulse"
+                    style={{
+                      color: "#f59e0b",
+                      margin: 0,
+                      fontWeight: "bold",
+                      fontFamily: "var(--font-body)",
+                    }}
+                  >
+                    Waiting for opponent...
+                  </Text>
+                </div>
+
+                {/* Prominent game ID for sharing */}
+                <div
+                  style={{
+                    margin: "0 0 16px",
+                    padding: "12px",
+                    borderRadius: "var(--radius-md)",
+                    background: "var(--bg-glass-light)",
+                    border: "1px solid var(--border-glass)",
+                  }}
+                >
+                  <Text
+                    as="p"
+                    size="xs"
+                    style={{
+                      margin: "0 0 4px",
+                      color: "var(--text-secondary)",
+                      fontFamily: "var(--font-body)",
+                    }}
+                  >
+                    Share your Game ID
+                  </Text>
+                  <div
+                    style={{
+                      fontFamily: "var(--font-display)",
+                      fontSize: "28px",
+                      fontWeight: 600,
+                      color: "var(--accent-violet)",
+                      letterSpacing: "0.02em",
+                    }}
+                  >
+                    #{view.gameId}
+                  </div>
+                </div>
+
+                {/* Copy game link button */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    marginBottom: "16px",
+                  }}
+                >
+                  <ShimmerButton
+                    size="sm"
+                    onClick={() => handleCopyGameLink(view.gameId)}
+                  >
+                    {copiedLink ? "✅ Copied!" : "🔗 Copy Game Link"}
+                  </ShimmerButton>
+                </div>
+
                 <Text
                   as="p"
                   size="sm"
@@ -416,6 +584,7 @@ export const ZKGamePage: React.FC = () => {
                 gameId={view.gameId}
                 gameState={currentGame}
                 onBack={handleBackToLobby}
+                onPlayAgain={handlePlayAgain}
               />
             </CardDiv>
           </div>
@@ -493,6 +662,7 @@ export const ZKGamePage: React.FC = () => {
             </Button>
           </CardDiv>
         )}
+        {toastElement}
       </div>
     );
   }
@@ -649,6 +819,7 @@ export const ZKGamePage: React.FC = () => {
         onSelectGame={handleSelectGame}
         onCreateGame={handleCreateGame}
       />
+      {toastElement}
     </div>
   );
 };

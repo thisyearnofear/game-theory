@@ -14,3 +14,4 @@ export { ShareableResult } from "./ShareableResult";
 export { ElectricButton } from "./ElectricButton";
 export { StaggerButton } from "./StaggerButton";
 export { ShimmerButton } from "./ShimmerButton";
+export { AchievementToast, useAchievementToast } from "./AchievementToast";
