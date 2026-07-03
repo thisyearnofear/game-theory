@@ -8,7 +8,7 @@
 - ✅ soroban-sdk upgraded to 26.x for BN254 host functions
 - ✅ Real ZK proof verified on-chain in Rust tests (15/15 tests passing — 7 single-round + 8 multi-round match)
 - ✅ Browser proof generation via `@noir-lang/noir_js` + `@aztec/bb.js` (lazy-loaded, code-split)
-- ✅ Contract deployed to testnet (pruned by retention window — WASM built and ready for redeployment)
+- ✅ Contract deployed to testnet: `CA6PHYHU6OCKSW2KMSWQNBZ4DNUKUWGWNQDFJIHNS22WOT45F6WQTMG5` (includes multi-round match support + recovery functions + events, deployed 2026-07-03)
 - ✅ ZK multiplayer frontend — GameLobby, CommitMove, RevealMove, GameResult, OnboardingOverlay, StatsDisplay, MatchSetup, MatchScoreboard, MatchCommitMove
 - ✅ `useZKDilemma` hook with typed auto-generated client (all single-round + match functions)
 - ✅ `useGameStats` hook — persistent stats and game history in localStorage
@@ -43,7 +43,7 @@
 
 - ✅ Deploy `zk_dilemma` WASM to testnet (initial version)
 - ✅ Set `VITE_ZK_DILEMMA_CONTRACT_ID` in .env
-- ⬜ Redeploy contract with recovery functions + events
+- ✅ Redeploy contract with multi-round match support + recovery functions + events (2026-07-03, `CA6PHYHU6OCKSW2KMSWQNBZ4DNUKUWGWNQDFJIHNS22WOT45F6WQTMG5`)
 - ⬜ End-to-end test with two wallets
 
 ### 3.1 LLM AI Opponents

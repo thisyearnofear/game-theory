@@ -20,9 +20,9 @@ _Built with Scaffold Stellar for the Stellar Hackathon._
 
 ## 🚀 Live Demo
 
-**ZK Multiplayer Contract (Testnet):** `CCJ6NWQDC7BAV2A6CU2D3D47F4MLGHRJMPANFLTQQMTZCHB4RVEDELQ7`
+**ZK Multiplayer Contract (Testnet):** `CA6PHYHU6OCKSW2KMSWQNBZ4DNUKUWGWNQDFJIHNS22WOT45F6WQTMG5`
 
-> **Note:** The contract was previously deployed but has been pruned by Soroban's testnet ledger retention window. The WASM is built and ready for redeployment. See [Deploying to Testnet](#deploying-to-testnet) below.
+> **Deployed 2026-07-03** — includes multi-round match support (best-of-3/5 with rematch), recovery functions (`cancel_game`, `claim_refund`, `cancel_match`), and events.
 
 The ZK contract includes single-round games and multi-round matches (best-of-3/5). Real ZK proofs are generated client-side in the browser using `@noir-lang/noir_js` + `@aztec/bb.js` (lazy-loaded, only downloaded when needed) and verified on-chain by the `ultrahonk_soroban_verifier`.
 

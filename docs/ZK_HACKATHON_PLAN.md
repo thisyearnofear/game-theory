@@ -50,7 +50,7 @@ This is not privacy-for-privacy's-sake. The ZK proof is what makes fair, trustle
 
 5. **Tests** — 15/15 Rust tests passing, including `test_verify_proof_real_proof` (verifies a real 14,592-byte UltraHonk proof on-chain), `test_cancel_game_after_commit_deadline`, `test_claim_refund_both_timeout`, `test_self_join_prevented`, `test_create_match_best_of_3`, `test_match_full_best_of_3`, `test_match_completed_after_two_wins`, `test_cancel_match_after_timeout`, `test_match_forfeit_awards_round`. Cross-verified: bb.js-generated proof verified against the Rust on-chain verifier.
 
-6. **Deployed** — Contract previously deployed to testnet at `CCJ6NWQDC7BAV2A6CU2D3D47F4MLGHRJMPANFLTQQMTZCHB4RVEDELQ7` (pruned by testnet retention window). WASM is built and ready for redeployment with the new match functions.
+6. **Deployed** — Contract deployed and initialized on testnet: `CA6PHYHU6OCKSW2KMSWQNBZ4DNUKUWGWNQDFJIHNS22WOT45F6WQTMG5` (includes multi-round match support + recovery functions + events, deployed 2026-07-03). `get_game_count` and `get_match_count` verified returning 0.
 
 7. **WASM** — Optimized contract WASM with multi-round match support. TypeScript bindings regenerated.
 
@@ -68,7 +68,7 @@ This is not privacy-for-privacy's-sake. The ZK proof is what makes fair, trustle
 
 2. **End-to-end browser test** — The cryptographic path (bb.js → on-chain verifier) is cross-verified, but a full two-wallet browser session has not been tested end-to-end.
 
-3. **Contract redeployment** — The previous testnet deployment was pruned by Soroban's ledger retention window. The WASM with multi-round match support is built and ready for redeployment, but has not been deployed yet.
+3. ~~**Contract redeployment**~~ — ✅ Done (2026-07-03). The WASM with multi-round match support is deployed to testnet at `CA6PHYHU6OCKSW2KMSWQNBZ4DNUKUWGWNQDFJIHNS22WOT45F6WQTMG5`.
 
 4. ~~**On-chain iterated games**~~ — ✅ Done. Multi-round matches (best-of-3/5 with rematch) are now supported in the contract and frontend.
 
@@ -275,7 +275,7 @@ The contract emits events for off-chain indexing:
 - [x] Clear README.md explaining what was built, how ZK is used, and what's unfinished
 - [x] ZK is load-bearing: Noir proofs verify move validity on-chain
 - [x] Stellar integration: Soroban contract verifies proofs using BN254 host functions
-- [x] Contracts deployed on testnet with real addresses (pruned by retention window — WASM ready for redeployment)
+- [x] Contracts deployed on testnet with real addresses (`CA6PHYHU6OCKSW2KMSWQNBZ4DNUKUWGWNQDFJIHNS22WOT45F6WQTMG5`, deployed 2026-07-03)
 - [x] Honest about mock data or unfinished features in README
 - [x] Recovery mechanisms (cancel_game, claim_refund, cancel_match) for stuck/locked funds
 - [x] Contract events for off-chain indexing
@@ -296,7 +296,7 @@ The contract emits events for off-chain indexing:
 - [x] Shareable results from tournament outcomes
 - [ ] 2-3 minute demo video (script prepared at `docs/demo-script.md`)
 - [ ] End-to-end browser test with two wallets
-- [ ] Contract redeployment with multi-round match functions
+- [x] Contract redeployment with multi-round match functions (2026-07-03)
 
 ---
 
