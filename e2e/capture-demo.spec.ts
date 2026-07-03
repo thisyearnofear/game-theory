@@ -4,18 +4,24 @@ import { test, expect, Page } from "@playwright/test";
  * Trustfall hackathon demo capture.
  *
  * Records seven segments as WebM. Each segment becomes a clip HyperFrames
- * composites into the final 2:30 video. Segments are ordered to match the
- * `product-launch-video` skill's shot list.
+ * composites into the final 2:30 video. Segments are ordered to lead with
+ * the accreditation ZK primitive (real-world "identity/compliance" framing
+ * the hackathon called out) and then reveal move-commit ZK as the mechanic
+ * that makes the on-chain game grief-proof.
  *
  * Wallet signing is out-of-DOM (Freighter popup) — those moments are the
- * scripted pauses at the end of segment 5 & 6. HyperFrames covers them with
- * "Signing on Stellar…" overlay cards; segment 7 shows the resolved outcome
- * by hitting a pre-existing `/play/:gameId` URL.
+ * scripted pauses at the end of the accreditation & commit segments.
+ * HyperFrames covers them with "Signing on Stellar…" overlay cards.
+ * Segment 6 shows the resolved outcome by hitting a pre-existing
+ * `/play/:gameId` URL.
  *
  * Env vars:
  *   BASE_URL              — default http://localhost:5173
- *   DEMO_RESOLVED_GAME_ID — a Resolved gameId on testnet for segment 7
- *                           (pick one from lobby after running a real game)
+ *   DEMO_RESOLVED_GAME_ID — a Resolved gameId on testnet for segment 6
+ *                           (play one manually, note the id, export it)
+ *   DEMO_WALLET_CONNECTED — set to "1" if Freighter is pre-connected and
+ *                           auto-approves this origin, so the proof-gen and
+ *                           accreditation clicks fire live
  */
 
 const SLOW = 900; // pause after clicks so the render can settle for capture
@@ -33,39 +39,65 @@ async function suppressChrome(page: Page) {
       /* Kill scrollbars — they show up in WebM and look janky */
       ::-webkit-scrollbar { display: none !important; }
       html, body { scrollbar-width: none !important; }
-      /* Freeze the mascot's idle sway — it's cute in-app, distracting in a demo */
+      /* Freeze the mascot's idle sway — cute in-app, distracting in a demo */
       .tf-sway { animation: none !important; }
     `,
   });
 }
 
+/**
+ * Skip the FirstRunWizard so the mascot + quiz can be the star of the
+ * Home segment. Anything left with `_seen = true` here is a modal we're
+ * choosing NOT to walk through in the video.
+ */
+async function primeStorage(
+  page: Page,
+  opts: {
+    skipWizard?: boolean;
+    skipQuiz?: boolean;
+    skipZKOnboarding?: boolean;
+  } = {},
+) {
+  await page.addInitScript((flags) => {
+    try {
+      if (flags.skipWizard) localStorage.setItem("tf_first_run_seen", "true");
+      if (flags.skipQuiz) localStorage.setItem("tf_quiz_seen", "true");
+      if (flags.skipZKOnboarding)
+        localStorage.setItem("zk_onboarding_seen", "1");
+    } catch {
+      // storage locked before origin loads — ignored
+    }
+  }, opts);
+}
+
 test.describe("Trustfall demo capture", () => {
   test.beforeEach(async ({ page }) => {
-    // Fresh state each run so the onboarding overlay always fires.
     await page.context().clearCookies();
     await page.addInitScript(() => {
       try {
         localStorage.clear();
         sessionStorage.clear();
       } catch {
-        // storage may be locked before origin loads — ignored
+        // ignored
       }
     });
   });
 
   // ─────────────────────────────────────────────────────────────────────────
-  // SEGMENT 1 — Hero landing (~6s)
-  //   HyperFrames overlays: title card "Trustfall — Trust is proven, not
-  //   promised" fades over the last 2s of this clip.
+  // SEGMENT 1 — Hero landing + mascot (~6s)
+  //   HyperFrames overlays: title card "Trust is proven, not promised"
+  //   fades over the last 2s of this clip.
   // ─────────────────────────────────────────────────────────────────────────
   test("01-hero-landing", async ({ page }) => {
+    // Skip both modals so the celebrating mascot + hero copy is uncovered.
+    await primeStorage(page, { skipWizard: true, skipQuiz: true });
     await page.goto("/");
     await suppressChrome(page);
     await cinePause(page, HERO);
 
-    // Slow scroll reveals below-fold value props if any exist
+    // Gentle scroll to reveal the three entry-point cards.
     await page.evaluate(() =>
-      window.scrollTo({ top: 400, behavior: "smooth" }),
+      window.scrollTo({ top: 500, behavior: "smooth" }),
     );
     await cinePause(page, 2000);
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: "smooth" }));
@@ -73,37 +105,55 @@ test.describe("Trustfall demo capture", () => {
   });
 
   // ─────────────────────────────────────────────────────────────────────────
-  // SEGMENT 2 — Tutorial vs AI (~15s)
-  //   The Prisoner's Dilemma concept, one round against an AI strategy.
-  //   Pure local — no wallet, deterministic.
+  // SEGMENT 2 — Personality quiz (~12s)
+  //   The quiz humanizes "what is trust" better than any diagram. 5
+  //   questions → mascot-based reveal of the viewer's trust archetype.
+  //   Pure local — no wallet.
   // ─────────────────────────────────────────────────────────────────────────
-  test("02-tutorial-vs-ai", async ({ page }) => {
-    await page.goto("/learn/play");
+  test("02-personality-quiz", async ({ page }) => {
+    // We want the quiz to auto-show, so leave tf_quiz_seen unset; skip the
+    // FirstRunWizard so nothing occludes the quiz.
+    await primeStorage(page, { skipWizard: true });
+    await page.goto("/");
     await suppressChrome(page);
     await cinePause(page, READ);
 
-    // Play a mutual-cooperation round so the payoff feels good on screen.
-    // Selector is text-based so it survives styling changes.
-    const cooperate = page.getByRole("button", { name: /cooperate/i }).first();
-    await cooperate.waitFor({ state: "visible", timeout: 10_000 });
-    await cinePause(page, SLOW);
-    await cooperate.click();
-    await cinePause(page, READ);
+    // Advance through the intro screen, then answer each question by
+    // clicking the first available option. Which archetype the viewer
+    // ends up as is not important — the mascot reveal is the shot.
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const cta = page
+        .getByRole("button", { name: /start( learning)?|begin|next|→/i })
+        .first();
+      const ctaVisible = await cta.isVisible().catch(() => false);
 
-    // Second round — betray, so the viewer sees the payoff math flip.
-    const defect = page.getByRole("button", { name: /defect/i }).first();
-    if (await defect.isVisible().catch(() => false)) {
-      await defect.click();
-      await cinePause(page, READ);
+      const answer = page
+        .locator("[role='dialog'], .glass-panel")
+        .locator("button")
+        .first();
+      const answerVisible = await answer.isVisible().catch(() => false);
+
+      if (ctaVisible) {
+        await cta.click();
+      } else if (answerVisible) {
+        await answer.click();
+      } else {
+        break;
+      }
+      await cinePause(page, 1200);
     }
+
+    // Hold on the archetype reveal for the visual finish.
+    await cinePause(page, READ);
   });
 
   // ─────────────────────────────────────────────────────────────────────────
-  // SEGMENT 3 — Tournament evolution (~12s)
-  //   Nicky Case "Evolution of Trust" — auto-play a few generations so the
+  // SEGMENT 3 — Tournament evolution (~10s)
+  //   Nicky Case "Evolution of Trust" — auto-play generations so the
   //   population bar chart animates. Zero wallet, deterministic.
   // ─────────────────────────────────────────────────────────────────────────
   test("03-tournament-evolution", async ({ page }) => {
+    await primeStorage(page, { skipWizard: true, skipQuiz: true });
     await page.goto("/tournament");
     await suppressChrome(page);
     await cinePause(page, READ);
@@ -113,67 +163,110 @@ test.describe("Trustfall demo capture", () => {
       .first();
     if (await autoPlay.isVisible().catch(() => false)) {
       await autoPlay.click();
-      // Let it churn — this is the visual money shot of the tournament view.
       await cinePause(page, 8000);
     } else {
-      // Fallback: hold on the static view; HyperFrames can Ken-Burns it.
       await cinePause(page, 8000);
     }
   });
 
   // ─────────────────────────────────────────────────────────────────────────
-  // SEGMENT 4 — ZK Lobby + onboarding (~15s)
-  //   The 3-step ZK explainer overlay is the load-bearing narrative beat.
+  // SEGMENT 4 — Accreditation ZK (~15s)  ★ lead ZK beat ★
+  //   Poseidon Merkle tree membership + nullifier. Prove the viewer is on
+  //   the accredited allowlist without revealing which credential is theirs.
+  //   Maps to the "identity / compliance proofs" example the hackathon
+  //   called out as an especially good fit for Stellar.
+  //
+  //   Ends before the wallet sign popup — HyperFrames overlays the sign
+  //   moment with a "Signing on Stellar…" card and a Poseidon/Merkle diagram.
   // ─────────────────────────────────────────────────────────────────────────
-  test("04-zk-lobby-and-onboarding", async ({ page }) => {
+  test("04-accreditation-zk", async ({ page }) => {
+    await primeStorage(page, {
+      skipWizard: true,
+      skipQuiz: true,
+      skipZKOnboarding: true,
+    });
     await page.goto("/play");
     await suppressChrome(page);
     await cinePause(page, READ);
 
-    // First-run overlay: click through all 3 steps.
-    for (let step = 0; step < 3; step++) {
-      const next = page
-        .getByRole("button", { name: /next|let's play/i })
-        .first();
-      if (!(await next.isVisible().catch(() => false))) break;
+    // Scroll the AccreditationPanel into view — it lives inside /play below
+    // the lobby, so we bring it to the top of the frame.
+    const panelHeading = page.getByRole("heading", {
+      name: /private accreditation/i,
+    });
+    await panelHeading.waitFor({ state: "visible", timeout: 10_000 });
+    await panelHeading.scrollIntoViewIfNeeded();
+    await cinePause(page, READ);
+
+    // Expand the "Technical details" so the Merkle root / Poseidon language
+    // is visible — this is what earns the ZK claim in the video.
+    const techToggle = page.getByText(/technical details/i).first();
+    if (await techToggle.isVisible().catch(() => false)) {
+      await techToggle.click();
       await cinePause(page, READ);
-      await next.click();
+      await techToggle.click(); // collapse so the next shot is clean
       await cinePause(page, SLOW);
     }
 
-    // Back in the lobby. Hold on the list of open testnet games.
-    await cinePause(page, READ);
+    // Prime the credential selector so the viewer sees a real choice.
+    const credSelect = page.locator("select").first();
+    if (await credSelect.isVisible().catch(() => false)) {
+      await credSelect.selectOption({ index: 1 });
+      await cinePause(page, SLOW);
+    }
+
+    // Hover the "Prove Accreditation" CTA. If wallet is pre-connected and
+    // the contract is already initialized, fire the click and capture the
+    // "Generating proof…" → "Verifying on-chain…" transitions live.
+    const proveCta = page
+      .getByRole("button", { name: /prove accreditation|generating proof/i })
+      .first();
+    if (await proveCta.isVisible().catch(() => false)) {
+      await proveCta.hover();
+      await cinePause(page, READ);
+
+      if (process.env.DEMO_WALLET_CONNECTED === "1") {
+        await proveCta.click();
+        await cinePause(page, 3500); // "Generating proof…" client-side bb.js
+      }
+    } else {
+      // If the panel is in Admin "Initialize Accreditation" state instead,
+      // hover that CTA — the narrative still lands.
+      const initCta = page
+        .getByRole("button", { name: /initialize accreditation/i })
+        .first();
+      if (await initCta.isVisible().catch(() => false)) {
+        await initCta.hover();
+        await cinePause(page, READ);
+      }
+    }
   });
 
   // ─────────────────────────────────────────────────────────────────────────
-  // SEGMENT 5 — The ZK moment (~10s)  ★ core beat ★
-  //   User selects Cooperate → "Falling…" spinner = real UltraHonk proof gen
-  //   happening client-side (@aztec/bb.js). This is what proves ZK is
-  //   load-bearing, not a slide.
+  // SEGMENT 5 — Move commitment ZK (~10s)  ★ second ZK beat ★
+  //   Player selects Cooperate → "Falling…" spinner = real UltraHonk proof
+  //   gen happening client-side. The narrative payoff: this proof makes
+  //   the commitment BINDING at commit time, so garbage commits are
+  //   rejected before the opponent locks their stake.
   //
-  //   NOTE: This segment ends BEFORE the wallet sign popup. HyperFrames
-  //   layers a "Signing on Stellar…" card over the last 2s.
+  //   Also ends before the wallet sign popup. HyperFrames overlay cuts in.
   // ─────────────────────────────────────────────────────────────────────────
   test("05-commit-and-proof-generation", async ({ page }) => {
-    // Skip onboarding by pre-setting the seen flag so we jump straight to the
-    // create flow.
-    await page.addInitScript(() => {
-      localStorage.setItem("zk_onboarding_seen", "1");
+    await primeStorage(page, {
+      skipWizard: true,
+      skipQuiz: true,
+      skipZKOnboarding: true,
     });
-
     await page.goto("/play");
     await suppressChrome(page);
     await cinePause(page, SLOW);
 
-    // Enter the create flow. Text may drift — grep the button by an inclusive
-    // regex so the script survives copy changes.
     const create = page
       .getByRole("button", { name: /create.*(single|game|round)/i })
       .first();
     if (await create.isVisible().catch(() => false)) {
       await create.click();
     } else {
-      // Fallback: any "Create" button in the lobby
       await page
         .getByRole("button", { name: /create/i })
         .first()
@@ -181,17 +274,13 @@ test.describe("Trustfall demo capture", () => {
     }
     await cinePause(page, READ);
 
-    // Pick Cooperate — the "moral" choice makes better demo footage.
+    // Pick Cooperate — the "moral" choice is stronger demo footage.
     const cooperate = page.getByRole("button", { name: /cooperate/i }).first();
     await cooperate.waitFor({ state: "visible", timeout: 10_000 });
-    await cooperate.click({ trial: false });
+    await cooperate.click();
     await cinePause(page, SLOW);
 
-    // Click "✋ Let go" — this triggers commitment + proof generation.
-    // Without a connected wallet the flow stops at the wallet check, which
-    // is exactly what we want: the button transitions to "Falling…" only if
-    // a wallet is connected. For the pure UI capture we hover the CTA and
-    // hold so HyperFrames can overlay the proof-gen animation.
+    // Focus the submit CTA — this triggers commit + proof gen when clicked.
     const submit = page
       .getByRole("button", { name: /let go|committing|falling/i })
       .first();
@@ -199,10 +288,6 @@ test.describe("Trustfall demo capture", () => {
     await submit.hover();
     await cinePause(page, READ);
 
-    // If a wallet IS connected (e.g. Freighter with a fresh testnet key
-    // pre-approved for this origin), fire the click and let the "Falling…"
-    // state render for ~2s. If not, we've already captured the pre-click
-    // state above — HyperFrames handles the rest.
     if (process.env.DEMO_WALLET_CONNECTED === "1") {
       await submit.click();
       await cinePause(page, 2500); // "Falling…" proof-gen state
@@ -222,11 +307,15 @@ test.describe("Trustfall demo capture", () => {
       "Set DEMO_RESOLVED_GAME_ID to a Resolved testnet gameId",
     );
 
+    await primeStorage(page, {
+      skipWizard: true,
+      skipQuiz: true,
+      skipZKOnboarding: true,
+    });
     await page.goto(`/play/${gameId}`);
     await suppressChrome(page);
     await cinePause(page, HERO);
 
-    // Slow pan by scrolling if the result card is tall
     await page.evaluate(() =>
       window.scrollTo({ top: 300, behavior: "smooth" }),
     );
@@ -237,9 +326,10 @@ test.describe("Trustfall demo capture", () => {
 
   // ─────────────────────────────────────────────────────────────────────────
   // SEGMENT 7 — Closing hero (~5s)
-  //   Back on the landing to close the loop with the URL.
+  //   Back on the landing to close with the URL + mascot.
   // ─────────────────────────────────────────────────────────────────────────
   test("07-close", async ({ page }) => {
+    await primeStorage(page, { skipWizard: true, skipQuiz: true });
     await page.goto("/");
     await suppressChrome(page);
     await cinePause(page, HERO);

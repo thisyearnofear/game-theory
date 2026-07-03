@@ -4,11 +4,42 @@ Comprehensive review of product design, UI/UX, system architecture, reliability/
 
 ---
 
+## 0. Two ZK Patterns Overview
+
+Trustfall now has **two distinct ZK patterns**, both verified on-chain:
+
+### Pattern 1: Private Accreditation (ZK Allowlist Membership)
+
+**Real-world use case:** KYC/AML compliance, accredited investor verification, compliance-gated access to tokenized assets. Prove you're on an allowlist without revealing which credential is yours.
+
+**What's working:**
+
+- **Poseidon Merkle tree circuit** (`circuits/allowlist_membership/`) — depth-4, 16 leaves, nullifier-based replay protection. Uses `noir-lang/poseidon` with BN254 parameters.
+- **Contract functions** — `initialize_accreditation`, `update_accredited_root`, `verify_accreditation`, `is_accreditation_initialized`, `get_accredited_root` — with separate VK storage, root matching, nullifier replay prevention, and event emission.
+- **4 contract tests** — real proof verification, wrong root rejection, nullifier replay rejection, uninitialized rejection. All passing.
+- **Frontend wiring** — `accreditationProofService.ts` (lazy-loaded Noir + bb.js proof generation), `merkleTree.ts` (pre-computed Poseidon tree data for 3 credentials), `AccreditationPanel.tsx` (admin init + player proof UI).
+- **Uses Stellar Protocol 25 Poseidon host functions** — directly leveraging the primitives the hackathon celebrates.
+
+**What's not working:**
+
+- **Demo tree is pre-computed** — 3 credentials with hardcoded Merkle paths. Production system would build tree off-chain and distribute paths privately. This is documented honestly in the README.
+- **Nullifiers only for game_id=0** — frontend needs JS Poseidon for other game_ids. The ZK proof itself works for any game_id; only the client-side nullifier pre-computation is limited. Documented honestly.
+
+### Pattern 2: Move Commitment Binding
+
+**Real-world use case:** Any commit-reveal scheme where early validation prevents griefing — sealed-bid auctions, fair escrow, wagering.
+
+(See sections 1-5 below for the detailed review of this pattern.)
+
+---
+
 ## 1. Product Design
 
 ### What's working
 
-**ZK value proposition is real and well-articulated.** The core insight — that a hash-only commit-reveal scheme allows griefing because players can commit to garbage — is correct, and the ZK proof genuinely solves it. The circuit proves `move ∈ {0,1}` and `keccak256(move || nonce || game_id) == commitment`, which is exactly the binding guarantee needed. This is not ZK-for-ZK's-sake; removing it breaks the game.
+**Two ZK patterns, both load-bearing.** The move commitment pattern proves `move ∈ {0,1}` and `keccak256(move || nonce || game_id) == commitment` — removing it breaks fair play. The accreditation pattern proves Merkle tree membership without revealing the leaf — removing it means either storing the full allowlist on-chain (privacy-destroying, gas-expensive) or trusting an off-chain oracle. Both patterns do real work.
+
+**Accreditation maps to real-world Stellar use cases.** The hackathon brief explicitly names "identity and compliance proofs" as a target. Private accreditation — prove you're accredited without revealing which credential is yours — is directly applicable to KYC/AML, accredited investor verification, and compliance-gated settlement. This is the strongest card for judging.
 
 **Game theory model is sound.** The payoff matrix (CC=2×, CD=0/3×, DC=3×/0, DD=0) is the standard Prisoner's Dilemma. Escrow-then-reveal with timeout forfeit is the right structural design for on-chain games.
 
@@ -125,7 +156,7 @@ Comprehensive review of product design, UI/UX, system architecture, reliability/
 
 **Proof generation is the critical path and it works.** bb.js generates a 14,592-byte proof that verifies against the on-chain Rust verifier. This was cross-verified (bb.js proof → Rust verifier test).
 
-**Contract tests are comprehensive.** 15/15 tests pass: 7 single-round tests (real proof verification, fake proof rejection, wrong-length rejection, zero-stake rejection, payout calculation, cancel after deadline, refund on both timeout, self-join prevention) + 8 multi-round match tests (create match, invalid best-of, full best-of-3, completed after two wins, cancel after timeout, forfeit awards round).
+**Contract tests are comprehensive.** 19/19 tests pass: 7 single-round tests (real proof verification, fake proof rejection, wrong-length rejection, zero-stake rejection, payout calculation, cancel after deadline, refund on both timeout, self-join prevention) + 8 multi-round match tests (create match, invalid best-of, full best-of-3, completed after two wins, cancel after timeout, forfeit awards round) + 4 accreditation tests (real proof verification, wrong root rejection, nullifier replay rejection, uninitialized rejection).
 
 **Error handling is consistent.** All contract functions use `Result<T, Error>` with the `?` operator. All frontend hook functions use try-catch-finally with `isLoading` and `error` state.
 
