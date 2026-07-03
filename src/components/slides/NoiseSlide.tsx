@@ -102,8 +102,13 @@ export const NoiseSlide: React.FC<SlideProps> = ({ onNext }) => {
       {/* Noise slider */}
       <div
         data-animate
-        className="glass-panel"
-        style={{ padding: "24px", marginBottom: "24px" }}
+        style={{
+          padding: "28px",
+          marginBottom: "24px",
+          background: "rgba(10, 14, 26, 0.85)",
+          border: "1px solid var(--border-glass)",
+          borderRadius: "var(--radius-lg)",
+        }}
       >
         <div
           style={{
@@ -149,9 +154,9 @@ export const NoiseSlide: React.FC<SlideProps> = ({ onNext }) => {
           }}
           style={{
             width: "100%",
-            height: "6px",
-            borderRadius: "3px",
-            background: "rgba(255,255,255,0.1)",
+            height: "8px",
+            borderRadius: "4px",
+            background: `linear-gradient(90deg, var(--accent-cooperate) 0%, var(--accent-warm) ${noise * 200}%, rgba(255,255,255,0.12) ${noise * 200}%)`,
             appearance: "none",
             outline: "none",
             cursor: "pointer",
@@ -185,31 +190,63 @@ export const NoiseSlide: React.FC<SlideProps> = ({ onNext }) => {
           </span>
         </div>
 
-        <ElectricButton
-          onClick={runSimulation}
-          disabled={running}
-          color="warm"
-          size="md"
-          style={{ marginTop: "16px" }}
+        {/* Submit button — made prominent so it's easy to find */}
+        <div
+          style={{
+            marginTop: "20px",
+            padding: "16px",
+            background: "rgba(240, 160, 32, 0.08)",
+            border: "1px solid rgba(240, 160, 32, 0.2)",
+            borderRadius: "var(--radius-md)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "10px",
+          }}
         >
-          {running ? "Running 50 rounds..." : "▶ Simulate 50 rounds"}
-        </ElectricButton>
+          <p
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: "var(--text-sm)",
+              color: "var(--text-secondary)",
+              margin: 0,
+            }}
+          >
+            Run a 50-round simulation between two Tit-for-Tat strategies
+          </p>
+          <ElectricButton
+            onClick={runSimulation}
+            disabled={running}
+            color="warm"
+            size="lg"
+            style={{
+              width: "100%",
+              maxWidth: "320px",
+              fontSize: "var(--text-base)",
+              fontWeight: 700,
+            }}
+          >
+            {running ? "Running 50 rounds..." : "▶ Simulate 50 rounds"}
+          </ElectricButton>
+        </div>
       </div>
 
       {/* Results */}
       {result && (
         <div data-animate>
           <div
-            className="glass-panel"
             style={{
               padding: "24px",
               marginBottom: "24px",
-              borderColor:
+              background: "rgba(10, 14, 26, 0.85)",
+              border: `1px solid ${
                 coopPercent > 60
                   ? "rgba(74,222,128,0.3)"
                   : coopPercent > 30
                     ? "rgba(240,160,32,0.3)"
-                    : "rgba(248,113,113,0.3)",
+                    : "rgba(248,113,113,0.3)"
+              }`,
+              borderRadius: "var(--radius-lg)",
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-around" }}>

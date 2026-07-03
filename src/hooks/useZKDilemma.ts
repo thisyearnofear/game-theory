@@ -805,6 +805,115 @@ export function useZKDilemma() {
     [address, sas, fetchMatch, fetchMatches],
   );
 
+  // ==========================================================================
+  // Accreditation (Private Allowlist Membership)
+  // ==========================================================================
+
+  /**
+   * Check whether accreditation has been initialized on the contract.
+   */
+  const checkAccreditationInitialized =
+    useCallback(async (): Promise<boolean> => {
+      try {
+        const client = createClient();
+        const tx = await client.is_accreditation_initialized();
+        const result = await tx.simulate();
+        return result.result as boolean;
+      } catch {
+        return false;
+      }
+    }, []);
+
+  /**
+   * Get the current accredited Merkle root from the contract.
+   */
+  const getAccreditedRoot = useCallback(async (): Promise<string | null> => {
+    try {
+      const client = createClient();
+      const tx = await client.get_accredited_root();
+      const result = await tx.simulate();
+      const root = result.result;
+      if (!root) return null;
+      // root is Option<Buffer> -- convert to hex string
+      const buf = root as Buffer;
+      return Array.from(buf)
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+    } catch {
+      return null;
+    }
+  }, []);
+
+  /**
+   * Initialize accreditation (admin only).
+   * Sets the accreditation VK, Merkle root, and admin address.
+   */
+  const initializeAccreditation = useCallback(
+    async (
+      adminAddress: string,
+      vkBytes: Uint8Array,
+      merkleRoot: Uint8Array,
+    ): Promise<void> => {
+      if (!address) throw new Error("Wallet not connected");
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const client = createClient();
+        const tx = await client.initialize_accreditation({
+          admin: adminAddress,
+          vk_bytes: Buffer.from(vkBytes),
+          merkle_root: Buffer.from(merkleRoot),
+        });
+        await sas(tx);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        setError(`Failed to initialize accreditation: ${message}`);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [address, sas],
+  );
+
+  /**
+   * Verify accreditation on-chain with a ZK proof.
+   * The player proves they hold a credential in the allowlist without
+   * revealing which one. The nullifier prevents replay.
+   */
+  const verifyAccreditation = useCallback(
+    async (
+      proof: Uint8Array,
+      merkleRoot: Uint8Array,
+      nullifier: Uint8Array,
+      gameId: number,
+    ): Promise<void> => {
+      if (!address) throw new Error("Wallet not connected");
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const client = createClient();
+        const tx = await client.verify_accreditation({
+          player: address,
+          proof: Buffer.from(proof),
+          merkle_root: Buffer.from(merkleRoot),
+          nullifier: Buffer.from(nullifier),
+          game_id: BigInt(gameId),
+        });
+        await sas(tx);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        setError(`Failed to verify accreditation: ${message}`);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [address, sas],
+  );
+
   return {
     // State
     games,
@@ -840,5 +949,11 @@ export function useZKDilemma() {
     cancelMatch,
     cancelMatchTimeout,
     setCurrentMatch,
+
+    // Accreditation actions
+    checkAccreditationInitialized,
+    getAccreditedRoot,
+    initializeAccreditation,
+    verifyAccreditation,
   };
 }

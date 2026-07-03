@@ -46,4 +46,11 @@ pub enum Error {
     InvalidBestOf = 29,
     WrongOpponent = 30,
     MatchRoundMismatch = 31,
+
+    // Accreditation errors
+    AccreditationNotInitialized = 32,
+    RootMismatch = 33,
+    NullifierAlreadyUsed = 34,
+    InvalidRoot = 35,
+    AccreditationAdminMismatch = 36,
 }

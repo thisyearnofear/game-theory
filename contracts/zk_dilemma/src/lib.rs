@@ -39,6 +39,19 @@ const MATCH_COUNT: Symbol = symbol_short!("MCOUNT");
 /// Maps game_id -> match_id for looking up which match a round belongs to
 const GAME_MATCH: Symbol = symbol_short!("G2M");
 
+// ---------------------------------------------------------------------------
+// Accreditation (private allowlist membership) storage keys
+// ---------------------------------------------------------------------------
+
+/// Verification key for the allowlist_membership Noir circuit
+const VK_ACCREDITED_KEY: Symbol = symbol_short!("VKACC");
+/// Merkle root of accredited participants (32-byte Field element)
+const ACCREDITED_ROOT: Symbol = symbol_short!("AROOT");
+/// Admin who can update the accredited root
+const ACCREDITATION_ADMIN: Symbol = symbol_short!("AADMIN");
+/// Whether accreditation has been initialized
+const ACCREDITATION_INIT: Symbol = symbol_short!("AINIT");
+
 // ============================================================================
 // Data Structures
 // ============================================================================
@@ -65,6 +78,7 @@ const EVT_MATCH_JOINED: Symbol = symbol_short!("MJOIN");
 const EVT_MATCH_ROUND: Symbol = symbol_short!("MROUND");
 const EVT_MATCH_COMPLETED: Symbol = symbol_short!("MDONE");
 const EVT_MATCH_REMATCH: Symbol = symbol_short!("MREMAT");
+const EVT_ACCREDITED: Symbol = symbol_short!("ACCRED");
 
 #[contracttype]
 #[derive(Clone, Debug)]
@@ -160,6 +174,136 @@ impl ZKDilemma {
         });
         env.storage().instance().set(&VK_KEY, &vk_bytes);
         env.storage().instance().set(&TOKEN_KEY, &xlm_token);
+    }
+
+    // ------------------------------------------------------------------------
+    // Accreditation (Private Allowlist Membership)
+    // ------------------------------------------------------------------------
+
+    /// Initialize the accreditation system with a separate UltraHonk VK
+    /// (for the allowlist_membership Noir circuit), a Merkle root of
+    /// accredited participants, and an admin who can update the root.
+    ///
+    /// This is a separate VK from the move-commitment VK because the
+    /// allowlist circuit is a different Noir program with different public
+    /// inputs.
+    pub fn initialize_accreditation(
+        env: Env,
+        admin: Address,
+        vk_bytes: Bytes,
+        merkle_root: Bytes,
+    ) {
+        admin.require_auth();
+
+        if env.storage().instance().has(&ACCREDITATION_INIT) {
+            panic!("Accreditation already initialized");
+        }
+        if merkle_root.len() != 32 {
+            panic!("Merkle root must be 32 bytes");
+        }
+
+        // Validate the VK by parsing it
+        let _ = UltraHonkVerifier::new(&env, &vk_bytes).map_err(|e| match e {
+            VkLoadError::WrongLength => panic!("Accreditation VK invalid length"),
+            VkLoadError::InvalidParameters => panic!("Accreditation VK invalid parameters"),
+        });
+
+        env.storage().instance().set(&VK_ACCREDITED_KEY, &vk_bytes);
+        env.storage().instance().set(&ACCREDITED_ROOT, &merkle_root);
+        env.storage().instance().set(&ACCREDITATION_ADMIN, &admin);
+        env.storage().instance().set(&ACCREDITATION_INIT, &true);
+    }
+
+    /// Update the accredited Merkle root. Only the admin can call this.
+    pub fn update_accredited_root(env: Env, admin: Address, merkle_root: Bytes) {
+        admin.require_auth();
+
+        if merkle_root.len() != 32 {
+            panic!("Merkle root must be 32 bytes");
+        }
+
+        let stored_admin: Address = env
+            .storage()
+            .instance()
+            .get(&ACCREDITATION_ADMIN)
+            .unwrap_or_else(|| panic!("Accreditation not initialized"));
+
+        if admin != stored_admin {
+            panic!("Only the accreditation admin can update the root");
+        }
+
+        env.storage().instance().set(&ACCREDITED_ROOT, &merkle_root);
+    }
+
+    /// Verify a player's ZK accreditation proof.
+    ///
+    /// The player submits an UltraHonk proof that their credential_id is a
+    /// leaf in the Merkle tree with the stored root, without revealing which
+    /// leaf. The nullifier (poseidon(credential_id, game_id)) prevents the
+    /// same credential from being used twice for the same game.
+    ///
+    /// On success, the nullifier is recorded and an event is emitted. The
+    /// player is now "accredited" for game_id -- the off-chain indexer or
+    /// frontend can use this event to gate access to accredited-only games.
+    pub fn verify_accreditation(
+        env: Env,
+        player: Address,
+        proof: Bytes,
+        merkle_root: Bytes,
+        nullifier: Bytes,
+        game_id: u64,
+    ) -> Result<(), Error> {
+        player.require_auth();
+
+        if !env.storage().instance().has(&ACCREDITATION_INIT) {
+            return Err(Error::AccreditationNotInitialized);
+        }
+        if merkle_root.len() != 32 || nullifier.len() != 32 {
+            return Err(Error::InvalidPublicInputs);
+        }
+        if proof.len() as usize != PROOF_BYTES {
+            return Err(Error::ProofTooLong);
+        }
+
+        // Check root matches the stored accredited root
+        let stored_root: Bytes = env
+            .storage()
+            .instance()
+            .get(&ACCREDITED_ROOT)
+            .ok_or(Error::AccreditationNotInitialized)?;
+
+        if &stored_root != &merkle_root {
+            return Err(Error::RootMismatch);
+        }
+
+        // Check nullifier hasn't been used already
+        let nullifier_key = (symbol_short!("NULL"), nullifier.clone());
+        if env.storage().persistent().has(&nullifier_key) {
+            return Err(Error::NullifierAlreadyUsed);
+        }
+
+        // Verify the ZK proof
+        Self::verify_accreditation_proof(&env, &proof, &merkle_root, &nullifier, game_id)?;
+
+        // Mark nullifier as used
+        env.storage().persistent().set(&nullifier_key, &true);
+
+        env.events().publish(
+            (EVT_ACCREDITED, player),
+            (nullifier, game_id),
+        );
+
+        Ok(())
+    }
+
+    /// Query whether accreditation has been initialized.
+    pub fn is_accreditation_initialized(env: Env) -> bool {
+        env.storage().instance().has(&ACCREDITATION_INIT)
+    }
+
+    /// Query the current accredited Merkle root.
+    pub fn get_accredited_root(env: Env) -> Option<Bytes> {
+        env.storage().instance().get(&ACCREDITED_ROOT)
     }
 
     // ------------------------------------------------------------------------
@@ -1208,6 +1352,74 @@ impl ZKDilemma {
         public_inputs
     }
 
+    /// Verify an UltraHonk ZK proof for the allowlist_membership circuit.
+    ///
+    /// The public inputs are 3 Field elements, each 32-byte big-endian:
+    ///   1. merkle_root (32 bytes BE)
+    ///   2. nullifier   (32 bytes BE)
+    ///   3. game_id     (32 bytes BE)
+    ///
+    /// Total: 96 bytes. Same total size as the move-commitment proof, but
+    /// the semantic meaning of each 32-byte slot differs.
+    fn verify_accreditation_proof(
+        env: &Env,
+        proof: &Bytes,
+        merkle_root: &Bytes,
+        nullifier: &Bytes,
+        game_id: u64,
+    ) -> Result<(), Error> {
+        let vk_bytes: Bytes = env
+            .storage()
+            .instance()
+            .get(&VK_ACCREDITED_KEY)
+            .ok_or(Error::AccreditationNotInitialized)?;
+
+        let public_inputs = Self::serialize_accreditation_inputs(
+            env,
+            merkle_root,
+            nullifier,
+            game_id,
+        );
+
+        let verifier = UltraHonkVerifier::new(env, &vk_bytes).map_err(|e| match e {
+            VkLoadError::WrongLength => Error::AccreditationNotInitialized,
+            VkLoadError::InvalidParameters => Error::AccreditationNotInitialized,
+        })?;
+
+        verifier
+            .verify(env, proof, &public_inputs)
+            .map_err(|_| Error::ProofVerificationFailed)
+    }
+
+    /// Serialize accreditation public inputs as 3 x 32-byte big-endian Fields.
+    ///
+    /// Layout matches the allowlist_membership Noir circuit:
+    ///   [merkle_root (32B BE), nullifier (32B BE), game_id (32B BE)]
+    fn serialize_accreditation_inputs(
+        env: &Env,
+        merkle_root: &Bytes,
+        nullifier: &Bytes,
+        game_id: u64,
+    ) -> Bytes {
+        let mut public_inputs = Bytes::new(env);
+
+        // merkle_root: 32 bytes BE (already a full Field element)
+        public_inputs.append(merkle_root);
+
+        // nullifier: 32 bytes BE
+        public_inputs.append(nullifier);
+
+        // game_id: 24 zero bytes + 8 bytes BE
+        for _ in 0..24 {
+            public_inputs.push_back(0u8);
+        }
+        for i in (0..8).rev() {
+            public_inputs.push_back(((game_id >> (i * 8)) & 0xFF) as u8);
+        }
+
+        public_inputs
+    }
+
     /// Verify that revealed move + nonce matches the commitment.
     ///
     /// Computes keccak256(move_byte || nonce_bytes || game_id_bytes) and
@@ -1335,6 +1547,126 @@ mod tests {
         let client = ZKDilemmaClient::new(env, &contract_id);
         client.initialize(&vk_bytes, xlm_address);
         contract_id
+    }
+
+    /// Load the real VK for the allowlist_membership circuit.
+    fn load_accreditation_vk(env: &Env) -> Bytes {
+        let vk_bytes = include_bytes!("../../../circuits/allowlist_membership/target/vk");
+        Bytes::from_slice(env, vk_bytes)
+    }
+
+    /// Load a real proof from the allowlist_membership circuit.
+    /// Generated for: credential_id=1, game_id=0, leaf at index 0,
+    /// all other leaves = hash_1(0).
+    fn load_accreditation_proof(env: &Env) -> Bytes {
+        let proof_bytes = include_bytes!("../../../circuits/allowlist_membership/target/proof/proof");
+        Bytes::from_slice(env, proof_bytes)
+    }
+
+    /// The Merkle root for the test tree (credential_id=1 at leaf 0,
+    /// all other leaves = hash_1(0)), as a 32-byte big-endian Field.
+    fn test_merkle_root(env: &Env) -> Bytes {
+        // The public_inputs file from `bb prove` contains the 32-byte BE
+        // serialization of each public Field input, in circuit order:
+        //   [merkle_root (32B), nullifier (32B), game_id (32B)]
+        let public_inputs_bytes = include_bytes!(
+            "../../../circuits/allowlist_membership/target/proof/public_inputs"
+        );
+        Bytes::from_slice(env, &public_inputs_bytes[..32])
+    }
+
+    /// The nullifier for the test tree (credential_id=1, game_id=0),
+    /// as a 32-byte big-endian Field.
+    fn test_nullifier(env: &Env) -> Bytes {
+        let public_inputs_bytes = include_bytes!(
+            "../../../circuits/allowlist_membership/target/proof/public_inputs"
+        );
+        // Bytes 32..64 = nullifier
+        Bytes::from_slice(env, &public_inputs_bytes[32..64])
+    }
+
+    /// Deploy the contract and initialize accreditation with the test VK and root.
+    fn deploy_contract_with_accreditation(env: &Env, xlm_address: &Address) -> Address {
+        let vk_bytes = load_real_vk(env);
+        #[allow(deprecated)]
+        let contract_id = env.register_contract(None, ZKDilemma);
+        let client = ZKDilemmaClient::new(env, &contract_id);
+        client.initialize(&vk_bytes, xlm_address);
+
+        // Initialize accreditation
+        let admin = Address::generate(env);
+        let acc_vk = load_accreditation_vk(env);
+        let root = test_merkle_root(env);
+        client.initialize_accreditation(&admin, &acc_vk, &root);
+        contract_id
+    }
+
+    #[test]
+    fn test_accreditation_verify_real_proof() {
+        let (env, xlm_address, _admin) = create_test_env();
+        let contract_id = deploy_contract_with_accreditation(&env, &xlm_address);
+
+        let client = ZKDilemmaClient::new(&env, &contract_id);
+        let player = Address::generate(&env);
+
+        let proof = load_accreditation_proof(&env);
+        let root = test_merkle_root(&env);
+        let nullifier = test_nullifier(&env);
+
+        // Verify accreditation for game_id=0 -- panics on failure
+        client.verify_accreditation(&player, &proof, &root, &nullifier, &0);
+    }
+
+    #[test]
+    fn test_accreditation_rejects_wrong_root() {
+        let (env, xlm_address, _admin) = create_test_env();
+        let contract_id = deploy_contract_with_accreditation(&env, &xlm_address);
+
+        let client = ZKDilemmaClient::new(&env, &contract_id);
+        let player = Address::generate(&env);
+
+        let proof = load_accreditation_proof(&env);
+        let wrong_root = Bytes::from_slice(&env, &[0u8; 32]);
+        let nullifier = test_nullifier(&env);
+
+        let result = client.try_verify_accreditation(&player, &proof, &wrong_root, &nullifier, &0);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_accreditation_rejects_nullifier_replay() {
+        let (env, xlm_address, _admin) = create_test_env();
+        let contract_id = deploy_contract_with_accreditation(&env, &xlm_address);
+
+        let client = ZKDilemmaClient::new(&env, &contract_id);
+        let player = Address::generate(&env);
+
+        let proof = load_accreditation_proof(&env);
+        let root = test_merkle_root(&env);
+        let nullifier = test_nullifier(&env);
+
+        // First verification succeeds (panics on failure)
+        client.verify_accreditation(&player, &proof, &root, &nullifier, &0);
+
+        // Second verification with same nullifier fails
+        let result = client.try_verify_accreditation(&player, &proof, &root, &nullifier, &0);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_accreditation_not_initialized() {
+        let (env, xlm_address, _admin) = create_test_env();
+        let contract_id = deploy_contract(&env, &xlm_address);
+
+        let client = ZKDilemmaClient::new(&env, &contract_id);
+        let player = Address::generate(&env);
+
+        let proof = load_accreditation_proof(&env);
+        let root = test_merkle_root(&env);
+        let nullifier = test_nullifier(&env);
+
+        let result = client.try_verify_accreditation(&player, &proof, &root, &nullifier, &0);
+        assert!(result.is_err());
     }
 
     #[test]
