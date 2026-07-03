@@ -281,7 +281,7 @@ export const AccreditationPanel: React.FC = () => {
               }}
             >
               {credentials.map((cred, i) => (
-                <option key={i} value={i}>
+                <option key={cred.credentialId} value={i}>
                   Credential #{cred.credentialId} (leaf {i})
                 </option>
               ))}
