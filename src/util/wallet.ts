@@ -3,6 +3,13 @@ import {
   WalletNetwork,
   FreighterModule,
   FREIGHTER_ID,
+  xBullModule,
+  AlbedoModule,
+  RabetModule,
+  LobstrModule,
+  HanaModule,
+  HotWalletModule,
+  KleverModule,
   ISupportedWallet,
 } from "@creit.tech/stellar-wallets-kit";
 import { Transaction, FeeBumpTransaction } from "@stellar/stellar-sdk";
@@ -32,7 +39,16 @@ const initializeKit = () => {
     try {
       state.kit = new StellarWalletsKit({
         network: WalletNetwork.TESTNET,
-        modules: [new FreighterModule()],
+        modules: [
+          new FreighterModule(),
+          new xBullModule(),
+          new AlbedoModule(),
+          new RabetModule(),
+          new LobstrModule(),
+          new HanaModule(),
+          new HotWalletModule(),
+          new KleverModule(),
+        ],
         selectedWalletId: FREIGHTER_ID, // Kit requires this, but we override in connect flow
       });
     } catch (error) {

@@ -60,7 +60,7 @@ async function primeStorage(
 ) {
   await page.addInitScript((flags) => {
     try {
-      if (flags.skipWizard) localStorage.setItem("tf_first_run_seen", "true");
+      if (flags.skipWizard) localStorage.setItem("tf_wizard_seen", "true");
       if (flags.skipQuiz) localStorage.setItem("tf_quiz_seen", "true");
       if (flags.skipZKOnboarding)
         localStorage.setItem("zk_onboarding_seen", "1");
@@ -68,6 +68,37 @@ async function primeStorage(
       // storage locked before origin loads — ignored
     }
   }, opts);
+}
+
+/**
+ * Seed a fake wallet so the WalletProvider (src/providers/WalletProvider.tsx)
+ * hydrates with an address on mount without ever calling into StellarWalletsKit.
+ *
+ * The trick: WalletProvider skips the freighter poll when `walletId !== "freighter"`
+ * AND `walletAddress` is set (see WalletProvider.tsx:94). So walletId="mock-e2e"
+ * bypasses the extension check entirely — the provider just uses the stored
+ * address as-is. Any signTransaction call will fail, but every capture segment
+ * stops before the wallet popup anyway.
+ *
+ * Address defaults to deployer, a real testnet account, so on-chain reads work.
+ */
+async function seedMockWallet(
+  page: Page,
+  address = "GBWV32TY5M6PLR23DPCU56XCPKS2R74NS2N2UA5PTCOM5LRSRCIFM5LL",
+) {
+  await page.addInitScript((addr) => {
+    try {
+      localStorage.setItem("walletId", "mock-e2e");
+      localStorage.setItem("walletAddress", addr);
+      localStorage.setItem("walletNetwork", "TESTNET");
+      localStorage.setItem(
+        "networkPassphrase",
+        "Test SDF Network ; September 2015",
+      );
+    } catch {
+      // ignored
+    }
+  }, address);
 }
 
 test.describe("Trustfall demo capture", () => {
@@ -84,11 +115,41 @@ test.describe("Trustfall demo capture", () => {
   });
 
   // ─────────────────────────────────────────────────────────────────────────
-  // SEGMENT 1 — Hero landing + mascot (~6s)
+  // SEGMENT 1 — First-run wizard (~10s)  ★ opening beat ★
+  //   Welcome mascot + 3-pillar structure (Learn → Tutorial → Play for Real).
+  //   Step 3 literally reads "commit moves with zero-knowledge proofs" — this
+  //   is the app's own thesis, on-screen, in the first 10 seconds. Perfect
+  //   opener. Ends with a soft "Explore on my own" dismiss so segment 2 can
+  //   pick up on the hero.
+  // ─────────────────────────────────────────────────────────────────────────
+  test("01-first-run-wizard", async ({ page }) => {
+    // Leave tf_wizard_seen unset so the wizard auto-opens; skip everything
+    // else so nothing occludes it.
+    await primeStorage(page, { skipQuiz: true });
+    await page.goto("/");
+    await suppressChrome(page);
+    await cinePause(page, HERO); // hold on mascot + "Welcome to Trustfall"
+
+    // Slow read-beat over the three steps
+    await cinePause(page, READ);
+
+    // Optional close-shot: dismiss with "Explore on my own" so the hero
+    // is briefly visible at the end of the clip — good handoff to seg 2.
+    const dismiss = page
+      .getByRole("button", { name: /explore on my own/i })
+      .first();
+    if (await dismiss.isVisible().catch(() => false)) {
+      await dismiss.click();
+      await cinePause(page, 1500);
+    }
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // SEGMENT 2 — Hero landing + mascot (~6s)
   //   HyperFrames overlays: title card "Trust is proven, not promised"
   //   fades over the last 2s of this clip.
   // ─────────────────────────────────────────────────────────────────────────
-  test("01-hero-landing", async ({ page }) => {
+  test("02-hero-landing", async ({ page }) => {
     // Skip both modals so the celebrating mascot + hero copy is uncovered.
     await primeStorage(page, { skipWizard: true, skipQuiz: true });
     await page.goto("/");
@@ -105,12 +166,12 @@ test.describe("Trustfall demo capture", () => {
   });
 
   // ─────────────────────────────────────────────────────────────────────────
-  // SEGMENT 2 — Personality quiz (~12s)
+  // SEGMENT 3 — Personality quiz (~12s)
   //   The quiz humanizes "what is trust" better than any diagram. 5
   //   questions → mascot-based reveal of the viewer's trust archetype.
   //   Pure local — no wallet.
   // ─────────────────────────────────────────────────────────────────────────
-  test("02-personality-quiz", async ({ page }) => {
+  test("03-personality-quiz", async ({ page }) => {
     // We want the quiz to auto-show, so leave tf_quiz_seen unset; skip the
     // FirstRunWizard so nothing occludes the quiz.
     await primeStorage(page, { skipWizard: true });
@@ -118,41 +179,38 @@ test.describe("Trustfall demo capture", () => {
     await suppressChrome(page);
     await cinePause(page, READ);
 
-    // Advance through the intro screen, then answer each question by
-    // clicking the first available option. Which archetype the viewer
-    // ends up as is not important — the mascot reveal is the shot.
-    for (let attempt = 0; attempt < 8; attempt++) {
-      const cta = page
-        .getByRole("button", { name: /start( learning)?|begin|next|→/i })
-        .first();
-      const ctaVisible = await cta.isVisible().catch(() => false);
+    // The quiz opens on Q1 (no intro screen). Loop through 5 questions
+    // clicking the first answer option, then hold on the archetype reveal.
+    // We scope every click to the modal by anchoring on the "Q N of N"
+    // progress indicator — this stops us from hitting the "Start learning →"
+    // button behind the modal in the Home entry cards.
+    for (let step = 0; step < 6; step++) {
+      const progress = page.getByText(/Q\d+ of \d+/);
+      const inQuestion = await progress.isVisible().catch(() => false);
+      if (!inQuestion) break;
 
-      const answer = page
-        .locator("[role='dialog'], .glass-panel")
-        .locator("button")
+      // Find the quiz modal container by ancestry from the progress text,
+      // then click the first non-"Skip" answer button inside it.
+      const quizModal = page.locator("div").filter({ has: progress }).last();
+      const answer = quizModal
+        .getByRole("button")
+        .filter({ hasNotText: /skip/i })
         .first();
-      const answerVisible = await answer.isVisible().catch(() => false);
-
-      if (ctaVisible) {
-        await cta.click();
-      } else if (answerVisible) {
-        await answer.click();
-      } else {
-        break;
-      }
+      await answer.click();
       await cinePause(page, 1200);
     }
 
-    // Hold on the archetype reveal for the visual finish.
-    await cinePause(page, READ);
+    // Result screen: mascot + archetype name. Hold — don't click
+    // "Start Learning →" because that would navigate away mid-clip.
+    await cinePause(page, READ * 2);
   });
 
   // ─────────────────────────────────────────────────────────────────────────
-  // SEGMENT 3 — Tournament evolution (~10s)
+  // SEGMENT 4 — Tournament evolution (~10s)
   //   Nicky Case "Evolution of Trust" — auto-play generations so the
   //   population bar chart animates. Zero wallet, deterministic.
   // ─────────────────────────────────────────────────────────────────────────
-  test("03-tournament-evolution", async ({ page }) => {
+  test("04-tournament-evolution", async ({ page }) => {
     await primeStorage(page, { skipWizard: true, skipQuiz: true });
     await page.goto("/tournament");
     await suppressChrome(page);
@@ -170,7 +228,7 @@ test.describe("Trustfall demo capture", () => {
   });
 
   // ─────────────────────────────────────────────────────────────────────────
-  // SEGMENT 4 — Accreditation ZK (~15s)  ★ lead ZK beat ★
+  // SEGMENT 5 — Accreditation ZK (~15s)  ★ lead ZK beat ★
   //   Poseidon Merkle tree membership + nullifier. Prove the viewer is on
   //   the accredited allowlist without revealing which credential is theirs.
   //   Maps to the "identity / compliance proofs" example the hackathon
@@ -179,12 +237,15 @@ test.describe("Trustfall demo capture", () => {
   //   Ends before the wallet sign popup — HyperFrames overlays the sign
   //   moment with a "Signing on Stellar…" card and a Poseidon/Merkle diagram.
   // ─────────────────────────────────────────────────────────────────────────
-  test("04-accreditation-zk", async ({ page }) => {
+  test("05-accreditation-zk", async ({ page }) => {
     await primeStorage(page, {
       skipWizard: true,
       skipQuiz: true,
       skipZKOnboarding: true,
     });
+    // Seed a fake wallet so /play renders the AccreditationPanel + lobby
+    // without the Connect prompt occluding them.
+    await seedMockWallet(page);
     await page.goto("/play");
     await suppressChrome(page);
     await cinePause(page, READ);
@@ -243,7 +304,7 @@ test.describe("Trustfall demo capture", () => {
   });
 
   // ─────────────────────────────────────────────────────────────────────────
-  // SEGMENT 5 — Move commitment ZK (~10s)  ★ second ZK beat ★
+  // SEGMENT 6 — Move commitment ZK (~10s)  ★ second ZK beat ★
   //   Player selects Cooperate → "Falling…" spinner = real UltraHonk proof
   //   gen happening client-side. The narrative payoff: this proof makes
   //   the commitment BINDING at commit time, so garbage commits are
@@ -251,12 +312,13 @@ test.describe("Trustfall demo capture", () => {
   //
   //   Also ends before the wallet sign popup. HyperFrames overlay cuts in.
   // ─────────────────────────────────────────────────────────────────────────
-  test("05-commit-and-proof-generation", async ({ page }) => {
+  test("06-commit-and-proof-generation", async ({ page }) => {
     await primeStorage(page, {
       skipWizard: true,
       skipQuiz: true,
       skipZKOnboarding: true,
     });
+    await seedMockWallet(page);
     await page.goto("/play");
     await suppressChrome(page);
     await cinePause(page, SLOW);
@@ -295,12 +357,12 @@ test.describe("Trustfall demo capture", () => {
   });
 
   // ─────────────────────────────────────────────────────────────────────────
-  // SEGMENT 6 — Resolved outcome (~12s)
+  // SEGMENT 7 — Resolved outcome (~12s)
   //   Requires DEMO_RESOLVED_GAME_ID: a real Resolved game on testnet.
   //   Play one manually, note the id, export it, re-run this spec.
   //   Skipped otherwise — HyperFrames can substitute a mock card.
   // ─────────────────────────────────────────────────────────────────────────
-  test("06-resolved-outcome", async ({ page }) => {
+  test("07-resolved-outcome", async ({ page }) => {
     const gameId = process.env.DEMO_RESOLVED_GAME_ID;
     test.skip(
       !gameId,
@@ -325,10 +387,10 @@ test.describe("Trustfall demo capture", () => {
   });
 
   // ─────────────────────────────────────────────────────────────────────────
-  // SEGMENT 7 — Closing hero (~5s)
+  // SEGMENT 8 — Closing hero (~5s)
   //   Back on the landing to close with the URL + mascot.
   // ─────────────────────────────────────────────────────────────────────────
-  test("07-close", async ({ page }) => {
+  test("08-close", async ({ page }) => {
     await primeStorage(page, { skipWizard: true, skipQuiz: true });
     await page.goto("/");
     await suppressChrome(page);
