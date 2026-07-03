@@ -2,7 +2,7 @@
 
 **[trustfall.xyz](https://trustfall.xyz)**
 
-A zero-knowledge Prisoner's Dilemma on Stellar. Commit moves with ZK proofs — trust is proven, not promised. Inspired by Nicky Case's ["The Evolution of Trust"](https://github.com/ncase/trust), now with real XLM stakes and cryptographic fairness.
+A zero-knowledge Prisoner's Dilemma on Stellar with two distinct ZK patterns: **commitment binding** (keccak256 + UltraHonk proofs that make move commitments provably valid at commit time) and **private accreditation** (Poseidon Merkle tree membership proofs that let players prove they're on an allowlist without revealing which credential is theirs). Both proofs are verified on-chain in a Soroban smart contract. Inspired by Nicky Case's ["The Evolution of Trust"](https://github.com/ncase/trust), now with real XLM stakes, cryptographic fairness, and privacy-preserving access control — patterns directly applicable to fair on-chain escrow, wagering, and compliance-gated settlement.
 
 _Built with Scaffold Stellar for the Stellar Hackathon._
 
@@ -10,7 +10,8 @@ _Built with Scaffold Stellar for the Stellar Hackathon._
 - 🔗 Real XLM integration on Stellar testnet
 - 🎮 ZK-powered multiplayer Prisoner's Dilemma
 - 🏟️ Multi-round matches — best-of-3/5 with rematch support
-- 🔐 Keccak256 commitment-based reveal with on-chain verification
+- 🔐 Keccak256 commitment binding with on-chain UltraHonk verification
+- 🕵️ Private accreditation — Poseidon Merkle tree membership proofs (Protocol 25 host function)
 - 🧠 9 stateful iterated strategies (TFT, Grudge, Pavlov, Prober, and more)
 - 🏆 Evolutionary tournament mode — watch trust evolve over generations
 - 🎛️ Configurable payoff matrix with 5 preset scenarios
@@ -110,13 +111,40 @@ Play against other humans with **zero-knowledge commitment**:
 - **Stake Filtering** — Filter open games by stake range (≤1, 1-5, 5+ XLM)
 - **Play Again** — Quick rematch button after game resolution
 
-**Why ZK?** Without the proof, a player could commit to an arbitrary hash and grief the opponent by never revealing a valid move. The ZK proof makes the commitment **binding** at commit time: the contract knows the hash is over a valid move + known nonce + correct game*id, so the player \_can* reveal later. Proofs are not persisted on-chain (only the commitment is stored), keeping gas costs manageable.
+**Why ZK for move commitments?** A plain hash commitment `H(move || nonce || game_id)` already hides the move and is binding _at reveal time_. The contract also has timeout-based forfeit logic (`cancel_game`, `claim_refund`) that bounds the griefing vector -- if a player commits to a garbage hash and never reveals, the opponent can claim a forfeit win after the deadline. So what does the ZK proof add?
 
-**Smart Contract:** `contracts/zk_dilemma/` — Soroban contract with proper auth, XLM escrow, on-chain UltraHonk proof verification, keccak256 hash verification, timeout-based forfeit logic, recovery functions (cancel/refund), multi-round match support (best-of-3/5 with rematch), and contract events for off-chain indexing. 15/15 Rust tests passing.
+The ZK proof makes the commitment **binding at commit time**, not just at reveal time. Without the proof, a player could commit to an arbitrary hash with no valid preimage. The opponent would have to wait for the reveal deadline to expire, then call `claim_forfeit` -- wasting an on-chain round and locking both stakes in escrow for the full timeout window. With the proof, the contract knows _at commit time_ that the hash is over a valid move (0 or 1) with a known preimage and the correct game_id. This means:
 
-**Noir Circuit:** `circuits/move_commitment/` — Proves `keccak256(move || nonce || game_id) == commitment` where `move ∈ {0, 1}`. Uses the external `noir-lang/keccak256` library. Public inputs: `commitment_high`, `commitment_low` (two 128-bit Field elements for 32-byte alignment), `game_id`.
+1. **No griefing-as-stalling** -- a garbage commitment is rejected immediately, before the opponent commits their own stake. Without ZK, both stakes are locked until the forfeit deadline.
+2. **Replay protection** -- the proof binds the commitment to the specific `game_id`, preventing a commitment from being reused across games.
+3. **Provably valid state** -- the contract never enters a state where a commitment has no valid reveal, simplifying the recovery logic.
 
-**Version Pinning:** The browser proof generation packages are pinned to match the local toolchain: `@noir-lang/noir_js@1.0.0-beta.9` and `@aztec/bb.js@0.87.0`. These must match `nargo` and `bb` versions used to compile the circuit. The proof is generated with `{ keccak: true }` (non-ZK keccak UltraHonk flavor) to match the on-chain verifier — do not use ZK-flavored proofs.
+Proofs are not persisted on-chain (only the commitment is stored), keeping gas costs manageable. The proof is a one-time verification at commit; the reveal uses a cheap keccak256 host function comparison.
+
+**Smart Contract:** `contracts/zk_dilemma/` -- Soroban contract with proper auth, XLM escrow, on-chain UltraHonk proof verification (two separate VKs: one for move commitments, one for accreditation), keccak256 hash verification, timeout-based forfeit logic, recovery functions (cancel/refund), multi-round match support (best-of-3/5 with rematch), private accreditation (Merkle root + nullifier tracking), and contract events for off-chain indexing. 19/19 Rust tests passing.
+
+**Noir Circuit (move commitment):** `circuits/move_commitment/` -- Proves `keccak256(move || nonce || game_id) == commitment` where `move in {0, 1}`. Uses the external `noir-lang/keccak256` library. Public inputs: `commitment_high`, `commitment_low` (two 128-bit Field elements for 32-byte alignment), `game_id`.
+
+**Version Pinning:** The browser proof generation packages are pinned to match the local toolchain: `@noir-lang/noir_js@1.0.0-beta.9` and `@aztec/bb.js@0.87.0`. These must match `nargo` and `bb` versions used to compile the circuit. The proof is generated with `{ keccak: true }` (non-ZK keccak UltraHonk flavor) to match the on-chain verifier -- do not use ZK-flavored proofs.
+
+### Private Accreditation (ZK Allowlist Membership)
+
+A second, distinct ZK pattern: **private accreditation**. A game operator publishes a Merkle root of accredited participants on-chain. A player proves "my credential is in the allowlist" with a ZK proof -- **without revealing which credential is theirs**. The contract verifies the proof, checks the root, and records a nullifier to prevent replay.
+
+This is the same pattern used in real-world compliance/KYC/accreditation systems: prove you are eligible without exposing your identity. It uses **Poseidon hashing** (ZK-friendly), for which Stellar Protocol 25 ("X-Ray") introduced native host functions -- making Poseidon-based proof verification cheap on-chain.
+
+**How it works:**
+
+1. **Admin initializes** -- The operator calls `initialize_accreditation` with a separate UltraHonk VK (for the allowlist circuit), a Merkle root of accredited credentials, and an admin address.
+2. **Player proves** -- The player selects their credential and generates a ZK proof in the browser (lazy-loaded Noir + bb.js). The proof proves their credential's Poseidon hash is a leaf in the tree with the public root, and emits a nullifier `poseidon(credential_id, game_id)`.
+3. **Contract verifies** -- `verify_accreditation` checks the root matches, verifies the UltraHonk proof on-chain, and records the nullifier. The contract learns only that the player is accredited -- not which credential they hold.
+4. **Nullifier prevents replay** -- The same credential cannot accredit twice for the same game_id. Different game_ids produce different nullifiers, so the same credential can be used across games.
+
+**Noir Circuit (allowlist membership):** `circuits/allowlist_membership/` -- Proves Poseidon Merkle tree membership (depth-4, 16 leaves) with nullifier. Uses `noir-lang/poseidon` (BN254 hash_1 for leaves, hash_2 for internal nodes). Public inputs: `merkle_root`, `nullifier`, `game_id`. Private inputs: `credential_id`, `merkle_path`, `path_indices`.
+
+**Demo tree:** The frontend ships with a pre-computed Merkle tree containing credentials 1, 2, and 3 at leaves 0, 1, 2 (all other leaves = `hash_1(0)`). The admin panel lets you initialize accreditation on-chain; the player panel lets you select a credential and generate + verify a proof. In a production system, the operator would build the tree off-chain and distribute credentials + paths privately.
+
+**Known limitation:** Nullifiers are pre-computed for `game_id=0` only. For other game_ids, a JavaScript Poseidon implementation (matching Noir BN254 parameters) would be needed to compute `poseidon(credential_id, game_id)` client-side. This is documented honestly -- the ZK proof itself works for any game_id, but the frontend helper needs the JS Poseidon for nullifier pre-computation.
 
 ### Payoff Matrix (× stake multiplier, configurable in Tutorial & Tournament)
 
@@ -132,9 +160,10 @@ Play against other humans with **zero-knowledge commitment**:
 ```
 trustfall/
 ├── circuits/                       # Noir ZK circuits
-│   └── move_commitment/           # Move commitment circuit
+│   ├── move_commitment/           # Move commitment circuit (keccak256)
+│   └── allowlist_membership/      # Private accreditation circuit (Poseidon Merkle tree)
 ├── contracts/
-│   ├── zk_dilemma/                # ZK multiplayer contract (Rust + Soroban, recovery + events)
+│   ├── zk_dilemma/                # ZK multiplayer contract (Rust + Soroban, recovery + events + accreditation)
 │   └── prisoners-dilemma/         # P2P reference implementation
 ├── src/                            # Frontend (React + TypeScript)
 │   ├── components/
@@ -146,6 +175,7 @@ trustfall/
 │   │   │   ├── OnboardingOverlay.tsx # 3-step ZK tutorial
 │   │   │   ├── StatsDisplay.tsx   # Persistent W/L/T stats panel
 │   │   │   ├── MatchSetup.tsx     # Best-of-3/5 selector with stake presets
+│   │   │   ├── AccreditationPanel.tsx # Private accreditation (ZK allowlist proof)
 │   │   │   ├── MatchScoreboard.tsx # Visual win tally, round counter, winner banner
 │   │   │   └── MatchCommitMove.tsx # Commit flow for match phases
 │   │   ├── ui/                    # Shared UI components
@@ -176,9 +206,11 @@ trustfall/
 │   │   └── Debugger.tsx           # Contract debugger
 │   ├── util/
 │   │   ├── strategies.ts          # 9 stateful iterated strategies + payoff matrix
-│   │   └── tournament.ts          # Tournament simulation engine (round-robin + evolution)
+│   │   ├── tournament.ts          # Tournament simulation engine (round-robin + evolution)
+│   │   └── merkleTree.ts          # Pre-computed Poseidon Merkle tree data for accreditation demo
 │   └── services/
-│       └── noirProofService.ts    # Keccak256 commitment + proof generation (lazy-loaded)
+│       ├── noirProofService.ts    # Keccak256 commitment + proof generation (lazy-loaded)
+│       └── accreditationProofService.ts # Poseidon Merkle tree accreditation proof (lazy-loaded)
 ├── .husky/pre-commit              # Pre-commit: secretlint + lint-staged
 ├── .secretlintrc.json             # Secrets scanning config
 ├── rust-toolchain.toml            # Rust toolchain (stable + wasm32v1-none)

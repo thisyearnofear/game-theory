@@ -221,6 +221,18 @@ p {
   border-color: var(--border-glass-hover);
 }
 
+/* Interactive elements inside glass panels get a subtle solid backing
+   so they don't blend into the blurred background. Only applies to
+   native form controls and buttons, not custom-styled components. */
+.glass-panel input[type="text"],
+.glass-panel input[type="number"],
+.glass-panel input[type="range"],
+.glass-panel select,
+.glass-panel textarea {
+  background: rgba(10, 14, 26, 0.6);
+  border: 1px solid var(--border-glass);
+}
+
 /* ============================================================================
  * Micro-interactions
  * ============================================================================ */

@@ -11,6 +11,7 @@ import { MatchScoreboard } from "../components/zk/MatchScoreboard";
 import { MatchSetup } from "../components/zk/MatchSetup";
 import { MatchCommitMove } from "../components/zk/MatchCommitMove";
 import { OnboardingOverlay } from "../components/zk/OnboardingOverlay";
+import { AccreditationPanel } from "../components/zk/AccreditationPanel";
 import {
   ZKStepIndicator,
   deriveZKStep,
@@ -1282,6 +1283,9 @@ export const ZKGamePage: React.FC = () => {
         onCreateGame={handleCreateGame}
         onCreateMatch={handleCreateMatch}
       />
+
+      <AccreditationPanel />
+
       {toastElement}
     </div>
   );

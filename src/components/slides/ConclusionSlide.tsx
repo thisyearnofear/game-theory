@@ -179,11 +179,14 @@ export const ConclusionSlide: React.FC<SlideProps> = () => {
           {realWorldApplications.map((app) => (
             <div
               key={app.title}
-              className="glass-panel lift-on-hover"
+              className="lift-on-hover"
               style={{
                 textAlign: "left",
                 marginBottom: "10px",
                 padding: "14px 16px",
+                background: "rgba(255, 255, 255, 0.04)",
+                border: "1px solid var(--border-glass)",
+                borderRadius: "var(--radius-sm)",
               }}
             >
               <p
