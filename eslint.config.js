@@ -15,6 +15,8 @@ export default tseslint.config(
     "src/contracts/*",
     "!src/contracts/util.ts",
     "api", // Cloudflare Workers — separate TypeScript context
+    "e2e", // Playwright tests — separate TypeScript context
+    "playwright.config.ts",
   ]),
   {
     extends: [

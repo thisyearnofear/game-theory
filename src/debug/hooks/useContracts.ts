@@ -1,6 +1,10 @@
-import { useState } from 'react';
+import { useState } from "react";
 
 export const useContracts = () => {
-  const [contracts] = useState([]);
-  return { contracts };
+  const [contracts] = useState<Record<string, unknown>[]>([]);
+  return {
+    data: { loadedContracts: {}, failed: {} },
+    isLoading: false,
+    contracts,
+  };
 };

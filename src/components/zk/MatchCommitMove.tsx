@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Button, Text } from "@stellar/design-system";
 import { useWallet } from "../../hooks/useWallet";
 import { useZKDilemma, type GameMove } from "../../hooks/useZKDilemma";
 import {
@@ -232,16 +231,14 @@ export const MatchCommitMove: React.FC<MatchCommitMoveProps> = ({
   if (!address) {
     return (
       <div style={{ textAlign: "center", padding: "40px" }}>
-        <Text
-          as="p"
-          size="md"
+        <p
           style={{
             fontFamily: "var(--font-body)",
             color: "rgba(20, 26, 46, 0.45)",
           }}
         >
           Connect your wallet to commit a move
-        </Text>
+        </p>
       </div>
     );
   }
@@ -277,9 +274,7 @@ export const MatchCommitMove: React.FC<MatchCommitMoveProps> = ({
           borderColor: "rgba(102,126,234,0.2)",
         }}
       >
-        <Text
-          as="h3"
-          size="lg"
+        <h3
           style={{
             margin: "0 0 8px 0",
             color: "var(--text-primary)",
@@ -288,10 +283,8 @@ export const MatchCommitMove: React.FC<MatchCommitMoveProps> = ({
           }}
         >
           🏟️ {phaseLabel[phase]}
-        </Text>
-        <Text
-          as="p"
-          size="sm"
+        </h3>
+        <p
           style={{
             margin: "0 0 24px 0",
             color: "var(--text-secondary)",
@@ -300,7 +293,7 @@ export const MatchCommitMove: React.FC<MatchCommitMoveProps> = ({
           }}
         >
           Choose your move. A ZK proof binds you — no take-backs.
-        </Text>
+        </p>
 
         {/* Move selection */}
         <div style={{ marginBottom: "24px" }}>
@@ -438,9 +431,7 @@ export const MatchCommitMove: React.FC<MatchCommitMoveProps> = ({
         )}
 
         {txError && (
-          <Text
-            as="p"
-            size="sm"
+          <p
             style={{
               color: "#F44336",
               marginBottom: "16px",
@@ -449,12 +440,10 @@ export const MatchCommitMove: React.FC<MatchCommitMoveProps> = ({
             }}
           >
             ⚠️ {txError}
-          </Text>
+          </p>
         )}
         {error && (
-          <Text
-            as="p"
-            size="sm"
+          <p
             style={{
               color: "#F44336",
               marginBottom: "16px",
@@ -463,19 +452,23 @@ export const MatchCommitMove: React.FC<MatchCommitMoveProps> = ({
             }}
           >
             ⚠️ {error}
-          </Text>
+          </p>
         )}
 
-        <Button
-          variant="primary"
-          size="md"
+        <button
+          type="button"
           onClick={() => void handleCommit()}
           disabled={!selectedMove || isLoadingState}
           style={{
-            width: "100%",
+            background: "var(--accent-violet)",
+            color: "white",
+            border: "none",
+            borderRadius: "var(--radius-sm)",
+            padding: "14px",
             fontFamily: "var(--font-body)",
             fontSize: "18px",
-            padding: "14px",
+            cursor: "pointer",
+            width: "100%",
           }}
         >
           {isLoadingState
@@ -483,7 +476,7 @@ export const MatchCommitMove: React.FC<MatchCommitMoveProps> = ({
               ? " Falling..."
               : " Committing..."
             : "✋ Let go"}
-        </Button>
+        </button>
       </div>
     </div>
   );

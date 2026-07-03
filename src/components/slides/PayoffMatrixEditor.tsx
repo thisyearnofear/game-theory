@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Text } from "@stellar/design-system";
 import { type PayoffMatrix, PAYOFF_PRESETS } from "../../util/strategies";
 
 interface PayoffMatrixEditorProps {
@@ -74,9 +73,7 @@ export const PayoffMatrixEditor: React.FC<PayoffMatrixEditorProps> = ({
         border: "1px solid rgba(255,255,255,0.08)",
       }}
     >
-      <Text
-        as="p"
-        size="sm"
+      <p
         style={{
           fontFamily: "var(--font-body)",
           color: "rgba(20, 26, 46, 0.35)",
@@ -86,7 +83,7 @@ export const PayoffMatrixEditor: React.FC<PayoffMatrixEditorProps> = ({
         }}
       >
         🎛️ Payoff Matrix
-      </Text>
+      </p>
 
       {/* Preset selector */}
       <div
@@ -298,9 +295,7 @@ export const PayoffMatrixEditor: React.FC<PayoffMatrixEditorProps> = ({
 
       {/* Dilemma type indicator */}
       <div style={{ textAlign: "center" }}>
-        <Text
-          as="p"
-          size="xs"
+        <p
           style={{
             fontFamily: "var(--font-body)",
             color: dilemmaType.color,
@@ -310,11 +305,9 @@ export const PayoffMatrixEditor: React.FC<PayoffMatrixEditorProps> = ({
           }}
         >
           {dilemmaType.name}
-        </Text>
+        </p>
         {!compact && (
-          <Text
-            as="p"
-            size="xs"
+          <p
             style={{
               fontFamily: "var(--font-body)",
               color: "rgba(255,255,255,0.4)",
@@ -327,7 +320,7 @@ export const PayoffMatrixEditor: React.FC<PayoffMatrixEditorProps> = ({
             {2 * payoffs.R > payoffs.T + payoffs.S
               ? " · 2R > T+S ✓"
               : " · 2R ≤ T+S ⚠️"}
-          </Text>
+          </p>
         )}
       </div>
     </div>

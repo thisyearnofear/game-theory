@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Button, Text } from "@stellar/design-system";
 import { useWallet } from "../../hooks/useWallet";
 import { useZKDilemma, type GameMove } from "../../hooks/useZKDilemma";
 
@@ -99,22 +98,17 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
   if (!isPlayer) {
     return (
       <div
+        className="glass-panel"
         style={{
-          background: "white",
           borderRadius: "12px",
           padding: "24px",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
           fontFamily: "var(--font-body)",
           textAlign: "center",
         }}
       >
-        <Text
-          as="p"
-          size="md"
-          style={{ color: "var(--text-secondary)", margin: 0 }}
-        >
+        <p style={{ color: "var(--text-secondary)", margin: 0 }}>
           👀 Spectating — wait for players to reveal their moves
-        </Text>
+        </p>
       </div>
     );
   }
@@ -126,19 +120,14 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
           background: "rgba(16, 185, 129, 0.05)",
           borderRadius: "12px",
           padding: "24px",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
           border: "1px solid rgba(16, 185, 129, 0.2)",
           fontFamily: "var(--font-body)",
           textAlign: "center",
         }}
       >
-        <Text
-          as="p"
-          size="md"
-          style={{ color: "#10b981", margin: 0, fontWeight: "bold" }}
-        >
+        <p style={{ color: "#10b981", margin: 0, fontWeight: "bold" }}>
           ✅ Both players have revealed! The game is ready to resolve.
-        </Text>
+        </p>
       </div>
     );
   }
@@ -150,29 +139,20 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
           background: "rgba(59, 130, 246, 0.05)",
           borderRadius: "12px",
           padding: "24px",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
           border: "1px solid rgba(59, 130, 246, 0.2)",
           fontFamily: "var(--font-body)",
           textAlign: "center",
         }}
       >
-        <Text
-          as="p"
-          size="md"
-          style={{ color: "#3b82f6", margin: 0, fontWeight: "bold" }}
-        >
+        <p style={{ color: "#3b82f6", margin: 0, fontWeight: "bold" }}>
           ✅ You've revealed your move. Waiting for{" "}
           {opponentRevealed ? "resolution..." : "your opponent to reveal..."}
-        </Text>
+        </p>
         {!opponentRevealed && timeRemaining > 0 && (
-          <Text
-            as="p"
-            size="sm"
-            style={{ color: "var(--text-secondary)", marginTop: "8px" }}
-          >
+          <p style={{ color: "var(--text-secondary)", marginTop: "8px" }}>
             ⏱️ You can claim forfeit after the deadline (
             {Math.floor(timeRemaining / 60)}m {timeRemaining % 60}s remaining)
-          </Text>
+          </p>
         )}
       </div>
     );
@@ -185,15 +165,12 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
           background: "rgba(244, 67, 54, 0.05)",
           borderRadius: "12px",
           padding: "24px",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
           border: "1px solid rgba(244, 67, 54, 0.2)",
           fontFamily: "var(--font-body)",
           textAlign: "center",
         }}
       >
-        <Text
-          as="p"
-          size="md"
+        <p
           style={{
             color: "#F44336",
             margin: 0,
@@ -204,24 +181,21 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
           {opponentRevealed
             ? "Your opponent can claim forfeit."
             : "You can no longer reveal and forfeit your stake."}
-        </Text>
+        </p>
       </div>
     );
   }
 
   return (
     <div
+      className="glass-panel"
       style={{
-        background: "white",
         borderRadius: "12px",
         padding: "24px",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
         fontFamily: "var(--font-body)",
       }}
     >
-      <Text
-        as="h4"
-        size="md"
+      <h4
         style={{
           margin: "0 0 16px 0",
           color: "var(--text-primary)",
@@ -229,7 +203,7 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
         }}
       >
         🙋 Show Your Hand
-      </Text>
+      </h4>
 
       {/* Timer */}
       {timeRemaining > 0 && (
@@ -237,7 +211,7 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
           style={{
             textAlign: "center",
             marginBottom: "16px",
-            color: timeRemaining < 60 ? "#F44336" : "#666",
+            color: timeRemaining < 60 ? "#F44336" : "var(--text-secondary)",
             fontSize: "14px",
           }}
         >
@@ -247,9 +221,7 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
       )}
 
       {/* Move selection — confirm the move you committed earlier */}
-      <Text
-        as="p"
-        size="sm"
+      <p
         style={{
           margin: "0 0 8px 0",
           color: "var(--text-secondary)",
@@ -260,7 +232,7 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
         {selectedMove
           ? "Confirm the move you committed — your nonce proves it matches"
           : "Select the move you committed earlier"}
-      </Text>
+      </p>
       <div
         style={{
           display: "flex",
@@ -278,9 +250,13 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
             padding: "16px",
             borderRadius: "10px",
             border:
-              selectedMove === "C" ? "3px solid #4CAF50" : "2px solid #ddd",
+              selectedMove === "C"
+                ? "3px solid #4CAF50"
+                : "2px solid var(--border-glass)",
             background:
-              selectedMove === "C" ? "rgba(76, 175, 80, 0.1)" : "white",
+              selectedMove === "C"
+                ? "rgba(76, 175, 80, 0.1)"
+                : "var(--bg-glass-light)",
             cursor: isLoading ? "not-allowed" : "pointer",
             transition: "all 0.2s",
             fontFamily: "var(--font-body)",
@@ -291,7 +267,7 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
           <div
             style={{
               fontWeight: "bold",
-              color: selectedMove === "C" ? "#4CAF50" : "#333",
+              color: selectedMove === "C" ? "#4CAF50" : "var(--text-primary)",
               fontSize: "14px",
             }}
           >
@@ -307,9 +283,13 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
             padding: "16px",
             borderRadius: "10px",
             border:
-              selectedMove === "D" ? "3px solid #F44336" : "2px solid #ddd",
+              selectedMove === "D"
+                ? "3px solid #F44336"
+                : "2px solid var(--border-glass)",
             background:
-              selectedMove === "D" ? "rgba(244, 67, 54, 0.1)" : "white",
+              selectedMove === "D"
+                ? "rgba(244, 67, 54, 0.1)"
+                : "var(--bg-glass-light)",
             cursor: isLoading ? "not-allowed" : "pointer",
             transition: "all 0.2s",
             fontFamily: "var(--font-body)",
@@ -320,7 +300,7 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
           <div
             style={{
               fontWeight: "bold",
-              color: selectedMove === "D" ? "#F44336" : "#333",
+              color: selectedMove === "D" ? "#F44336" : "var(--text-primary)",
               fontSize: "14px",
             }}
           >
@@ -331,9 +311,7 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
 
       {/* Nonce input */}
       <div style={{ marginBottom: "16px" }}>
-        <Text
-          as="p"
-          size="sm"
+        <p
           style={{
             margin: "0 0 6px 0",
             color: "var(--text-primary)",
@@ -341,17 +319,15 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
           }}
         >
           Your Commitment Nonce
-        </Text>
-        <Text
-          as="p"
-          size="xs"
+        </p>
+        <p
           style={{
             margin: "0 0 8px 0",
             color: "var(--text-muted)",
           }}
         >
           Enter the nonce you used when committing (you saved it locally)
-        </Text>
+        </p>
         <input
           type="text"
           value={revealNonce}
@@ -362,7 +338,7 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
             width: "100%",
             padding: "10px 12px",
             borderRadius: "8px",
-            border: "1px solid #ddd",
+            border: "1px solid var(--border-glass)",
             fontFamily: "monospace",
             fontSize: "14px",
             boxSizing: "border-box",
@@ -371,9 +347,7 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
       </div>
 
       {txError && (
-        <Text
-          as="p"
-          size="sm"
+        <p
           style={{
             color: "#F44336",
             marginBottom: "12px",
@@ -381,13 +355,11 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
           }}
         >
           ⚠️ {txError}
-        </Text>
+        </p>
       )}
 
       {error && (
-        <Text
-          as="p"
-          size="sm"
+        <p
           style={{
             color: "#F44336",
             marginBottom: "12px",
@@ -395,21 +367,27 @@ export const RevealMove: React.FC<RevealMoveProps> = ({
           }}
         >
           ⚠️ {error}
-        </Text>
+        </p>
       )}
 
-      <Button
-        variant="primary"
-        size="md"
+      <button
+        type="button"
         onClick={() => void handleReveal()}
         disabled={!selectedMove || !revealNonce || isLoading}
         style={{
-          width: "100%",
+          background: "var(--accent-violet)",
+          color: "white",
+          border: "none",
+          borderRadius: "var(--radius-sm)",
+          padding: "8px 16px",
           fontFamily: "var(--font-body)",
+          fontSize: "var(--text-sm)",
+          cursor: "pointer",
+          width: "100%",
         }}
       >
         {isLoading ? "📡 Revealing..." : "🔓 Show My Hand"}
-      </Button>
+      </button>
     </div>
   );
 };

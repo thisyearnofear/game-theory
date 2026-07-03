@@ -1,8 +1,8 @@
 import React, { useEffect, useCallback, useState } from "react";
-import { Button, Text } from "@stellar/design-system";
 import { useWallet } from "../../hooks/useWallet";
 import { useZKDilemma, type GameListItem } from "../../hooks/useZKDilemma";
 import { useGameStats, type GameRecord } from "../../hooks/useGameStats";
+import { useFirstRun } from "../../hooks/useFirstRun";
 import { StatsDisplay } from "./StatsDisplay";
 
 type StakeFilter = "all" | "le1" | "1to5" | "gt5";
@@ -47,14 +47,13 @@ const CardDiv: React.FC<{
   style?: React.CSSProperties;
 }> = ({ children, onClick, onMouseEnter, onMouseLeave, style }) => (
   <div
+    className="glass-panel"
     onClick={onClick}
     onMouseEnter={onMouseEnter}
     onMouseLeave={onMouseLeave}
     style={{
-      background: "white",
       borderRadius: "12px",
       padding: "16px",
-      boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
       ...style,
     }}
   >
@@ -70,7 +69,12 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
   const { address } = useWallet();
   const { games, isLoading, error, fetchGames, clearError } = useZKDilemma();
   const { getStats } = useGameStats();
+  const { milestones } = useFirstRun();
   const [stakeFilter, setStakeFilter] = useState<StakeFilter>("all");
+
+  // First-time users see a simplified lobby — no stats, no history, no filters
+  // Once they've played their first ZK game, show the full lobby
+  const isFirstTime = !milestones.first_zk_game;
 
   const refresh = useCallback(() => {
     clearError();
@@ -118,9 +122,7 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
         }}
       >
         <div>
-          <Text
-            as="h2"
-            size="lg"
+          <h2
             style={{
               fontFamily: "var(--font-body)",
               color: "rgba(255,255,255,0.95)",
@@ -128,62 +130,84 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
             }}
           >
             🎮 ZK Multiplayer Lobby
-          </Text>
-          <Text
-            as="p"
-            size="sm"
+          </h2>
+          <p
             style={{
               fontFamily: "var(--font-body)",
-              color: "rgba(20, 26, 46, 0.35)",
+              color: "var(--text-muted)",
               marginTop: "6px",
             }}
           >
             Zero-knowledge Prisoner's Dilemma — prove your move without
             revealing it
-          </Text>
+          </p>
         </div>
 
         <div style={{ display: "flex", gap: "10px" }}>
-          <Button
-            variant="tertiary"
-            size="md"
+          <button
+            type="button"
             onClick={refresh}
             disabled={isLoading}
-            style={{ fontFamily: "var(--font-body)" }}
+            style={{
+              background: "transparent",
+              color: "var(--text-secondary)",
+              border: "1px solid var(--border-glass)",
+              borderRadius: "var(--radius-sm)",
+              padding: "8px 16px",
+              fontFamily: "var(--font-body)",
+              fontSize: "var(--text-sm)",
+              cursor: "pointer",
+            }}
           >
             🔄 Refresh
-          </Button>
-          {onCreateMatch && (
-            <Button
-              variant="secondary"
-              size="md"
+          </button>
+          {onCreateMatch && !isFirstTime && (
+            <button
+              type="button"
               onClick={onCreateMatch}
               disabled={!address}
-              style={{ fontFamily: "var(--font-body)" }}
+              style={{
+                background: "var(--bg-glass-light)",
+                color: "var(--text-primary)",
+                border: "1px solid var(--border-glass)",
+                borderRadius: "var(--radius-sm)",
+                padding: "8px 16px",
+                fontFamily: "var(--font-body)",
+                fontSize: "var(--text-sm)",
+                cursor: "pointer",
+              }}
             >
               🏟️ Create Match
-            </Button>
+            </button>
           )}
-          <Button
-            variant="primary"
-            size="md"
+          <button
+            type="button"
             onClick={onCreateGame}
             disabled={!address}
-            style={{ fontFamily: "var(--font-body)" }}
+            style={{
+              background: "var(--accent-violet)",
+              color: "white",
+              border: "none",
+              borderRadius: "var(--radius-sm)",
+              padding: "8px 16px",
+              fontFamily: "var(--font-body)",
+              fontSize: "var(--text-sm)",
+              cursor: "pointer",
+            }}
           >
             ➕ Start a Trustfall
-          </Button>
+          </button>
         </div>
       </div>
 
       {error && (
         <div
           style={{
-            background: "#ffebee",
+            background: "var(--bg-glass-light)",
             borderRadius: "8px",
             padding: "12px 16px",
             marginBottom: "16px",
-            color: "#c62828",
+            color: "#f87171",
             fontFamily: "var(--font-body)",
             fontSize: "14px",
           }}
@@ -192,23 +216,59 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
         </div>
       )}
 
-      {/* Persistent stats panel */}
-      <StatsDisplay stats={getStats()} />
+      {/* Persistent stats panel — hidden for first-time users */}
+      {!isFirstTime && <StatsDisplay stats={getStats()} />}
+
+      {/* First-time welcome banner */}
+      {isFirstTime && address && (
+        <CardDiv
+          style={{
+            textAlign: "center",
+            padding: "28px 24px",
+            marginBottom: "24px",
+            background: "rgba(102, 126, 234, 0.06)",
+            border: "1px solid rgba(102, 126, 234, 0.2)",
+          }}
+        >
+          <div style={{ fontSize: "40px", marginBottom: "12px" }}>🎮</div>
+          <h3
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: "var(--text-xl)",
+              color: "var(--text-primary)",
+              margin: "0 0 8px",
+            }}
+          >
+            Ready to Play!
+          </h3>
+          <p
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: "var(--text-sm)",
+              color: "var(--text-secondary)",
+              lineHeight: 1.5,
+              margin: "0 0 16px",
+            }}
+          >
+            Create a new game and invite a friend, or join an open game from the
+            list below. Your move is proven with a zero-knowledge proof — your
+            opponent can't see it until reveal time.
+          </p>
+        </CardDiv>
+      )}
 
       {/* My Active Games */}
       {myActiveGames.length > 0 && (
         <div style={{ marginBottom: "32px" }}>
-          <Text
-            as="h3"
-            size="md"
+          <h3
             style={{
               fontFamily: "var(--font-body)",
-              color: "rgba(20, 26, 46, 0.55)",
+              color: "var(--text-secondary)",
               marginBottom: "12px",
             }}
           >
             🔥 My Active Games
-          </Text>
+          </h3>
           <div
             style={{ display: "flex", flexDirection: "column", gap: "10px" }}
           >
@@ -284,69 +344,67 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
 
       {/* Open Games (available to join) */}
       <div style={{ marginBottom: "24px" }}>
-        <Text
-          as="h3"
-          size="md"
+        <h3
           style={{
             fontFamily: "var(--font-body)",
-            color: "rgba(20, 26, 46, 0.55)",
+            color: "var(--text-secondary)",
             marginBottom: "12px",
           }}
         >
           🚪 Open Trustfalls to Join
-        </Text>
+        </h3>
 
-        {/* Stake range filter pills */}
-        <div
-          style={{
-            display: "flex",
-            gap: "8px",
-            flexWrap: "wrap",
-            marginBottom: "12px",
-          }}
-        >
-          {STAKE_FILTERS.map((f) => {
-            const active = stakeFilter === f.key;
-            return (
-              <button
-                key={f.key}
-                type="button"
-                onClick={() => setStakeFilter(f.key)}
-                style={{
-                  padding: "6px 14px",
-                  borderRadius: "99px",
-                  border: "1px solid var(--border-glass)",
-                  background: active
-                    ? "var(--accent-violet)"
-                    : "var(--bg-glass-light)",
-                  color: active ? "#fff" : "var(--text-secondary)",
-                  fontFamily: "var(--font-body)",
-                  fontSize: "13px",
-                  fontWeight: active ? 600 : 400,
-                  cursor: "pointer",
-                  transition:
-                    "background 0.3s var(--ease-out), color 0.3s var(--ease-out), border-color 0.3s var(--ease-out)",
-                  backdropFilter: "blur(12px)",
-                }}
-              >
-                {f.label}
-              </button>
-            );
-          })}
-        </div>
+        {/* Stake range filter pills — hidden for first-time users */}
+        {!isFirstTime && (
+          <div
+            style={{
+              display: "flex",
+              gap: "8px",
+              flexWrap: "wrap",
+              marginBottom: "12px",
+            }}
+          >
+            {STAKE_FILTERS.map((f) => {
+              const active = stakeFilter === f.key;
+              return (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => setStakeFilter(f.key)}
+                  style={{
+                    padding: "6px 14px",
+                    borderRadius: "99px",
+                    border: "1px solid var(--border-glass)",
+                    background: active
+                      ? "var(--accent-violet)"
+                      : "var(--bg-glass-light)",
+                    color: active ? "#fff" : "var(--text-secondary)",
+                    fontFamily: "var(--font-body)",
+                    fontSize: "13px",
+                    fontWeight: active ? 600 : 400,
+                    cursor: "pointer",
+                    transition:
+                      "background 0.3s var(--ease-out), color 0.3s var(--ease-out), border-color 0.3s var(--ease-out)",
+                    backdropFilter: "blur(12px)",
+                  }}
+                >
+                  {f.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {isLoading ? (
           <div style={{ textAlign: "center", padding: "40px" }}>
-            <Text
-              as="p"
-              size="md"
+            <p
               style={{
                 fontFamily: "var(--font-body)",
-                color: "rgba(20, 26, 46, 0.35)",
+                color: "var(--text-muted)",
               }}
             >
               Loading games...
-            </Text>
+            </p>
           </div>
         ) : openGames.length === 0 ? (
           <CardDiv
@@ -454,21 +512,27 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
                     >
                       {formatStake(game.stake)}
                     </p>
-                    <Button
-                      variant="primary"
-                      size="sm"
+                    <button
+                      type="button"
                       onClick={(e: React.MouseEvent) => {
                         e.stopPropagation();
                         onSelectGame(game.id);
                       }}
                       disabled={!address}
                       style={{
-                        marginTop: "6px",
+                        background: "var(--accent-violet)",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "var(--radius-sm)",
+                        padding: "8px 16px",
                         fontFamily: "var(--font-body)",
+                        fontSize: "var(--text-sm)",
+                        cursor: "pointer",
+                        marginTop: "6px",
                       }}
                     >
                       Join
-                    </Button>
+                    </button>
                   </div>
                 </div>
               </CardDiv>
@@ -477,8 +541,8 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
         )}
       </div>
 
-      {/* Recent game history */}
-      <RecentHistory history={getStats().history} />
+      {/* Recent game history — hidden for first-time users */}
+      {!isFirstTime && <RecentHistory history={getStats().history} />}
 
       {/* How it works */}
       <CardDiv
@@ -491,7 +555,7 @@ export const GameLobby: React.FC<GameLobbyProps> = ({
         <p
           style={{
             margin: 0,
-            color: "rgba(20, 26, 46, 0.45)",
+            color: "var(--text-secondary)",
             lineHeight: "1.5",
             fontSize: "14px",
           }}
@@ -587,17 +651,15 @@ const RecentHistory: React.FC<{ history: GameRecord[] }> = ({ history }) => {
 
   return (
     <div style={{ marginBottom: "24px" }}>
-      <Text
-        as="h3"
-        size="md"
+      <h3
         style={{
           fontFamily: "var(--font-body)",
-          color: "rgba(20, 26, 46, 0.55)",
+          color: "var(--text-secondary)",
           marginBottom: "12px",
         }}
       >
         📜 Recent Games
-      </Text>
+      </h3>
       <div
         style={{
           display: "flex",

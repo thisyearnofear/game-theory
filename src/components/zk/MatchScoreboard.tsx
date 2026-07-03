@@ -1,5 +1,4 @@
 import React from "react";
-import { Text } from "@stellar/design-system";
 import { useWallet } from "../../hooks/useWallet";
 import type { MatchState } from "../../hooks/useZKDilemma";
 
@@ -130,9 +129,7 @@ export const MatchScoreboard: React.FC<MatchScoreboardProps> = ({
           marginBottom: "16px",
         }}
       >
-        <Text
-          as="h3"
-          size="lg"
+        <h3
           style={{
             margin: 0,
             fontFamily: "var(--font-display)",
@@ -141,7 +138,7 @@ export const MatchScoreboard: React.FC<MatchScoreboardProps> = ({
           }}
         >
           🏟️ Best of {match.best_of}
-        </Text>
+        </h3>
         <div
           style={{
             display: "inline-flex",
@@ -206,9 +203,7 @@ export const MatchScoreboard: React.FC<MatchScoreboardProps> = ({
       >
         {/* Player 1 */}
         <div style={{ textAlign: "center" }}>
-          <Text
-            as="p"
-            size="xs"
+          <p
             style={{
               margin: "0 0 4px",
               color: isPlayer1 ? "#4CAF50" : "var(--text-secondary)",
@@ -217,7 +212,7 @@ export const MatchScoreboard: React.FC<MatchScoreboardProps> = ({
             }}
           >
             Player 1{isPlayer1 ? " (You)" : ""}
-          </Text>
+          </p>
           <div
             style={{
               fontSize: "28px",
@@ -241,9 +236,7 @@ export const MatchScoreboard: React.FC<MatchScoreboardProps> = ({
             borderRight: "1px solid var(--border-glass)",
           }}
         >
-          <Text
-            as="p"
-            size="xs"
+          <p
             style={{
               margin: "0 0 4px",
               color: "var(--text-muted)",
@@ -251,7 +244,7 @@ export const MatchScoreboard: React.FC<MatchScoreboardProps> = ({
             }}
           >
             Ties
-          </Text>
+          </p>
           <div
             style={{
               fontSize: "22px",
@@ -276,9 +269,7 @@ export const MatchScoreboard: React.FC<MatchScoreboardProps> = ({
 
         {/* Player 2 */}
         <div style={{ textAlign: "center" }}>
-          <Text
-            as="p"
-            size="xs"
+          <p
             style={{
               margin: "0 0 4px",
               color: isPlayer2 ? "#F44336" : "var(--text-secondary)",
@@ -289,7 +280,7 @@ export const MatchScoreboard: React.FC<MatchScoreboardProps> = ({
             {match.player2
               ? `Player 2${isPlayer2 ? " (You)" : ""}`
               : "Awaiting..."}
-          </Text>
+          </p>
           <div
             style={{
               fontSize: "28px",
@@ -326,9 +317,7 @@ export const MatchScoreboard: React.FC<MatchScoreboardProps> = ({
           <div style={{ fontSize: "32px", marginBottom: "6px" }}>
             {youWon ? "🏆" : "😔"}
           </div>
-          <Text
-            as="p"
-            size="md"
+          <p
             style={{
               margin: 0,
               color: youWon ? "#10b981" : "#f87171",
@@ -341,7 +330,7 @@ export const MatchScoreboard: React.FC<MatchScoreboardProps> = ({
               : winner === "p1"
                 ? `Player 1 won the match ${match.p1_wins}–${match.p2_wins}`
                 : `Player 2 won the match ${match.p2_wins}–${match.p1_wins}`}
-          </Text>
+          </p>
         </div>
       )}
 
@@ -358,9 +347,7 @@ export const MatchScoreboard: React.FC<MatchScoreboardProps> = ({
             fontFamily: "var(--font-body)",
           }}
         >
-          <Text
-            as="p"
-            size="sm"
+          <p
             style={{
               margin: 0,
               color: "#ef4444",
@@ -368,7 +355,7 @@ export const MatchScoreboard: React.FC<MatchScoreboardProps> = ({
             }}
           >
             ✖️ This match was cancelled.
-          </Text>
+          </p>
         </div>
       )}
 
@@ -387,9 +374,7 @@ export const MatchScoreboard: React.FC<MatchScoreboardProps> = ({
         >
           {isPlayer1 ? (
             <>
-              <Text
-                as="p"
-                size="sm"
+              <p
                 style={{
                   margin: "0 0 10px",
                   color: "var(--accent-violet)",
@@ -397,7 +382,7 @@ export const MatchScoreboard: React.FC<MatchScoreboardProps> = ({
                 }}
               >
                 ⏭️ It's your move — start the next round.
-              </Text>
+              </p>
               {onStartNextRound && (
                 <button
                   type="button"
@@ -426,9 +411,7 @@ export const MatchScoreboard: React.FC<MatchScoreboardProps> = ({
               )}
             </>
           ) : isPlayer2 ? (
-            <Text
-              as="p"
-              size="sm"
+            <p
               style={{
                 margin: 0,
                 color: "var(--text-secondary)",
@@ -436,18 +419,16 @@ export const MatchScoreboard: React.FC<MatchScoreboardProps> = ({
               }}
             >
               ⏳ Waiting for opponent to start the next round...
-            </Text>
+            </p>
           ) : (
-            <Text
-              as="p"
-              size="sm"
+            <p
               style={{
                 margin: 0,
                 color: "var(--text-muted)",
               }}
             >
               👀 Spectating — waiting for player 1 to start the next round.
-            </Text>
+            </p>
           )}
         </div>
       )}

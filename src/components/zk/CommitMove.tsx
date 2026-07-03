@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Button, Text, Input } from "@stellar/design-system";
+import { Input } from "@stellar/design-system";
 import { useWallet } from "../../hooks/useWallet";
 import { useZKDilemma, type GameMove } from "../../hooks/useZKDilemma";
 import {
@@ -8,6 +8,7 @@ import {
   generateProof,
 } from "../../services/noirProofService";
 import { ShimmerButton } from "../ui/ShimmerButton";
+import { TrustFallCharacter } from "../TrustFallCharacter";
 
 /** Stake preset options for quick selection */
 const STAKE_PRESETS = ["1", "5", "10"] as const;
@@ -28,11 +29,10 @@ const CardDiv: React.FC<{
   style?: React.CSSProperties;
 }> = ({ children, style }) => (
   <div
+    className="glass-panel"
     style={{
-      background: "white",
       borderRadius: "12px",
       padding: "24px",
-      boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
       ...style,
     }}
   >
@@ -184,16 +184,14 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
   if (!address) {
     return (
       <div style={{ textAlign: "center", padding: "40px" }}>
-        <Text
-          as="p"
-          size="md"
+        <p
           style={{
             fontFamily: "var(--font-body)",
-            color: "rgba(20, 26, 46, 0.45)",
+            color: "var(--text-secondary)",
           }}
         >
           Connect your wallet to commit a move
-        </Text>
+        </p>
       </div>
     );
   }
@@ -213,7 +211,7 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
         style={{
           background: "none",
           border: "none",
-          color: "rgba(20, 26, 46, 0.35)",
+          color: "var(--text-muted)",
           cursor: isLoadingState ? "not-allowed" : "pointer",
           fontFamily: "var(--font-body)",
           fontSize: "16px",
@@ -226,9 +224,7 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
       </button>
 
       <CardDiv>
-        <Text
-          as="h3"
-          size="lg"
+        <h3
           style={{
             margin: "0 0 8px 0",
             color: "var(--text-primary)",
@@ -237,11 +233,9 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
           }}
         >
           {mode === "create" ? "🧍 Stand at the Edge" : "🧍 Step to the Edge"}
-        </Text>
+        </h3>
 
-        <Text
-          as="p"
-          size="sm"
+        <p
           style={{
             margin: "0 0 24px 0",
             color: "var(--text-secondary)",
@@ -252,13 +246,11 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
           {mode === "create"
             ? "Choose your move. When you let go, a ZK proof binds you — no take-backs."
             : `Game #${gameId} — ${hostAddress?.slice(0, 8)}... is waiting. Will you catch them?`}
-        </Text>
+        </p>
 
         {/* Move Selection */}
         <div style={{ marginBottom: "24px" }}>
-          <Text
-            as="p"
-            size="sm"
+          <p
             style={{
               margin: "0 0 12px 0",
               color: "var(--text-primary)",
@@ -267,7 +259,7 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
             }}
           >
             Choose Your Move
-          </Text>
+          </p>
           <div
             className="zk-move-buttons"
             style={{
@@ -285,9 +277,13 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
                 padding: "20px",
                 borderRadius: "12px",
                 border:
-                  selectedMove === "C" ? "3px solid #4CAF50" : "2px solid #ddd",
+                  selectedMove === "C"
+                    ? "3px solid #4CAF50"
+                    : "2px solid var(--border-glass)",
                 background:
-                  selectedMove === "C" ? "rgba(76, 175, 80, 0.1)" : "white",
+                  selectedMove === "C"
+                    ? "rgba(76, 175, 80, 0.1)"
+                    : "var(--bg-glass-light)",
                 cursor: isLoadingState ? "not-allowed" : "pointer",
                 transition: "transform 0.2s ease, all 0.2s",
                 fontFamily: "var(--font-body)",
@@ -306,7 +302,8 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
               <div
                 style={{
                   fontWeight: "bold",
-                  color: selectedMove === "C" ? "#4CAF50" : "#333",
+                  color:
+                    selectedMove === "C" ? "#4CAF50" : "var(--text-primary)",
                 }}
               >
                 Cooperate
@@ -331,9 +328,13 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
                 padding: "20px",
                 borderRadius: "12px",
                 border:
-                  selectedMove === "D" ? "3px solid #F44336" : "2px solid #ddd",
+                  selectedMove === "D"
+                    ? "3px solid #F44336"
+                    : "2px solid var(--border-glass)",
                 background:
-                  selectedMove === "D" ? "rgba(244, 67, 54, 0.1)" : "white",
+                  selectedMove === "D"
+                    ? "rgba(244, 67, 54, 0.1)"
+                    : "var(--bg-glass-light)",
                 cursor: isLoadingState ? "not-allowed" : "pointer",
                 transition: "transform 0.2s ease, all 0.2s",
                 fontFamily: "var(--font-body)",
@@ -352,7 +353,8 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
               <div
                 style={{
                   fontWeight: "bold",
-                  color: selectedMove === "D" ? "#F44336" : "#333",
+                  color:
+                    selectedMove === "D" ? "#F44336" : "var(--text-primary)",
                 }}
               >
                 Defect
@@ -373,9 +375,7 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
         {/* Stake Input (only for create mode) */}
         {mode === "create" && (
           <div style={{ marginBottom: "24px" }}>
-            <Text
-              as="p"
-              size="sm"
+            <p
               style={{
                 margin: "0 0 8px 0",
                 color: "var(--text-primary)",
@@ -384,7 +384,7 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
               }}
             >
               Stake (XLM) — the height of your fall
-            </Text>
+            </p>
 
             {/* Stake presets */}
             <div
@@ -507,9 +507,7 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
               </div>
               <div style={{ fontSize: "24px", lineHeight: "50px" }}>🧍</div>
             </div>
-            <Text
-              as="p"
-              size="xs"
+            <p
               style={{
                 margin: "4px 0 0",
                 color: "var(--text-muted)",
@@ -526,56 +524,143 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
                 if (s < 100) return "A cliff edge";
                 return "The abyss";
               })()}
-            </Text>
+            </p>
           </div>
         )}
 
-        {/* Payoff reminder */}
-        <CardDiv
+        {/* Payoff reminder — high contrast, no glass-on-glass */}
+        <div
           style={{
             marginBottom: "24px",
-            background: "#f8f9fa",
-            padding: "12px",
-            fontSize: "13px",
+            background: "rgba(10, 14, 26, 0.85)",
+            border: "1px solid var(--border-glass)",
+            borderRadius: "var(--radius-md)",
+            padding: "16px",
           }}
         >
-          <div
+          <p
             style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr 1fr",
-              gap: "8px",
+              margin: "0 0 12px",
+              fontSize: "var(--text-xs)",
+              color: "var(--text-secondary)",
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+              fontWeight: 600,
               textAlign: "center",
             }}
           >
+            Payoff Matrix
+          </p>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "auto 1fr 1fr",
+              gap: "6px",
+              textAlign: "center",
+              fontFamily: "var(--font-mono)",
+            }}
+          >
             <div />
-            <div style={{ fontWeight: "bold", color: "var(--text-secondary)" }}>
-              They C
+            <div
+              style={{
+                fontWeight: 700,
+                color: "var(--accent-cooperate)",
+                fontSize: "var(--text-sm)",
+              }}
+            >
+              🤝 They C
             </div>
-            <div style={{ fontWeight: "bold", color: "var(--text-secondary)" }}>
-              They D
+            <div
+              style={{
+                fontWeight: 700,
+                color: "var(--accent-defect)",
+                fontSize: "var(--text-sm)",
+              }}
+            >
+              ⚔️ They D
             </div>
-            <div style={{ fontWeight: "bold", color: "var(--text-primary)" }}>
+            <div
+              style={{
+                fontWeight: 700,
+                color: "var(--accent-cooperate)",
+                fontSize: "var(--text-sm)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "flex-end",
+                paddingRight: "6px",
+                gap: "4px",
+              }}
+            >
               You C
+              <TrustFallCharacter
+                state="standing"
+                color="cooperator"
+                size="sm"
+              />
             </div>
-            <div style={{ color: "#4CAF50" }}>Both: 2×</div>
-            <div style={{ color: "#ef6c00" }}>You: 0, Them: 3×</div>
-            <div style={{ fontWeight: "bold", color: "var(--text-primary)" }}>
+            <div
+              style={{
+                color: "#4ade80",
+                fontWeight: 700,
+                fontSize: "var(--text-base)",
+              }}
+            >
+              +2 / +2
+            </div>
+            <div
+              style={{
+                color: "#f87171",
+                fontWeight: 700,
+                fontSize: "var(--text-base)",
+              }}
+            >
+              0 / +3
+            </div>
+            <div
+              style={{
+                fontWeight: 700,
+                color: "var(--accent-defect)",
+                fontSize: "var(--text-sm)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "flex-end",
+                paddingRight: "6px",
+                gap: "4px",
+              }}
+            >
               You D
+              <TrustFallCharacter state="standing" color="defector" size="sm" />
             </div>
-            <div style={{ color: "#ef6c00" }}>You: 3×, Them: 0</div>
-            <div style={{ color: "#c62828" }}>Both: 0</div>
+            <div
+              style={{
+                color: "#fbbf24",
+                fontWeight: 700,
+                fontSize: "var(--text-base)",
+              }}
+            >
+              +3 / 0
+            </div>
+            <div
+              style={{
+                color: "#ef4444",
+                fontWeight: 700,
+                fontSize: "var(--text-base)",
+              }}
+            >
+              0 / 0
+            </div>
           </div>
-        </CardDiv>
+        </div>
 
         {/* Nonce display */}
         {savedNonce && (
           <div
             style={{
-              background: "#fff8e1",
+              background: "var(--bg-glass-light)",
               borderRadius: "8px",
               padding: "12px",
               marginBottom: "16px",
-              border: "1px solid #ffe082",
+              border: "1px solid var(--border-glass)",
               fontFamily: "var(--font-body)",
             }}
           >
@@ -625,7 +710,7 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
         {status !== "choose" && (
           <div
             style={{
-              background: "#f0f4ff",
+              background: "var(--bg-glass-light)",
               borderRadius: "8px",
               padding: "16px",
               marginBottom: "16px",
@@ -691,9 +776,7 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
         )}
 
         {txError && (
-          <Text
-            as="p"
-            size="sm"
+          <p
             style={{
               color: "#F44336",
               marginBottom: "16px",
@@ -702,13 +785,11 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
             }}
           >
             ⚠️ {txError}
-          </Text>
+          </p>
         )}
 
         {error && (
-          <Text
-            as="p"
-            size="sm"
+          <p
             style={{
               color: "#F44336",
               marginBottom: "16px",
@@ -717,20 +798,24 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
             }}
           >
             ⚠️ {error}
-          </Text>
+          </p>
         )}
 
         {/* Submit */}
-        <Button
-          variant="primary"
-          size="md"
+        <button
+          type="button"
           onClick={() => void handleCommit()}
           disabled={!canSubmit || isLoadingState}
           style={{
-            width: "100%",
+            background: "var(--accent-violet)",
+            color: "white",
+            border: "none",
+            borderRadius: "var(--radius-sm)",
+            padding: "14px",
             fontFamily: "var(--font-body)",
             fontSize: "18px",
-            padding: "14px",
+            cursor: "pointer",
+            width: "100%",
           }}
         >
           {isLoadingState
@@ -738,7 +823,7 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
               ? " Falling..."
               : " Committing..."
             : "✋ Let go"}
-        </Button>
+        </button>
       </CardDiv>
 
       {/* ZK Info */}
@@ -750,19 +835,17 @@ export const CommitMove: React.FC<CommitMoveProps> = ({
           border: "1px solid rgba(255,255,255,0.15)",
         }}
       >
-        <Text
-          as="p"
-          size="xs"
+        <p
           style={{
             margin: 0,
-            color: "rgba(20, 26, 46, 0.45)",
+            color: "var(--text-secondary)",
             lineHeight: "1.5",
           }}
         >
           <strong>🔒 The math catches you:</strong> Your move is zero-knowledge
           proven before you let go — the contract knows your commitment is real,
           but can't see your move until you reveal it.
-        </Text>
+        </p>
       </CardDiv>
     </div>
   );

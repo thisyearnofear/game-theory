@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Button, Text } from "@stellar/design-system";
 import { useWallet } from "../../hooks/useWallet";
 import { useZKDilemma, type GameMove } from "../../hooks/useZKDilemma";
 import { useGameStats, type GameRecord } from "../../hooks/useGameStats";
 import { ElectricButton } from "../ui/ElectricButton";
 import { ShimmerButton } from "../ui/ShimmerButton";
 import { unlockAchievement } from "../ui/AchievementBadge";
+import { TrustFallCharacter } from "../TrustFallCharacter";
 
 interface GameResultProps {
   gameId: number;
@@ -285,9 +285,7 @@ export const GameResult: React.FC<GameResultProps> = ({
   return (
     <div style={{ maxWidth: "600px", margin: "0 auto" }}>
       <CardDiv>
-        <Text
-          as="h3"
-          size="lg"
+        <h3
           style={{
             margin: "0 0 8px 0",
             color: "var(--text-primary)",
@@ -296,10 +294,8 @@ export const GameResult: React.FC<GameResultProps> = ({
           }}
         >
           {isResolved || isForfeited ? headline.title : "The Moment of Truth"}
-        </Text>
-        <Text
-          as="p"
-          size="sm"
+        </h3>
+        <p
           style={{
             margin: "0 0 20px 0",
             color: "var(--text-secondary)",
@@ -314,7 +310,7 @@ export const GameResult: React.FC<GameResultProps> = ({
               : isForfeited
                 ? "Forfeited"
                 : "In Progress")}
-        </Text>
+        </p>
 
         {/* The Moment of Truth — catch/impact visual */}
         <div
@@ -343,19 +339,28 @@ export const GameResult: React.FC<GameResultProps> = ({
             <div style={{ textAlign: "center" }}>
               <div
                 style={{
-                  fontSize: "48px",
                   marginBottom: "4px",
-                  display: "inline-block",
+                  display: "flex",
+                  justifyContent: "center",
                 }}
-                className={
-                  isResolved && gameState.move1 === "C" ? "tf-catch" : ""
-                }
               >
-                {gameState.move1 === "C"
-                  ? "🤝"
-                  : gameState.move1 === "D"
-                    ? "⚔️"
-                    : "🧍"}
+                <TrustFallCharacter
+                  state={
+                    !isResolved
+                      ? "standing"
+                      : gameState.move1 === "C"
+                        ? "caught"
+                        : "impact"
+                  }
+                  color={
+                    !isResolved
+                      ? "neutral"
+                      : gameState.move1 === "C"
+                        ? "cooperator"
+                        : "defector"
+                  }
+                  size="lg"
+                />
               </div>
               <div
                 style={{
@@ -392,21 +397,30 @@ export const GameResult: React.FC<GameResultProps> = ({
             <div style={{ textAlign: "center" }}>
               <div
                 style={{
-                  fontSize: "48px",
                   marginBottom: "4px",
-                  display: "inline-block",
+                  display: "flex",
+                  justifyContent: "center",
                 }}
-                className={
-                  isResolved && gameState.move2 === "C" ? "tf-catch" : ""
-                }
               >
-                {gameState.player2
-                  ? gameState.move2 === "C"
-                    ? "🤝"
-                    : gameState.move2 === "D"
-                      ? "⚔️"
-                      : "🧍"
-                  : "👤"}
+                <TrustFallCharacter
+                  state={
+                    !gameState.player2
+                      ? "waiting"
+                      : !isResolved
+                        ? "standing"
+                        : gameState.move2 === "C"
+                          ? "caught"
+                          : "impact"
+                  }
+                  color={
+                    !gameState.player2
+                      ? "neutral"
+                      : gameState.move2 === "C"
+                        ? "cooperator"
+                        : "defector"
+                  }
+                  size="lg"
+                />
               </div>
               <div
                 style={{
@@ -476,9 +490,7 @@ export const GameResult: React.FC<GameResultProps> = ({
               marginBottom: "16px",
             }}
           >
-            <Text
-              as="h4"
-              size="sm"
+            <h4
               style={{
                 margin: "0 0 12px 0",
                 color: "var(--text-primary)",
@@ -487,7 +499,7 @@ export const GameResult: React.FC<GameResultProps> = ({
               }}
             >
               {bothCooperated ? "💰 You both landed soft" : "💰 The landing"}
-            </Text>
+            </h4>
             <div
               style={{
                 display: "grid",
@@ -497,16 +509,12 @@ export const GameResult: React.FC<GameResultProps> = ({
               }}
             >
               <div>
-                <Text
-                  as="p"
-                  size="xs"
+                <p
                   style={{ margin: "0 0 4px", color: "var(--text-secondary)" }}
                 >
                   Player 1{isPlayer1 ? " (You)" : ""}
-                </Text>
-                <Text
-                  as="p"
-                  size="md"
+                </p>
+                <p
                   style={{
                     margin: 0,
                     color: "#4CAF50",
@@ -514,19 +522,15 @@ export const GameResult: React.FC<GameResultProps> = ({
                   }}
                 >
                   +{result ? formatXLM(result.payout1) : "—"}
-                </Text>
+                </p>
               </div>
               <div>
-                <Text
-                  as="p"
-                  size="xs"
+                <p
                   style={{ margin: "0 0 4px", color: "var(--text-secondary)" }}
                 >
                   Player 2{isPlayer2 ? " (You)" : ""}
-                </Text>
-                <Text
-                  as="p"
-                  size="md"
+                </p>
+                <p
                   style={{
                     margin: 0,
                     color: "#4CAF50",
@@ -534,12 +538,10 @@ export const GameResult: React.FC<GameResultProps> = ({
                   }}
                 >
                   +{result ? formatXLM(result.payout2) : "—"}
-                </Text>
+                </p>
               </div>
             </div>
-            <Text
-              as="p"
-              size="xs"
+            <p
               style={{
                 margin: "8px 0 0",
                 color: "var(--text-muted)",
@@ -547,7 +549,7 @@ export const GameResult: React.FC<GameResultProps> = ({
               }}
             >
               Stake per player: {formatXLM(gameState.stake)}
-            </Text>
+            </p>
           </CardDiv>
         )}
 
@@ -561,21 +563,15 @@ export const GameResult: React.FC<GameResultProps> = ({
               border: "1px solid rgba(100, 120, 160, 0.2)",
             }}
           >
-            <Text
-              as="p"
-              size="sm"
-              style={{ margin: 0, color: "#667eea", fontWeight: "bold" }}
-            >
+            <p style={{ margin: 0, color: "#667eea", fontWeight: "bold" }}>
               🏴 Nobody caught anyone — one player didn't show up for the reveal
-            </Text>
+            </p>
           </CardDiv>
         )}
 
         {/* Error */}
         {txError && (
-          <Text
-            as="p"
-            size="sm"
+          <p
             style={{
               color: "#F44336",
               marginBottom: "12px",
@@ -583,13 +579,11 @@ export const GameResult: React.FC<GameResultProps> = ({
             }}
           >
             ⚠️ {txError}
-          </Text>
+          </p>
         )}
 
         {error && (
-          <Text
-            as="p"
-            size="sm"
+          <p
             style={{
               color: "#F44336",
               marginBottom: "12px",
@@ -597,7 +591,7 @@ export const GameResult: React.FC<GameResultProps> = ({
             }}
           >
             ⚠️ {error}
-          </Text>
+          </p>
         )}
 
         {/* Action Buttons */}
@@ -610,32 +604,47 @@ export const GameResult: React.FC<GameResultProps> = ({
           }}
         >
           {canResolve && (
-            <Button
-              variant="primary"
-              size="md"
+            <button
+              type="button"
               onClick={() => void handleResolve()}
               disabled={isLoading}
-              style={{ fontFamily: "var(--font-body)", flex: 1, minWidth: 200 }}
+              style={{
+                background: "var(--accent-violet)",
+                color: "white",
+                border: "none",
+                borderRadius: "var(--radius-sm)",
+                padding: "8px 16px",
+                fontFamily: "var(--font-body)",
+                fontSize: "var(--text-sm)",
+                cursor: "pointer",
+                flex: 1,
+                minWidth: 200,
+              }}
             >
               {isLoading ? "⏳ Landing..." : "🪙 Resolve the Landing"}
-            </Button>
+            </button>
           )}
 
           {canClaimForfeit && (
-            <Button
-              variant="secondary"
-              size="md"
+            <button
+              type="button"
               onClick={() => void handleClaimForfeit()}
               disabled={isLoading}
               style={{
+                background: "var(--bg-glass-light)",
+                color: "#F44336",
+                border: "1px solid var(--border-glass)",
+                borderRadius: "var(--radius-sm)",
+                padding: "8px 16px",
                 fontFamily: "var(--font-body)",
+                fontSize: "var(--text-sm)",
+                cursor: "pointer",
                 flex: 1,
                 minWidth: 200,
-                color: "#F44336",
               }}
             >
               {isLoading ? "⏳ Claiming..." : "🏴 Claim the Fall"}
-            </Button>
+            </button>
           )}
 
           {/* Post-resolution actions */}
@@ -665,14 +674,22 @@ export const GameResult: React.FC<GameResultProps> = ({
           )}
 
           {!isResolved && !isForfeited && (
-            <Button
-              variant="tertiary"
-              size="md"
+            <button
+              type="button"
               onClick={onBack}
-              style={{ fontFamily: "var(--font-body)" }}
+              style={{
+                background: "transparent",
+                color: "var(--text-secondary)",
+                border: "1px solid var(--border-glass)",
+                borderRadius: "var(--radius-sm)",
+                padding: "8px 16px",
+                fontFamily: "var(--font-body)",
+                fontSize: "var(--text-sm)",
+                cursor: "pointer",
+              }}
             >
               ← Back
-            </Button>
+            </button>
           )}
         </div>
       </CardDiv>

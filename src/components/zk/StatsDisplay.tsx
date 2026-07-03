@@ -7,7 +7,6 @@
  */
 
 import React from "react";
-import { Text } from "@stellar/design-system";
 import { useGameStats, type GameStats } from "../../hooks/useGameStats";
 
 interface StatsDisplayProps {
@@ -83,9 +82,7 @@ export const StatsDisplay: React.FC<StatsDisplayProps> = ({ stats }) => {
         >
           🪂
         </div>
-        <Text
-          as="h3"
-          size="md"
+        <h3
           style={{
             margin: "0 0 6px",
             color: "var(--text-primary)",
@@ -93,10 +90,8 @@ export const StatsDisplay: React.FC<StatsDisplayProps> = ({ stats }) => {
           }}
         >
           Your stats will appear here
-        </Text>
-        <Text
-          as="p"
-          size="sm"
+        </h3>
+        <p
           style={{
             margin: 0,
             color: "var(--text-secondary)",
@@ -105,7 +100,7 @@ export const StatsDisplay: React.FC<StatsDisplayProps> = ({ stats }) => {
         >
           Play your first Trustfall to start tracking your wins, losses, and
           cooperation rate.
-        </Text>
+        </p>
       </div>
     );
   }
@@ -133,9 +128,7 @@ export const StatsDisplay: React.FC<StatsDisplayProps> = ({ stats }) => {
           marginBottom: "14px",
         }}
       >
-        <Text
-          as="h3"
-          size="md"
+        <h3
           style={{
             margin: 0,
             color: "var(--text-primary)",
@@ -143,10 +136,8 @@ export const StatsDisplay: React.FC<StatsDisplayProps> = ({ stats }) => {
           }}
         >
           📊 Your Record
-        </Text>
-        <Text
-          as="p"
-          size="xs"
+        </h3>
+        <p
           style={{
             margin: 0,
             color: "var(--text-muted)",
@@ -154,7 +145,7 @@ export const StatsDisplay: React.FC<StatsDisplayProps> = ({ stats }) => {
           }}
         >
           {s.totalGames} game{s.totalGames === 1 ? "" : "s"} played
-        </Text>
+        </p>
       </div>
 
       <div

@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Text } from "@stellar/design-system";
 import { ShimmerButton } from "../ui/ShimmerButton";
 
 interface MatchSetupProps {
@@ -58,9 +57,7 @@ export const MatchSetup: React.FC<MatchSetupProps> = ({
           borderColor: "rgba(102,126,234,0.2)",
         }}
       >
-        <Text
-          as="h3"
-          size="lg"
+        <h3
           style={{
             margin: "0 0 8px 0",
             color: "var(--text-primary)",
@@ -70,10 +67,8 @@ export const MatchSetup: React.FC<MatchSetupProps> = ({
           }}
         >
           🏟️ Create a Match
-        </Text>
-        <Text
-          as="p"
-          size="sm"
+        </h3>
+        <p
           style={{
             margin: "0 0 24px 0",
             color: "var(--text-secondary)",
@@ -83,13 +78,11 @@ export const MatchSetup: React.FC<MatchSetupProps> = ({
         >
           A multi-round Trustfall. First to win the majority of rounds takes the
           match.
-        </Text>
+        </p>
 
         {/* Best-of selection */}
         <div style={{ marginBottom: "24px" }}>
-          <Text
-            as="p"
-            size="sm"
+          <p
             style={{
               margin: "0 0 12px 0",
               color: "var(--text-primary)",
@@ -98,7 +91,7 @@ export const MatchSetup: React.FC<MatchSetupProps> = ({
             }}
           >
             Match Format
-          </Text>
+          </p>
           <div
             style={{
               display: "flex",
@@ -218,9 +211,7 @@ export const MatchSetup: React.FC<MatchSetupProps> = ({
 
         {/* Stake presets */}
         <div style={{ marginBottom: "24px" }}>
-          <Text
-            as="p"
-            size="sm"
+          <p
             style={{
               margin: "0 0 8px 0",
               color: "var(--text-primary)",
@@ -229,7 +220,7 @@ export const MatchSetup: React.FC<MatchSetupProps> = ({
             }}
           >
             Stake per Round (XLM)
-          </Text>
+          </p>
           <div
             style={{
               display: "flex",
@@ -262,9 +253,7 @@ export const MatchSetup: React.FC<MatchSetupProps> = ({
               );
             })}
           </div>
-          <Text
-            as="p"
-            size="xs"
+          <p
             style={{
               margin: "8px 0 0",
               color: "var(--text-muted)",
@@ -272,7 +261,7 @@ export const MatchSetup: React.FC<MatchSetupProps> = ({
             }}
           >
             Stake is deposited per round. Up to {bestOf} rounds × {stake} XLM.
-          </Text>
+          </p>
         </div>
 
         {/* Start match button */}
@@ -316,9 +305,7 @@ export const MatchSetup: React.FC<MatchSetupProps> = ({
           borderColor: "rgba(255,255,255,0.1)",
         }}
       >
-        <Text
-          as="p"
-          size="xs"
+        <p
           style={{
             margin: 0,
             color: "var(--text-secondary)",
@@ -329,7 +316,7 @@ export const MatchSetup: React.FC<MatchSetupProps> = ({
           <strong>🔒 How matches work:</strong> You commit your first move with
           a ZK proof. After each round resolves, player 1 starts the next round
           and player 2 joins it. First to reach the target wins takes the match.
-        </Text>
+        </p>
       </div>
     </div>
   );

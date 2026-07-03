@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useMemo } from "react";
-import { Button, Text } from "@stellar/design-system";
 import AudioManager from "../AudioManager";
 import {
   type PopulationEntry,
@@ -171,9 +170,7 @@ export const TournamentMode: React.FC = () => {
   return (
     <div style={{ maxWidth: "600px", margin: "0 auto", textAlign: "center" }}>
       {/* Header */}
-      <Text
-        as="h3"
-        size="lg"
+      <h3
         style={{
           fontFamily: "var(--font-body)",
           color: "rgba(255,255,255,0.95)",
@@ -181,10 +178,8 @@ export const TournamentMode: React.FC = () => {
         }}
       >
         🏆 Tournament of Trust
-      </Text>
-      <Text
-        as="p"
-        size="sm"
+      </h3>
+      <p
         style={{
           fontFamily: "var(--font-body)",
           color: "rgba(255,255,255,0.6)",
@@ -195,7 +190,7 @@ export const TournamentMode: React.FC = () => {
       >
         All strategies play each other. The weak die. The strong reproduce.
         Watch trust evolve over generations.
-      </Text>
+      </p>
 
       {/* Winner banner */}
       {winner && (
@@ -210,9 +205,7 @@ export const TournamentMode: React.FC = () => {
             border: "2px solid rgba(255, 180, 80, 0.4)",
           }}
         >
-          <Text
-            as="p"
-            size="md"
+          <p
             style={{
               fontFamily: "var(--font-body)",
               color: "#ffb050",
@@ -222,15 +215,24 @@ export const TournamentMode: React.FC = () => {
             }}
           >
             🏆 {winner} dominates after {generation} generations!
-          </Text>
-          <Button
+          </p>
+          <button
+            type="button"
             onClick={reset}
-            variant="secondary"
-            size="sm"
-            style={{ marginTop: "10px", fontFamily: "var(--font-body)" }}
+            style={{
+              background: "var(--bg-glass-light)",
+              color: "var(--text-primary)",
+              border: "1px solid var(--border-glass)",
+              borderRadius: "var(--radius-sm)",
+              padding: "8px 16px",
+              fontFamily: "var(--font-body)",
+              fontSize: "var(--text-sm)",
+              cursor: "pointer",
+              marginTop: "10px",
+            }}
           >
             🔄 Start New Tournament
-          </Button>
+          </button>
         </div>
       )}
 
@@ -244,9 +246,7 @@ export const TournamentMode: React.FC = () => {
         }}
       >
         <div>
-          <Text
-            as="p"
-            size="xs"
+          <p
             style={{
               fontFamily: "var(--font-body)",
               color: "rgba(255,255,255,0.5)",
@@ -254,10 +254,8 @@ export const TournamentMode: React.FC = () => {
             }}
           >
             Generation
-          </Text>
-          <Text
-            as="p"
-            size="md"
+          </p>
+          <p
             style={{
               fontFamily: "var(--font-body)",
               color: "rgba(255,255,255,0.95)",
@@ -267,12 +265,10 @@ export const TournamentMode: React.FC = () => {
             }}
           >
             {generation}
-          </Text>
+          </p>
         </div>
         <div>
-          <Text
-            as="p"
-            size="xs"
+          <p
             style={{
               fontFamily: "var(--font-body)",
               color: "rgba(255,255,255,0.5)",
@@ -280,10 +276,8 @@ export const TournamentMode: React.FC = () => {
             }}
           >
             Population
-          </Text>
-          <Text
-            as="p"
-            size="md"
+          </p>
+          <p
             style={{
               fontFamily: "var(--font-body)",
               color: "rgba(255,255,255,0.95)",
@@ -293,12 +287,10 @@ export const TournamentMode: React.FC = () => {
             }}
           >
             {totalPopulation}
-          </Text>
+          </p>
         </div>
         <div>
-          <Text
-            as="p"
-            size="xs"
+          <p
             style={{
               fontFamily: "var(--font-body)",
               color: "rgba(255,255,255,0.5)",
@@ -306,10 +298,8 @@ export const TournamentMode: React.FC = () => {
             }}
           >
             Stage
-          </Text>
-          <Text
-            as="p"
-            size="md"
+          </p>
+          <p
             style={{
               fontFamily: "var(--font-body)",
               color:
@@ -332,7 +322,7 @@ export const TournamentMode: React.FC = () => {
                 : stage === "reproducing"
                   ? "🌱 Reproducing..."
                   : "✋ Ready"}
-          </Text>
+          </p>
         </div>
       </div>
 
@@ -373,9 +363,7 @@ export const TournamentMode: React.FC = () => {
                   marginBottom: "4px",
                 }}
               >
-                <Text
-                  as="span"
-                  size="xs"
+                <span
                   style={{
                     fontFamily: "var(--font-body)",
                     color: isEliminated ? "rgba(255,255,255,0.3)" : info.color,
@@ -384,10 +372,8 @@ export const TournamentMode: React.FC = () => {
                 >
                   {info.emoji} {info.name}
                   {isEliminated && " (extinct)"}
-                </Text>
-                <Text
-                  as="span"
-                  size="xs"
+                </span>
+                <span
                   style={{
                     fontFamily: "var(--font-body)",
                     color: "rgba(255,255,255,0.6)",
@@ -395,7 +381,7 @@ export const TournamentMode: React.FC = () => {
                   }}
                 >
                   {entry.count} {score && `· avg ${score.avgScore.toFixed(1)}`}
-                </Text>
+                </span>
               </div>
               {/* Population bar */}
               <div
@@ -454,28 +440,48 @@ export const TournamentMode: React.FC = () => {
           flexWrap: "wrap",
         }}
       >
-        <Button
+        <button
+          type="button"
           onClick={playTournament}
           disabled={stage !== "rest" || !!winner}
-          size="md"
-          style={{ fontFamily: "var(--font-body)", width: "130px" }}
+          style={{
+            background: "var(--accent-violet)",
+            color: "white",
+            border: "none",
+            borderRadius: "var(--radius-sm)",
+            padding: "8px 16px",
+            fontFamily: "var(--font-body)",
+            fontSize: "var(--text-sm)",
+            cursor: "pointer",
+            width: "130px",
+          }}
         >
           {stage === "playing" ? "⚔️ Playing..." : "⚔️ Play Tournament"}
-        </Button>
-        <Button
+        </button>
+        <button
+          type="button"
           onClick={evolve}
           disabled={stage !== "rest" || scores.length === 0 || !!winner}
-          variant="secondary"
-          size="md"
-          style={{ fontFamily: "var(--font-body)", width: "130px" }}
+          style={{
+            background: "var(--bg-glass-light)",
+            color: "var(--text-primary)",
+            border: "1px solid var(--border-glass)",
+            borderRadius: "var(--radius-sm)",
+            padding: "8px 16px",
+            fontFamily: "var(--font-body)",
+            fontSize: "var(--text-sm)",
+            cursor: "pointer",
+            width: "130px",
+          }}
         >
           {stage === "eliminating"
             ? "💀..."
             : stage === "reproducing"
               ? "🌱..."
               : "🧬 Evolve"}
-        </Button>
-        <Button
+        </button>
+        <button
+          type="button"
           onClick={() => {
             if (autoPlay) {
               setAutoPlay(false);
@@ -488,24 +494,39 @@ export const TournamentMode: React.FC = () => {
             }
           }}
           disabled={!!winner}
-          variant="secondary"
-          size="md"
           style={{
+            background: autoPlay
+              ? "rgba(102, 126, 234, 0.3)"
+              : "var(--bg-glass-light)",
+            color: "var(--text-primary)",
+            border: "1px solid var(--border-glass)",
+            borderRadius: "var(--radius-sm)",
+            padding: "8px 16px",
             fontFamily: "var(--font-body)",
+            fontSize: "var(--text-sm)",
+            cursor: "pointer",
             width: "120px",
-            background: autoPlay ? "rgba(102, 126, 234, 0.3)" : "transparent",
           }}
         >
           {autoPlay ? "⏸ Stop" : "▶ Auto-play"}
-        </Button>
-        <Button
+        </button>
+        <button
+          type="button"
           onClick={reset}
-          variant="secondary"
-          size="md"
-          style={{ fontFamily: "var(--font-body)", width: "100px" }}
+          style={{
+            background: "var(--bg-glass-light)",
+            color: "var(--text-primary)",
+            border: "1px solid var(--border-glass)",
+            borderRadius: "var(--radius-sm)",
+            padding: "8px 16px",
+            fontFamily: "var(--font-body)",
+            fontSize: "var(--text-sm)",
+            cursor: "pointer",
+            width: "100px",
+          }}
         >
           🔄 Reset
-        </Button>
+        </button>
       </div>
 
       {/* Settings: noise + turns sliders */}
@@ -518,9 +539,7 @@ export const TournamentMode: React.FC = () => {
           border: "1px solid rgba(255,255,255,0.08)",
         }}
       >
-        <Text
-          as="p"
-          size="sm"
+        <p
           style={{
             fontFamily: "var(--font-body)",
             color: "rgba(20, 26, 46, 0.35)",
@@ -530,7 +549,7 @@ export const TournamentMode: React.FC = () => {
           }}
         >
           🎛️ Tournament Settings
-        </Text>
+        </p>
 
         {/* Noise slider */}
         <div style={{ marginBottom: "14px" }}>
@@ -541,9 +560,7 @@ export const TournamentMode: React.FC = () => {
               marginBottom: "4px",
             }}
           >
-            <Text
-              as="span"
-              size="xs"
+            <span
               style={{
                 fontFamily: "var(--font-body)",
                 color: "rgba(255,255,255,0.6)",
@@ -551,10 +568,8 @@ export const TournamentMode: React.FC = () => {
               }}
             >
               💨 Noise (mistake probability)
-            </Text>
-            <Text
-              as="span"
-              size="xs"
+            </span>
+            <span
               style={{
                 fontFamily: "var(--font-body)",
                 color: config.noise > 0.1 ? "#ffb050" : "rgba(255,255,255,0.6)",
@@ -563,7 +578,7 @@ export const TournamentMode: React.FC = () => {
               }}
             >
               {(config.noise * 100).toFixed(0)}%
-            </Text>
+            </span>
           </div>
           <input
             type="range"
@@ -578,9 +593,7 @@ export const TournamentMode: React.FC = () => {
             disabled={stage !== "rest"}
             style={{ width: "100%", accentColor: "#667eea" }}
           />
-          <Text
-            as="p"
-            size="xs"
+          <p
             style={{
               fontFamily: "var(--font-body)",
               color: "rgba(255,255,255,0.4)",
@@ -596,7 +609,7 @@ export const TournamentMode: React.FC = () => {
                 : config.noise < 0.15
                   ? "Frequent mistakes — TFT struggles, TF2T and Generous TFT take over"
                   : "Chaos — noise drowns out strategy. Nobody dominates."}
-          </Text>
+          </p>
         </div>
 
         {/* Turns per match slider */}
@@ -608,9 +621,7 @@ export const TournamentMode: React.FC = () => {
               marginBottom: "4px",
             }}
           >
-            <Text
-              as="span"
-              size="xs"
+            <span
               style={{
                 fontFamily: "var(--font-body)",
                 color: "rgba(255,255,255,0.6)",
@@ -618,10 +629,8 @@ export const TournamentMode: React.FC = () => {
               }}
             >
               🔁 Rounds per match
-            </Text>
-            <Text
-              as="span"
-              size="xs"
+            </span>
+            <span
               style={{
                 fontFamily: "var(--font-body)",
                 color: "rgba(255,255,255,0.6)",
@@ -630,7 +639,7 @@ export const TournamentMode: React.FC = () => {
               }}
             >
               {config.turnsPerMatch}
-            </Text>
+            </span>
           </div>
           <input
             type="range"
@@ -656,9 +665,7 @@ export const TournamentMode: React.FC = () => {
               marginBottom: "4px",
             }}
           >
-            <Text
-              as="span"
-              size="xs"
+            <span
               style={{
                 fontFamily: "var(--font-body)",
                 color: "rgba(255,255,255,0.6)",
@@ -666,10 +673,8 @@ export const TournamentMode: React.FC = () => {
               }}
             >
               ⚖️ Selection pressure (eliminate/reproduce)
-            </Text>
-            <Text
-              as="span"
-              size="xs"
+            </span>
+            <span
               style={{
                 fontFamily: "var(--font-body)",
                 color: "rgba(255,255,255,0.6)",
@@ -678,7 +683,7 @@ export const TournamentMode: React.FC = () => {
               }}
             >
               {config.selectionSize}
-            </Text>
+            </span>
           </div>
           <input
             type="range"
@@ -719,9 +724,7 @@ export const TournamentMode: React.FC = () => {
             marginBottom: "20px",
           }}
         >
-          <Text
-            as="h4"
-            size="sm"
+          <h4
             style={{
               fontFamily: "var(--font-body)",
               color: "var(--text-primary)",
@@ -730,7 +733,7 @@ export const TournamentMode: React.FC = () => {
             }}
           >
             📊 Generation {generation} — Tournament Results
-          </Text>
+          </h4>
           <table
             style={{
               width: "100%",
@@ -825,9 +828,7 @@ export const TournamentMode: React.FC = () => {
             border: "1px solid rgba(255,255,255,0.1)",
           }}
         >
-          <Text
-            as="h4"
-            size="sm"
+          <h4
             style={{
               fontFamily: "var(--font-body)",
               color: "rgba(20, 26, 46, 0.35)",
@@ -836,7 +837,7 @@ export const TournamentMode: React.FC = () => {
             }}
           >
             📈 Population Over Generations
-          </Text>
+          </h4>
           <div
             style={{
               display: "flex",
@@ -914,20 +915,16 @@ export const TournamentMode: React.FC = () => {
               marginTop: "4px",
             }}
           >
-            <Text
-              as="span"
-              size="xs"
+            <span
               style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.7rem" }}
             >
               Gen 0
-            </Text>
-            <Text
-              as="span"
-              size="xs"
+            </span>
+            <span
               style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.7rem" }}
             >
               Gen {generation}
-            </Text>
+            </span>
           </div>
         </div>
       )}
@@ -964,9 +961,7 @@ export const TournamentMode: React.FC = () => {
                   background: info.color,
                 }}
               />
-              <Text
-                as="span"
-                size="xs"
+              <span
                 style={{
                   fontFamily: "var(--font-body)",
                   color: "rgba(255,255,255,0.5)",
@@ -974,7 +969,7 @@ export const TournamentMode: React.FC = () => {
                 }}
               >
                 {info.name}
-              </Text>
+              </span>
             </div>
           );
         })}

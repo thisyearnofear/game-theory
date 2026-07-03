@@ -7,7 +7,7 @@ interface VeniceResponse {
   }>;
 }
 
-interface GameContext {
+export interface GameContext {
   playerMove?: "C" | "D";
   aiMove?: "C" | "D";
   outcome?: "win" | "lose" | "tie";

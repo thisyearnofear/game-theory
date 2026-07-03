@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Button } from "@stellar/design-system";
 
 const STORAGE_KEY = "zk_onboarding_seen";
 
@@ -145,26 +144,57 @@ export const OnboardingOverlay: React.FC = () => {
 
         <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
           {step > 0 && (
-            <Button
-              variant="tertiary"
-              size="md"
+            <button
+              type="button"
               onClick={() => setStep(step - 1)}
+              style={{
+                background: "transparent",
+                color: "var(--text-secondary)",
+                border: "1px solid var(--border-glass)",
+                borderRadius: "var(--radius-sm)",
+                padding: "8px 16px",
+                fontFamily: "var(--font-body)",
+                fontSize: "var(--text-sm)",
+                cursor: "pointer",
+              }}
             >
               ← Back
-            </Button>
+            </button>
           )}
           {isLast ? (
-            <Button variant="primary" size="md" onClick={dismiss}>
+            <button
+              type="button"
+              onClick={dismiss}
+              style={{
+                background: "var(--accent-violet)",
+                color: "white",
+                border: "none",
+                borderRadius: "var(--radius-sm)",
+                padding: "8px 16px",
+                fontFamily: "var(--font-body)",
+                fontSize: "var(--text-sm)",
+                cursor: "pointer",
+              }}
+            >
               Let's Play →
-            </Button>
+            </button>
           ) : (
-            <Button
-              variant="primary"
-              size="md"
+            <button
+              type="button"
               onClick={() => setStep(step + 1)}
+              style={{
+                background: "var(--accent-violet)",
+                color: "white",
+                border: "none",
+                borderRadius: "var(--radius-sm)",
+                padding: "8px 16px",
+                fontFamily: "var(--font-body)",
+                fontSize: "var(--text-sm)",
+                cursor: "pointer",
+              }}
             >
               Next →
-            </Button>
+            </button>
           )}
         </div>
 

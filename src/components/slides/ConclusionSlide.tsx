@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Button } from "@stellar/design-system";
 import { useWallet } from "../../hooks/useWallet";
 import { SlideProps } from "../SlideSystem";
 
@@ -138,14 +137,23 @@ export const ConclusionSlide: React.FC<SlideProps> = () => {
       </div>
 
       <div data-animate>
-        <Button
+        <button
+          type="button"
           onClick={() => setShowApplications(!showApplications)}
-          size="md"
-          variant="tertiary"
-          style={{ marginBottom: "20px" }}
+          style={{
+            background: "transparent",
+            color: "var(--text-secondary)",
+            border: "1px solid var(--border-glass)",
+            borderRadius: "var(--radius-sm)",
+            padding: "8px 16px",
+            fontFamily: "var(--font-body)",
+            fontSize: "var(--text-sm)",
+            cursor: "pointer",
+            marginBottom: "20px",
+          }}
         >
           {showApplications ? "Hide" : "Show"} Real-World Applications
-        </Button>
+        </button>
       </div>
 
       {showApplications && (

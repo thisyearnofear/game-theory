@@ -1,5 +1,4 @@
 import React from "react";
-import { Text } from "@stellar/design-system";
 import { getStrategyInfo, type StrategyId } from "../../util/strategies";
 
 interface StrategyInspectorProps {
@@ -125,10 +124,9 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
 
   return (
     <div
-      className="tf-fade-in-up"
+      className="tf-fade-in-up glass-panel"
       style={{
         marginTop: "10px",
-        background: "rgba(255,255,255,0.95)",
         borderRadius: "12px",
         padding: "16px",
         textAlign: "left",
@@ -145,9 +143,7 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
         }}
       >
         <span style={{ fontSize: "24px" }}>{info.emoji}</span>
-        <Text
-          as="h4"
-          size="md"
+        <h4
           style={{
             fontFamily: "var(--font-body)",
             color: info.color,
@@ -155,14 +151,12 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
           }}
         >
           {info.name}
-        </Text>
+        </h4>
       </div>
 
       {/* How it works */}
       <div style={{ marginBottom: "10px" }}>
-        <Text
-          as="p"
-          size="xs"
+        <p
           style={{
             fontFamily: "var(--font-body)",
             color: "var(--text-muted)",
@@ -172,10 +166,8 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
           }}
         >
           HOW IT WORKS
-        </Text>
-        <Text
-          as="p"
-          size="sm"
+        </p>
+        <p
           style={{
             fontFamily: "var(--font-body)",
             color: "var(--text-primary)",
@@ -185,14 +177,12 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
           }}
         >
           {logic.howItWorks}
-        </Text>
+        </p>
       </div>
 
       {/* First move */}
       <div style={{ marginBottom: "10px" }}>
-        <Text
-          as="p"
-          size="xs"
+        <p
           style={{
             fontFamily: "var(--font-body)",
             color: "var(--text-muted)",
@@ -202,10 +192,8 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
           }}
         >
           FIRST MOVE
-        </Text>
-        <Text
-          as="p"
-          size="sm"
+        </p>
+        <p
           style={{
             fontFamily: "var(--font-body)",
             color: "var(--text-primary)",
@@ -214,7 +202,7 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
           }}
         >
           {logic.firstMove}
-        </Text>
+        </p>
       </div>
 
       {/* Strength + Weakness */}
@@ -227,9 +215,7 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
         }}
       >
         <div>
-          <Text
-            as="p"
-            size="xs"
+          <p
             style={{
               fontFamily: "var(--font-body)",
               color: "#4CAF50",
@@ -239,10 +225,8 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
             }}
           >
             ✅ STRENGTH
-          </Text>
-          <Text
-            as="p"
-            size="xs"
+          </p>
+          <p
             style={{
               fontFamily: "var(--font-body)",
               color: "var(--text-primary)",
@@ -252,12 +236,10 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
             }}
           >
             {logic.strength}
-          </Text>
+          </p>
         </div>
         <div>
-          <Text
-            as="p"
-            size="xs"
+          <p
             style={{
               fontFamily: "var(--font-body)",
               color: "#F44336",
@@ -267,10 +249,8 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
             }}
           >
             ❌ WEAKNESS
-          </Text>
-          <Text
-            as="p"
-            size="xs"
+          </p>
+          <p
             style={{
               fontFamily: "var(--font-body)",
               color: "var(--text-primary)",
@@ -280,7 +260,7 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
             }}
           >
             {logic.weakness}
-          </Text>
+          </p>
         </div>
       </div>
 
@@ -293,9 +273,7 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
           border: "1px solid rgba(102, 126, 234, 0.15)",
         }}
       >
-        <Text
-          as="p"
-          size="xs"
+        <p
           style={{
             fontFamily: "var(--font-body)",
             color: "#667eea",
@@ -305,10 +283,8 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
           }}
         >
           📖 EXAMPLE
-        </Text>
-        <Text
-          as="p"
-          size="xs"
+        </p>
+        <p
           style={{
             fontFamily: "var(--font-body)",
             color: "var(--text-secondary)",
@@ -319,7 +295,7 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
           }}
         >
           {logic.example}
-        </Text>
+        </p>
       </div>
     </div>
   );

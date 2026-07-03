@@ -23,6 +23,7 @@ import { unlockAchievement } from "../ui/AchievementBadge";
 import { StaggerButton } from "../ui/StaggerButton";
 import { ElectricButton } from "../ui/ElectricButton";
 import { ShimmerButton } from "../ui/ShimmerButton";
+import { TrustFallCharacter } from "../TrustFallCharacter";
 
 type Outcome = "caught" | "betrayed" | "exploited" | "mutual-destruction";
 
@@ -180,17 +181,23 @@ const PayoffMatrix: React.FC<PayoffMatrixProps> = ({ hoveredChoice }) => {
   return (
     <div
       data-animate
-      className="glass-panel"
-      style={{ padding: "24px", marginBottom: "32px" }}
+      style={{
+        padding: "24px",
+        marginBottom: "32px",
+        background: "rgba(10, 14, 26, 0.85)",
+        border: "1px solid var(--border-glass)",
+        borderRadius: "var(--radius-lg)",
+      }}
     >
       <p
         style={{
           fontFamily: "var(--font-body)",
-          fontSize: "var(--text-sm)",
-          color: "var(--text-muted)",
+          fontSize: "var(--text-xs)",
+          color: "var(--text-secondary)",
           marginBottom: "16px",
           textTransform: "uppercase",
-          letterSpacing: "0.1em",
+          letterSpacing: "0.12em",
+          fontWeight: 600,
         }}
       >
         Payoff Matrix
@@ -202,33 +209,63 @@ const PayoffMatrix: React.FC<PayoffMatrixProps> = ({ hoveredChoice }) => {
         onMouseLeave={handleMouseLeave}
         style={{
           display: "grid",
-          gridTemplateColumns: "1fr 1fr 1fr",
-          gap: "8px",
-          maxWidth: "360px",
+          gridTemplateColumns: "auto 1fr 1fr",
+          gap: "6px",
+          maxWidth: "420px",
           margin: "0 auto",
-          fontSize: "var(--text-sm)",
         }}
       >
+        {/* Header row */}
         <div />
-        <div style={{ color: "var(--accent-cooperate)", fontWeight: 600 }}>
-          They catch
-        </div>
-        <div style={{ color: "var(--accent-defect)", fontWeight: 600 }}>
-          They step aside
-        </div>
-
         <div
           style={{
             color: "var(--accent-cooperate)",
-            fontWeight: 600,
-            transition: "text-shadow 0.25s",
-            textShadow:
-              hoveredChoice === "C"
-                ? "0 0 12px var(--accent-cooperate)"
-                : "none",
+            fontWeight: 700,
+            fontSize: "var(--text-sm)",
+            textAlign: "center",
+            padding: "6px 4px",
           }}
         >
-          You fall
+          They catch
+        </div>
+        <div
+          style={{
+            color: "var(--accent-defect)",
+            fontWeight: 700,
+            fontSize: "var(--text-sm)",
+            textAlign: "center",
+            padding: "6px 4px",
+          }}
+        >
+          They step aside
+        </div>
+
+        {/* Row 1: You fall (Cooperate) */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            paddingRight: "8px",
+            gap: "6px",
+            transition: "all 0.25s",
+            opacity: hoveredChoice === "D" ? 0.4 : 1,
+          }}
+        >
+          <span
+            style={{
+              color: "var(--accent-cooperate)",
+              fontWeight: 700,
+              fontSize: "var(--text-sm)",
+              textShadow:
+                hoveredChoice === "C"
+                  ? "0 0 12px var(--accent-cooperate)"
+                  : "none",
+            }}
+          >
+            You fall
+          </span>
+          <TrustFallCharacter state="standing" color="cooperator" size="sm" />
         </div>
         {MATRIX_CELLS.slice(0, 2).map((cell, i) => (
           <div
@@ -237,45 +274,73 @@ const PayoffMatrix: React.FC<PayoffMatrixProps> = ({ hoveredChoice }) => {
             data-animate
             onMouseEnter={() => setHoveredCell(cell.id)}
             onMouseLeave={() => setHoveredCell(null)}
-            className="glass-panel"
             style={{
-              padding: "12px",
-              color: cell.color,
-              transition:
-                "outline-color 0.25s, outline-offset 0.25s, background 0.25s",
-              outline:
-                rowHighlightColor && hoveredChoice === cell.row
-                  ? `2px solid ${rowHighlightColor}`
-                  : "2px solid transparent",
-              outlineOffset: "2px",
+              padding: "14px 10px",
+              borderRadius: "var(--radius-sm)",
               background:
                 hoveredChoice === cell.row
                   ? hoveredChoice === "C"
-                    ? "rgba(74,222,128,0.08)"
-                    : "rgba(248,113,113,0.08)"
-                  : undefined,
+                    ? "rgba(74,222,128,0.12)"
+                    : "rgba(248,113,113,0.12)"
+                  : "rgba(255,255,255,0.04)",
+              border:
+                rowHighlightColor && hoveredChoice === cell.row
+                  ? `2px solid ${rowHighlightColor}`
+                  : "1px solid rgba(255,255,255,0.08)",
+              transition:
+                "border-color 0.25s, background 0.25s, box-shadow 0.25s",
+              textAlign: "center",
             }}
           >
-            {cell.payoff}
-            <br />
-            <span
-              style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}
+            <div
+              style={{
+                fontSize: "var(--text-lg)",
+                fontWeight: 700,
+                color: cell.color,
+                fontFamily: "var(--font-mono)",
+              }}
+            >
+              {cell.payoff}
+            </div>
+            <div
+              style={{
+                fontSize: "var(--text-xs)",
+                color: "var(--text-secondary)",
+                marginTop: "4px",
+                lineHeight: 1.3,
+              }}
             >
               {cell.sub}
-            </span>
+            </div>
           </div>
         ))}
 
+        {/* Row 2: You step aside (Defect) */}
         <div
           style={{
-            color: "var(--accent-defect)",
-            fontWeight: 600,
-            transition: "text-shadow 0.25s",
-            textShadow:
-              hoveredChoice === "D" ? "0 0 12px var(--accent-defect)" : "none",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            paddingRight: "8px",
+            gap: "6px",
+            transition: "all 0.25s",
+            opacity: hoveredChoice === "C" ? 0.4 : 1,
           }}
         >
-          You step aside
+          <span
+            style={{
+              color: "var(--accent-defect)",
+              fontWeight: 700,
+              fontSize: "var(--text-sm)",
+              textShadow:
+                hoveredChoice === "D"
+                  ? "0 0 12px var(--accent-defect)"
+                  : "none",
+            }}
+          >
+            You step aside
+          </span>
+          <TrustFallCharacter state="standing" color="defector" size="sm" />
         </div>
         {MATRIX_CELLS.slice(2, 4).map((cell, i) => (
           <div
@@ -284,32 +349,44 @@ const PayoffMatrix: React.FC<PayoffMatrixProps> = ({ hoveredChoice }) => {
             data-animate
             onMouseEnter={() => setHoveredCell(cell.id)}
             onMouseLeave={() => setHoveredCell(null)}
-            className="glass-panel"
             style={{
-              padding: "12px",
-              color: cell.color,
-              transition:
-                "outline-color 0.25s, outline-offset 0.25s, background 0.25s",
-              outline:
-                rowHighlightColor && hoveredChoice === cell.row
-                  ? `2px solid ${rowHighlightColor}`
-                  : "2px solid transparent",
-              outlineOffset: "2px",
+              padding: "14px 10px",
+              borderRadius: "var(--radius-sm)",
               background:
                 hoveredChoice === cell.row
                   ? hoveredChoice === "C"
-                    ? "rgba(74,222,128,0.08)"
-                    : "rgba(248,113,113,0.08)"
-                  : undefined,
+                    ? "rgba(74,222,128,0.12)"
+                    : "rgba(248,113,113,0.12)"
+                  : "rgba(255,255,255,0.04)",
+              border:
+                rowHighlightColor && hoveredChoice === cell.row
+                  ? `2px solid ${rowHighlightColor}`
+                  : "1px solid rgba(255,255,255,0.08)",
+              transition:
+                "border-color 0.25s, background 0.25s, box-shadow 0.25s",
+              textAlign: "center",
             }}
           >
-            {cell.payoff}
-            <br />
-            <span
-              style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}
+            <div
+              style={{
+                fontSize: "var(--text-lg)",
+                fontWeight: 700,
+                color: cell.color,
+                fontFamily: "var(--font-mono)",
+              }}
+            >
+              {cell.payoff}
+            </div>
+            <div
+              style={{
+                fontSize: "var(--text-xs)",
+                color: "var(--text-secondary)",
+                marginTop: "4px",
+                lineHeight: 1.3,
+              }}
             >
               {cell.sub}
-            </span>
+            </div>
           </div>
         ))}
       </div>
@@ -324,6 +401,7 @@ const PayoffMatrix: React.FC<PayoffMatrixProps> = ({ hoveredChoice }) => {
           color: "var(--text-secondary)",
           transition: "opacity 0.2s",
           opacity: hoveredDescription ? 1 : 0,
+          textAlign: "center",
         }}
       >
         {hoveredDescription ?? "\u00A0"}
@@ -347,7 +425,7 @@ export const ChoiceSlide: React.FC<SlideProps> = ({ onNext }) => {
     if (playerMove) return; // Already played
     const result = calculatePayoff(move, aiMove, 1, NC_DEFAULT);
     setPlayerMove(move);
-    setPayout(result);
+    setPayout({ player: result.playerPayout, ai: result.aiPayout });
 
     let o: Outcome;
     if (move === "C" && aiMove === "C") o = "caught";
@@ -440,8 +518,58 @@ export const ChoiceSlide: React.FC<SlideProps> = ({ onNext }) => {
               borderColor: outcome ? OUTCOME_INFO[outcome].color : undefined,
             }}
           >
-            <div style={{ fontSize: "48px", marginBottom: "12px" }}>
-              {OUTCOME_INFO[outcome!].emoji}
+            <div
+              style={{
+                marginBottom: "12px",
+                display: "flex",
+                justifyContent: "center",
+                gap: "40px",
+              }}
+            >
+              <TrustFallCharacter
+                state={
+                  outcome === "caught"
+                    ? "caught"
+                    : outcome === "betrayed"
+                      ? "impact"
+                      : outcome === "exploited"
+                        ? "celebrating"
+                        : "impact"
+                }
+                color={
+                  outcome === "caught"
+                    ? "cooperator"
+                    : outcome === "betrayed"
+                      ? "you"
+                      : outcome === "exploited"
+                        ? "defector"
+                        : "defector"
+                }
+                size="xl"
+                label="You"
+              />
+              <TrustFallCharacter
+                state={
+                  outcome === "caught"
+                    ? "caught"
+                    : outcome === "betrayed"
+                      ? "celebrating"
+                      : outcome === "exploited"
+                        ? "impact"
+                        : "impact"
+                }
+                color={
+                  outcome === "caught"
+                    ? "cooperator"
+                    : outcome === "betrayed"
+                      ? "defector"
+                      : outcome === "exploited"
+                        ? "opponent"
+                        : "defector"
+                }
+                size="xl"
+                label="Them"
+              />
             </div>
             <p
               style={{

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Code, Card, Button, Input } from "@stellar/design-system";
+import { Layout, Code, Card, Input } from "@stellar/design-system";
 import { Client } from "@stellar/stellar-sdk/contract";
 import { ContractForm } from "../debug/components/ContractForm.tsx";
 import { Box } from "../components/layout/Box.tsx";
@@ -49,6 +49,11 @@ const Debugger: React.FC = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contractName, isLoading, contractKeys.join(",")]);
+
+  const noContractSelected = Boolean(
+    !selectedContract ||
+      (!contractMap[selectedContract] && !failedContracts[selectedContract]),
+  );
 
   if (isLoading) {
     return (
@@ -118,26 +123,36 @@ const Debugger: React.FC = () => {
                 textDecoration: "none",
               }}
             >
-              {({ isActive }) => (
-                <Button variant={isActive ? "primary" : "tertiary"} size="sm">
+              {({ isActive }: { isActive: boolean }) => (
+                <button
+                  type="button"
+                  style={{
+                    background: isActive
+                      ? "var(--accent-violet)"
+                      : "transparent",
+                    color: isActive ? "white" : "var(--text-secondary)",
+                    border: "1px solid var(--border-glass)",
+                    borderRadius: "var(--radius-sm)",
+                    padding: "4px 12px",
+                    fontSize: "var(--text-sm)",
+                    cursor: "pointer",
+                  }}
+                >
                   {key}
-                </Button>
+                </button>
               )}
             </NavLink>
           ))}
         </div>
       </Layout.Inset>
 
-      {/* Show error or contract details */}
-      {(!selectedContract ||
-        (!contractMap[selectedContract] &&
-          !failedContracts[selectedContract])) && (
+      {noContractSelected ? (
         <Layout.Inset>
           <p>No contract selected or contract not found.</p>
         </Layout.Inset>
-      )}
+      ) : null}
 
-      {selectedContract && failedContracts[selectedContract] && (
+      {selectedContract && Boolean(failedContracts[selectedContract]) && (
         <Layout.Inset>
           <h2>{selectedContract}</h2>
           <p style={{ color: "red" }}>
@@ -146,7 +161,7 @@ const Debugger: React.FC = () => {
         </Layout.Inset>
       )}
 
-      {selectedContract && contractMap[selectedContract] && (
+      {selectedContract && Boolean(contractMap[selectedContract]) && (
         <>
           <Layout.Inset>
             <div style={{ marginTop: "0 2rem" }}>
@@ -172,54 +187,46 @@ const Debugger: React.FC = () => {
                         }}
                         readOnly
                         value={
-                          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
                           (
                             (
                               contractMap[selectedContract] as Record<
                                 string,
                                 unknown
                               >
-                            )?.default as unknown as Client
+                            )?.default as Client
                           )?.options?.contractId || ""
                         }
                       />
 
                       {isDetailExpanded && (
                         <>
-                          <RenderContractMetadata
-                            metadata={
-                              (
-                                contractMap[selectedContract] as Record<
-                                  string,
-                                  unknown
-                                >
-                              )?.metadata
-                            }
-                          />
+                          <RenderContractMetadata />
                         </>
                       )}
                     </Box>
-                    <Button
-                      variant="tertiary"
-                      size="sm"
+                    <button
+                      type="button"
                       onClick={() => setIsDetailExpanded(!isDetailExpanded)}
-                      style={{ justifySelf: "flex-end", marginTop: "1rem" }}
+                      style={{
+                        justifySelf: "flex-end",
+                        marginTop: "1rem",
+                        background: "transparent",
+                        color: "var(--text-secondary)",
+                        border: "1px solid var(--border-glass)",
+                        borderRadius: "var(--radius-sm)",
+                        padding: "4px 12px",
+                        fontSize: "var(--text-sm)",
+                        cursor: "pointer",
+                      }}
                     >
                       {isDetailExpanded ? "Hide Details" : "Show Details"}
-                    </Button>
+                    </button>
                   </Card>
                 </div>
 
                 {/* Contract methods and interactions */}
                 <div style={{ flex: 1 }}>
-                  <ContractForm
-                    key={selectedContract}
-                    contractClient={
-                      (contractMap[selectedContract] as Record<string, unknown>)
-                        ?.default
-                    }
-                    contractClientError={null}
-                  />
+                  <ContractForm key={selectedContract} />
                 </div>
               </div>
             </div>

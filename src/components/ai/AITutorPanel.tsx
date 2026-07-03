@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Button, Text } from "@stellar/design-system";
 import { Character } from "../Character";
 import { AIPersona, selectPersonaForContext } from "./AIPersonas";
-import { VeniceAIService } from "./VeniceAIService";
+import { VeniceAIService, type GameContext } from "./VeniceAIService";
 import AudioManager from "../AudioManager";
 
 interface AITutorPanelProps {
   context: string;
-  gameState?: Record<string, unknown>;
+  gameState?: GameContext;
   playerAction?: string;
   onAdviceRequest?: () => void;
   visible?: boolean;
@@ -69,7 +68,7 @@ export const AITutorPanel: React.FC<AITutorPanelProps> = ({
       const response = await veniceService.generateTutorAdvice(
         persona.name,
         persona.personality,
-        gameState,
+        gameState ?? {},
         type,
       );
       setCurrentMessage(response);
@@ -140,9 +139,7 @@ export const AITutorPanel: React.FC<AITutorPanelProps> = ({
         />
         <div style={{ marginLeft: "10px", flex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <Text
-              as="h4"
-              size="md"
+            <h4
               style={{
                 margin: 0,
                 color: "var(--text-primary)",
@@ -150,7 +147,7 @@ export const AITutorPanel: React.FC<AITutorPanelProps> = ({
               }}
             >
               {persona.name}
-            </Text>
+            </h4>
             {veniceService.isAvailable() && (
               <span
                 style={{
@@ -166,9 +163,7 @@ export const AITutorPanel: React.FC<AITutorPanelProps> = ({
               </span>
             )}
           </div>
-          <Text
-            as="p"
-            size="md"
+          <p
             style={{
               margin: 0,
               color: "var(--text-secondary)",
@@ -176,23 +171,28 @@ export const AITutorPanel: React.FC<AITutorPanelProps> = ({
             }}
           >
             {persona.description}
-          </Text>
+          </p>
         </div>
 
         {/* CLEAN: Minimize button */}
-        <Button
+        <button
+          type="button"
           onClick={() => setShowPanel(!showPanel)}
-          size="md"
           style={{
-            width: "30px",
-            height: "30px",
+            background: "var(--accent-violet)",
+            color: "white",
+            border: "none",
             borderRadius: "50%",
             padding: 0,
+            fontFamily: "var(--font-body)",
             fontSize: "12px",
+            cursor: "pointer",
+            width: "30px",
+            height: "30px",
           }}
         >
           {showPanel ? "−" : "+"}
-        </Button>
+        </button>
       </div>
 
       {/* MODULAR: Message area with typing indicator */}
@@ -216,9 +216,7 @@ export const AITutorPanel: React.FC<AITutorPanelProps> = ({
           >
             <span style={{ marginRight: "10px", fontSize: "16px" }}>🤔</span>
             <div>
-              <Text
-                as="p"
-                size="md"
+              <p
                 style={{
                   margin: 0,
                   fontSize: "0.9rem",
@@ -226,11 +224,9 @@ export const AITutorPanel: React.FC<AITutorPanelProps> = ({
                 }}
               >
                 {persona.name} is thinking...
-              </Text>
+              </p>
               {veniceService.isAvailable() && (
-                <Text
-                  as="p"
-                  size="md"
+                <p
                   style={{
                     margin: 0,
                     fontSize: "0.7rem",
@@ -238,14 +234,12 @@ export const AITutorPanel: React.FC<AITutorPanelProps> = ({
                   }}
                 >
                   Powered by Venice AI
-                </Text>
+                </p>
               )}
             </div>
           </div>
         ) : (
-          <Text
-            as="p"
-            size="md"
+          <p
             style={{
               margin: 0,
               color: "var(--text-primary)",
@@ -254,7 +248,7 @@ export const AITutorPanel: React.FC<AITutorPanelProps> = ({
             }}
           >
             {currentMessage}
-          </Text>
+          </p>
         )}
       </div>
 
@@ -266,34 +260,46 @@ export const AITutorPanel: React.FC<AITutorPanelProps> = ({
           justifyContent: "space-between",
         }}
       >
-        <Button
+        <button
+          type="button"
           onClick={requestAdvice}
           disabled={isThinking}
           style={{
-            fontSize: "0.8rem",
+            background: "var(--accent-violet)",
+            color: "white",
+            border: "none",
+            borderRadius: "var(--radius-sm)",
             padding: "8px 12px",
+            fontFamily: "var(--font-body)",
+            fontSize: "0.8rem",
+            cursor: "pointer",
             flex: 1,
           }}
-          size="md"
         >
           💡 Advice
-        </Button>
+        </button>
 
-        <Button
+        <button
+          type="button"
           onClick={requestEncouragement}
           disabled={isThinking}
-          variant="secondary"
           style={{
-            fontSize: "0.8rem",
+            background: "var(--bg-glass-light)",
+            color: "var(--text-primary)",
+            border: "1px solid var(--border-glass)",
+            borderRadius: "var(--radius-sm)",
             padding: "8px 12px",
+            fontFamily: "var(--font-body)",
+            fontSize: "0.8rem",
+            cursor: "pointer",
             flex: 1,
           }}
-          size="md"
         >
           🎉 Encourage
-        </Button>
+        </button>
 
-        <Button
+        <button
+          type="button"
           onClick={() =>
             setCurrentMessage(
               persona.catchphrases[
@@ -301,24 +307,26 @@ export const AITutorPanel: React.FC<AITutorPanelProps> = ({
               ],
             )
           }
-          variant="secondary"
-          size="md"
           disabled={isThinking}
           style={{
-            fontSize: "0.8rem",
+            background: "var(--bg-glass-light)",
+            color: "var(--text-primary)",
+            border: "1px solid var(--border-glass)",
+            borderRadius: "var(--radius-sm)",
             padding: "8px 10px",
+            fontFamily: "var(--font-body)",
+            fontSize: "0.8rem",
+            cursor: "pointer",
             minWidth: "40px",
           }}
         >
           🎲
-        </Button>
+        </button>
       </div>
 
       {/* CLEAN: Service status indicator */}
       {!veniceService.isAvailable() && (
-        <Text
-          as="p"
-          size="md"
+        <p
           style={{
             fontSize: "0.7rem",
             color: "var(--text-muted)",
@@ -329,7 +337,7 @@ export const AITutorPanel: React.FC<AITutorPanelProps> = ({
         >
           Using offline responses • Set VITE_API_PROXY_URL or
           VITE_VENICE_API_KEY for AI
-        </Text>
+        </p>
       )}
     </div>
   );

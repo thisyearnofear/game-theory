@@ -15,7 +15,7 @@ export interface WalletContextType {
   networkPassphrase?: string;
   isPending: boolean;
   signTransaction?: typeof wallet.signTransaction;
-  connect?: () => Promise<void>;
+  connect?: () => void;
   disconnect?: () => void;
 }
 

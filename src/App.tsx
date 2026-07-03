@@ -1,82 +1,33 @@
-import { Button, Icon, Layout } from "@stellar/design-system";
-import ConnectAccount from "./components/ConnectAccount.tsx";
-import { Routes, Route, Outlet, NavLink, useNavigate } from "react-router-dom";
-import Home from "./pages/Home";
-import { TopographicBackground } from "./components/visual/TopographicBackground";
-import { CustomCursor } from "./components/ui/CustomCursor";
 import { lazy, Suspense } from "react";
+import { Routes, Route } from "react-router-dom";
+import AppShell from "./components/AppShell.tsx";
+import Home from "./pages/Home";
+import { MascotProvider } from "./components/MascotContext";
+import { ReactiveMascot } from "./components/ReactiveMascot";
 
 // Route-based code splitting:
-// - Home (tutorial/tournament) loads immediately — no ZK WASM needed
+// - Home (landing hub) loads immediately — no ZK WASM needed
+// - LearnJourney (slide deck) loads lazily — GSAP + slide content
+// - TutorialSandbox (vs AI) loads lazily — strategy engine + AI tutor
+// - TournamentPage loads lazily — tournament simulation engine
 // - ZKGamePage (multiplayer) loads lazily — pulls in bb.js/noir_js only when
 //   the user navigates to /play, keeping the initial bundle ~200KB
 // - Debugger loads lazily — rarely used, keeps it out of the main bundle
+const LearnJourney = lazy(() => import("./pages/LearnJourney.tsx"));
+const TutorialSandbox = lazy(() =>
+  import("./pages/TutorialSandbox.tsx").then((m) => ({
+    default: m.TutorialSandbox,
+  })),
+);
+const TournamentPage = lazy(() => import("./pages/TournamentPage.tsx"));
 const ZKGamePage = lazy(() =>
   import("./pages/ZKGamePage.tsx").then((m) => ({ default: m.ZKGamePage })),
 );
 const Debugger = lazy(() => import("./pages/Debugger.tsx"));
 
-const AppLayout: React.FC = () => {
-  const navigate = useNavigate();
-
-  return (
-    <main>
-      <Layout.Header
-        projectId="Trustfall"
-        projectTitle="Trustfall"
-        contentRight={
-          <>
-            <nav style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-              <NavLink
-                to="/play"
-                style={{
-                  textDecoration: "none",
-                }}
-              >
-                {({ isActive }) => (
-                  <Button
-                    variant={isActive ? "primary" : "tertiary"}
-                    size="md"
-                    onClick={() => void navigate("/play")}
-                    disabled={isActive}
-                  >
-                    🎮 ZK Play
-                  </Button>
-                )}
-              </NavLink>
-              <NavLink
-                to="/debug"
-                style={{
-                  textDecoration: "none",
-                }}
-              >
-                {({ isActive }) => (
-                  <Button
-                    variant="tertiary"
-                    size="md"
-                    onClick={() => void navigate("/debug")}
-                    disabled={isActive}
-                  >
-                    <Icon.Code02 size="md" />
-                    Debugger
-                  </Button>
-                )}
-              </NavLink>
-            </nav>
-            <ConnectAccount />
-          </>
-        }
-      />
-      <Outlet />
-    </main>
-  );
-};
-
 function App() {
   return (
-    <>
-      <CustomCursor />
-      <TopographicBackground />
+    <MascotProvider>
       <Suspense
         fallback={
           <div
@@ -102,16 +53,20 @@ function App() {
         }
       >
         <Routes>
-          <Route element={<AppLayout />}>
+          <Route element={<AppShell />}>
             <Route path="/" element={<Home />} />
+            <Route path="/learn" element={<LearnJourney />} />
+            <Route path="/learn/play" element={<TutorialSandbox />} />
+            <Route path="/tournament" element={<TournamentPage />} />
             <Route path="/play" element={<ZKGamePage />} />
             <Route path="/play/:gameId" element={<ZKGamePage />} />
             <Route path="/debug" element={<Debugger />} />
             <Route path="/debug/:contractName" element={<Debugger />} />
           </Route>
         </Routes>
+        <ReactiveMascot />
       </Suspense>
-    </>
+    </MascotProvider>
   );
 }
 
